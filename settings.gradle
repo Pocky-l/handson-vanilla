@@ -1,0 +1,23 @@
+pluginManagement {
+    repositories {
+        gradlePluginPortal()
+        maven { url = 'https://maven.neoforged.net/releases' }
+        maven {
+            name = 'Fabric'
+            url = 'https://maven.fabricmc.net/'
+        }
+    }
+}
+
+plugins {
+    id 'org.gradle.toolchains.foojay-resolver-convention' version '1.0.0'
+}
+
+rootProject.name = 'handson_vanilla'
+
+// common: the stations, scenes and assets, compiled against plain Minecraft and the Diegesis API; forge: the loader
+// glue, which compiles the common sources into its own jar. Fabric joins later.
+include 'common', 'forge'
+
+// The Diegesis library comes from its working copy while both are developed together.
+includeBuild('../diegesis')

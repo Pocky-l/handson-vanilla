@@ -1,0 +1,73 @@
+{
+  "$schema": "https://raw.githubusercontent.com/Pocky-l/diegesis/main/docs/schema/scene.schema.json",
+  "$comment": "The furnace's own model (this mod's, always) has its mouth (upper, x 3-13, y 9-13) and firebox (lower, x 3-13, y 1-5) as hollows 6 pixels deep lined with firebrick behind grille doors, a grate under the mouth and lumps of coal in the firebox that glow while it burns. At the station the block is swapped for body (the same without doors) and the four door leaves, hinged at x 4 and 12 in the front's plane; code swings them open along the front and shut again. input stands on the grate on the viewer's left, result on the right, fuel in the middle of the firebox in front of the embers. progress is a thin bar floating just over the front edge of the grate, the mouth's width (its track, and progress_fill glowing as the cooking goes), shown while something cooks. The camera stands in front and a little to the right, above, looking into both hollows, close enough to the middle that its lines to the work surface stay clear of a block standing right of the furnace (clear_view would hide it); input and result sit 0.8 pixels left of the mouth's middle, where they look centred from the camera; clicks count from 60% of the flight. The fire's own flames and smoke (inside the firebox) stay seen. A held stack moves over the furnace's front (carry plane over the block). Idle the scene draws what is known to lie in the furnace (FurnaceContents, painters on the slots) behind the shut grille doors. The hotbar stays where the HUD has it and takes clicks; over it rows of the other stacks that smelt or burn.",
+  "work_plane": 0,
+  "idle_visible": true,
+  "camera": {
+    "position": [-2.5, 14.5, -28],
+    "target": [8, 7.5, 3],
+    "fov": 40,
+    "interactive_at": 0.6
+  },
+  "interface": {
+    "hide_player": true,
+    "inventory_panel": false,
+    "sounds": false,
+    "carry_lift": 0.5,
+    "highlight_color": "#26FFFFFF",
+    "hover_outline": false
+  },
+  "inventory_drawer": {
+    "layout": "hotbar",
+    "always_open": true,
+    "carry_size": 3.2
+  },
+  "clear_view": {"particles": false},
+  "carry_planes": [
+    {"from": [-6, 0], "to": [22, 16], "height": 16, "blend": 3}
+  ],
+  "nodes": [
+    {
+      "id": "body",
+      "pos": [8, 0, 8],
+      "pickable": false,
+      "hidden": true,
+      "visual": {"model": "handson_vanilla:diegesis/furnace_body", "lit_as_block": true}
+    },
+    {"id": "mouth_door_right", "pos": [4, 9, 0], "pickable": false, "hidden": true,
+      "visual": {"model": "handson_vanilla:diegesis/furnace_door", "anchor": [0, 0, 8], "lit_as_block": true}},
+    {"id": "mouth_door_left", "pos": [12, 9, 0], "rotation": [0, 180, 0], "pickable": false, "hidden": true,
+      "visual": {"model": "handson_vanilla:diegesis/furnace_door", "anchor": [0, 0, 8], "lit_as_block": true}},
+    {"id": "firebox_door_right", "pos": [4, 1, 0], "pickable": false, "hidden": true,
+      "visual": {"model": "handson_vanilla:diegesis/furnace_door", "anchor": [0, 0, 8], "lit_as_block": true}},
+    {"id": "firebox_door_left", "pos": [12, 1, 0], "rotation": [0, 180, 0], "pickable": false, "hidden": true,
+      "visual": {"model": "handson_vanilla:diegesis/furnace_door", "anchor": [0, 0, 8], "lit_as_block": true}},
+    {
+      "id": "input",
+      "pos": [11.2, 9, 3],
+      "slot": {"slot": "input[0]", "display": "upright", "size": 3.2, "count_facing": "front"},
+      "collider": {"from": [-2.6, 0, -3.2], "to": [2.6, 4, 3]}
+    },
+    {
+      "id": "result",
+      "pos": [6.4, 9, 3],
+      "slot": {"slot": "result[0]", "display": "upright", "size": 3.2, "count_facing": "front"},
+      "collider": {"from": [-2.6, 0, -3.2], "to": [2.6, 4, 3]}
+    },
+    {
+      "id": "fuel",
+      "pos": [8, 1, 2.2],
+      "slot": {"slot": "fuel[0]", "display": "upright", "size": 2.8, "count_facing": "front"},
+      "collider": {"from": [-4.6, 0, -3.2], "to": [4.6, 4, 3]}
+    },
+    {
+      "id": "progress",
+      "pos": [8, 9.2, 0.4],
+      "pickable": false,
+      "hidden": true,
+      "children": [
+        {"id": "progress_fill", "pos": [0, 0, 0], "pickable": false, "hidden": true}
+      ]
+    }
+  ]
+}

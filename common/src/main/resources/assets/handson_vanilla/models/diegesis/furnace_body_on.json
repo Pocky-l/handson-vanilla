@@ -1,0 +1,8 @@
+{
+  "parent": "handson_vanilla:diegesis/furnace_body",
+  "textures": {
+    "lining": "handson_vanilla:block/furnace_lining_lit",
+    "grate": "handson_vanilla:block/furnace_grate_lit",
+    "embers": "minecraft:block/magma"
+  }
+}
