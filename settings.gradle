@@ -15,9 +15,9 @@ plugins {
 
 rootProject.name = 'handson_vanilla'
 
-// common: the stations, scenes and assets, compiled against plain Minecraft and the Diegesis API; forge: the loader
-// glue, which compiles the common sources into its own jar. Fabric joins later.
-include 'common', 'forge'
+// common: the stations, scenes and assets, compiled against plain Minecraft and the Diegesis API; forge / fabric: the
+// loader glue. Each loader project compiles the common sources into its own jar.
+include 'common', 'forge', 'fabric'
 
 // The Diegesis library comes from its working copy while both are developed together.
 includeBuild('../diegesis')

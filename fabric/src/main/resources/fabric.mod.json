@@ -1,0 +1,30 @@
+{
+  "schemaVersion": 1,
+  "id": "${mod_id}",
+  "version": "${mod_version}",
+  "name": "${mod_name}",
+  "description": "${mod_description}",
+  "authors": ["${mod_authors}"],
+  "contact": {
+    "homepage": "${mod_url}",
+    "sources": "${mod_url}",
+    "issues": "${mod_url}/issues"
+  },
+  "license": "${mod_license}",
+  "icon": "logo.png",
+  "environment": "*",
+  "entrypoints": {
+    "client": ["com.pockyl.handson_vanilla.fabric.HandsOnVanillaFabricClient"],
+    "jei_mod_plugin": ["com.pockyl.handson_vanilla.compat.jei.VanillaJeiPlugin"],
+    "emi": ["com.pockyl.handson_vanilla.compat.emi.VanillaEmiPlugin"],
+    "fabric-gametest": ["com.pockyl.handson_vanilla.fabric.FabricGameTests"]
+  },
+  "mixins": ["handson_vanilla.mixins.json"],
+  "depends": {
+    "fabricloader": ">=${fabric_loader_version}",
+    "fabric-api": ">=${fabric_api_version}",
+    "minecraft": "${minecraft_version}",
+    "java": ">=17",
+    "diegesis": ">=${diegesis_version}"
+  }
+}

@@ -32,6 +32,7 @@ Thumbs.db
 run/
 run-data/
 run-server/
+run-gametest/
 !**/src/**/run/
 **/src/generated/**/.cache/
 repo/

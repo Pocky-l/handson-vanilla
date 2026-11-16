@@ -1,5 +1,13 @@
 # Changelog
 
+## [1.0.0-fabric] - Unreleased
+
+Hands-On Vanilla now runs on [Fabric](https://fabricmc.net) for Minecraft 1.20.1, with everything the Forge file of 1.0.0 has.
+
+- Needs [Fabric API](https://www.curseforge.com/minecraft/mc-mods/fabric-api) and the Fabric file of
+  [Diegesis](https://www.curseforge.com/minecraft/mc-mods/diegesis) 1.0.0-beta.11 or newer.
+- The config file is the same as on Forge: `config/handson_vanilla.properties`.
+
 ## [1.0.0]
 
 The first release: the crafting table and the furnace are worked by hand, right on the block, with no menu screen.

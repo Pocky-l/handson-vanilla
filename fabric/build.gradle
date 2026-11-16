@@ -1,0 +1,102 @@
+plugins {
+    id 'multiloader-loader'
+    id 'fabric-loom'
+}
+
+dependencies {
+    minecraft "com.mojang:minecraft:${minecraft_version}"
+    mappings loom.layered {
+        officialMojangMappings()
+        parchment("org.parchmentmc.data:parchment-${parchment_minecraft_version}:${parchment_mappings_version}@zip")
+    }
+    modImplementation "net.fabricmc:fabric-loader:${fabric_loader_version}"
+    modImplementation "net.fabricmc.fabric-api:fabric-api:${fabric_api_version}"
+    // The API is in Diegesis' common jar, in Mojang names like this project; the Fabric jar of the library plays in
+    // the playtest client (playtest-1.20.1-fabric) and in the game tests below.
+    compileOnly "com.pockyl.diegesis:common:${diegesis_version}"
+    compileOnly "mezz.jei:jei-${minecraft_version}-common-api:${jei_version}"
+    modCompileOnly "mezz.jei:jei-${minecraft_version}-fabric-api:${jei_version}"
+    modCompileOnly "dev.emi:emi-fabric:${emi_version}:api"
+}
+
+loom {
+    mods {
+        "${mod_id}" {
+            sourceSet sourceSets.main
+        }
+    }
+    runs {
+        client {
+            client()
+            configName = 'Fabric Client'
+            ideConfigGenerated(true)
+            runDir('run')
+        }
+        server {
+            server()
+            configName = 'Fabric Server'
+            ideConfigGenerated(true)
+            runDir('run-server')
+        }
+    }
+}
+
+configurations {
+    gameTestMods { transitive = false }
+}
+
+dependencies {
+    gameTestMods "net.fabricmc.fabric-api:fabric-api:${fabric_api_version}"
+    // Not in the fabric-api jar: the module that runs the tests (the version fabric-api's POM names).
+    gameTestMods 'net.fabricmc.fabric-api:fabric-gametest-api-v1:1.2.15+1802ada577'
+}
+
+// The game tests on a production Fabric server with the release jars of this mod, Diegesis and Fabric API:
+// gradlew :fabric:runGameTest. The mod is client-side only, so this shows that it loads on a server and stays out of
+// the way there, and runs the tests of common.
+tasks.register('runGameTest', net.fabricmc.loom.task.prod.ServerProductionRunTask) {
+    group = 'fabric'
+    dependsOn gradle.includedBuild('diegesis').task(':fabric:remapJar')
+    mods.from(tasks.named('remapJar'))
+    mods.from(configurations.gameTestMods)
+    mods.from(file("../../diegesis/fabric/build/libs/diegesis-fabric-${minecraft_version}-${diegesis_version}.jar"))
+    installerVersion = '1.1.0'
+    jvmArgs.add('-Dfabric-api.gametest')
+    runDir = file('run-gametest')
+    def eula = file('run-gametest/eula.txt')
+    doFirst {
+        eula.parentFile.mkdirs()
+        eula.text = 'eula=true' + System.lineSeparator()
+    }
+}
+
+tasks.named('processResources', ProcessResources) {
+    var replaceProperties = [
+            minecraft_version    : minecraft_version,
+            fabric_loader_version: fabric_loader_min_version,
+            fabric_api_version   : fabric_api_min_version,
+            mod_id               : mod_id,
+            mod_name             : mod_name,
+            mod_license          : mod_license,
+            mod_version          : mod_version,
+            mod_authors          : mod_authors,
+            mod_description      : mod_description,
+            mod_url              : mod_url,
+            diegesis_version     : diegesis_version,
+    ]
+    inputs.properties replaceProperties
+    filesMatching('fabric.mod.json') {
+        expand replaceProperties
+    }
+    // Forge finds its SRG names through the refmap the mixin config names; Loom remaps the mixins in the jar itself
+    // and writes none, so the Fabric jar leaves the line out.
+    filesMatching('handson_vanilla.mixins.json') {
+        filter { String line -> line.contains('"refmap"') ? null : line }
+    }
+}
+
+publishMods {
+    file = tasks.named('remapJar').flatMap { it.archiveFile }
+    displayName = "${mod_name} ${mod_version}+${minecraft_version} (Fabric)"
+    modLoaders.add('fabric')
+}
