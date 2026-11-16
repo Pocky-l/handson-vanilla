@@ -1,7 +1,6 @@
 # Changelog
 
-## [1.0.0-fabric] - Unreleased
-
+## [1.0.0-fabric] - 2026-11-16
 Hands-On Vanilla now runs on [Fabric](https://fabricmc.net) for Minecraft 1.20.1, with everything the Forge file of 1.0.0 has.
 
 - Needs [Fabric API](https://www.curseforge.com/minecraft/mc-mods/fabric-api) and the Fabric file of
