@@ -1,14 +1,15 @@
 package com.pockyl.handson_vanilla.client;
 
 import net.minecraft.client.Minecraft;
+import net.minecraft.tags.ItemTags;
 import net.minecraft.world.item.BannerItem;
 import net.minecraft.world.item.BlockItem;
-import net.minecraft.world.item.DyeableLeatherItem;
 import net.minecraft.world.item.Item;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.item.Items;
 import net.minecraft.world.item.crafting.Ingredient;
-import net.minecraft.world.item.crafting.Recipe;
+import net.minecraft.world.item.crafting.CraftingRecipe;
+import net.minecraft.world.item.crafting.RecipeHolder;
 import net.minecraft.world.item.crafting.RecipeType;
 import net.minecraft.world.level.block.ShulkerBoxBlock;
 
@@ -36,8 +37,8 @@ final class CraftingUse {
         if (level == null) {
             return;
         }
-        for (Recipe<?> recipe : level.getRecipeManager().getAllRecipesFor(RecipeType.CRAFTING)) {
-            for (Ingredient ingredient : recipe.getIngredients()) {
+        for (RecipeHolder<CraftingRecipe> recipe : level.getRecipeManager().getAllRecipesFor(RecipeType.CRAFTING)) {
+            for (Ingredient ingredient : recipe.value().getIngredients()) {
                 for (ItemStack option : ingredient.getItems()) {
                     INGREDIENTS.add(option.getItem());
                 }
@@ -50,7 +51,7 @@ final class CraftingUse {
             refresh();
         }
         Item item = stack.getItem();
-        return INGREDIENTS.contains(item) || SPECIAL.contains(item) || stack.isDamageableItem() || item instanceof DyeableLeatherItem
+        return INGREDIENTS.contains(item) || SPECIAL.contains(item) || stack.isDamageableItem() || stack.is(ItemTags.DYEABLE)
                 || item instanceof BannerItem || item instanceof BlockItem block && block.getBlock() instanceof ShulkerBoxBlock;
     }
 }

@@ -51,7 +51,7 @@ final class FurnaceModels {
         ModelLoadingPlugin.register(context -> {
             Map<ResourceLocation, BlockModel> models = new HashMap<>();
             for (String name : MODELS) {
-                ResourceLocation id = new ResourceLocation(ResourceLocation.DEFAULT_NAMESPACE, "block/" + name);
+                ResourceLocation id = ResourceLocation.withDefaultNamespace("block/" + name);
                 readModel(FOLDER + "models/block/" + name + ".json").ifPresent(model -> {
                     model.name = id.toString();
                     models.put(id, model);

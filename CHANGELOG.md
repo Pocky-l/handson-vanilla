@@ -1,5 +1,13 @@
 # Changelog
 
+## [1.0.0+1.21.1] - Unreleased
+
+Hands-On Vanilla on Minecraft 1.21.1, for [NeoForge](https://neoforged.net) and [Fabric](https://fabricmc.net), with
+everything 1.0.0 does on 1.20.1: the crafting table and the furnace worked by hand, the recipe book and the recipe viewers' keys.
+
+- Needs [Diegesis](https://www.curseforge.com/minecraft/mc-mods/diegesis) 1.0.0-beta.11 for 1.21.1; Fabric also needs
+  [Fabric API](https://www.curseforge.com/minecraft/mc-mods/fabric-api).
+
 ## [1.0.0-fabric] - Unreleased
 
 Hands-On Vanilla now runs on [Fabric](https://fabricmc.net) for Minecraft 1.20.1, with everything the Forge file of 1.0.0 has.

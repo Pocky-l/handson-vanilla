@@ -19,9 +19,8 @@ import java.nio.file.Path;
 public final class HandsOnVanillaClient {
     public static final String GRID = "grid";
     public static final String RESULT = "result";
-    @SuppressWarnings("removal")
     private static final net.minecraft.resources.ResourceLocation VISUAL_WORKBENCH =
-            new net.minecraft.resources.ResourceLocation("visualworkbench", "crafting");
+            net.minecraft.resources.ResourceLocation.fromNamespaceAndPath("visualworkbench", "crafting");
 
     private HandsOnVanillaClient() {
     }

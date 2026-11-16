@@ -1,22 +1,26 @@
-package com.pockyl.handson_vanilla.forge;
+package com.pockyl.handson_vanilla.neoforge;
 
-import net.minecraft.SharedConstants;
 import net.minecraft.network.chat.Component;
 import net.minecraft.resources.ResourceLocation;
+import net.minecraft.server.packs.PackLocationInfo;
+import net.minecraft.server.packs.PackSelectionConfig;
 import net.minecraft.server.packs.PackType;
 import net.minecraft.server.packs.PathPackResources;
 import net.minecraft.server.packs.repository.Pack;
+import net.minecraft.server.packs.repository.PackCompatibility;
 import net.minecraft.server.packs.repository.PackSource;
 import net.minecraft.server.packs.resources.IoSupplier;
 import net.minecraft.world.flag.FeatureFlagSet;
-import net.minecraftforge.event.AddPackFindersEvent;
-import net.minecraftforge.fml.ModList;
+import net.neoforged.fml.ModList;
+import net.neoforged.neoforge.event.AddPackFindersEvent;
 
 import com.pockyl.handson_vanilla.HandsOnVanilla;
 import com.pockyl.handson_vanilla.client.VanillaConfig;
 
 import java.io.InputStream;
 import java.nio.file.Path;
+import java.util.List;
+import java.util.Optional;
 import java.util.Set;
 
 /**
@@ -40,18 +44,29 @@ final class FurnacePack {
             return;
         }
         Path root = ModList.get().getModFileById(HandsOnVanilla.MOD_ID).getFile().getSecureJar().getRootPath().resolve(FOLDER);
-        Pack.ResourcesSupplier resources = id -> new OnlyTheFurnace(id, root);
-        int format = SharedConstants.getCurrentVersion().getPackVersion(PackType.CLIENT_RESOURCES);
-        Component name = Component.literal("Hands-On Vanilla: furnace");
-        Pack.Info info = new Pack.Info(name, format, format, FeatureFlagSet.of(), true);
-        Pack pack = Pack.create(ID, name, true, resources, info, PackType.CLIENT_RESOURCES, Pack.Position.TOP, true, PackSource.BUILT_IN);
-        event.addRepositorySource(consumer -> consumer.accept(pack));
+        PackLocationInfo location = new PackLocationInfo(ID, Component.literal("Hands-On Vanilla: furnace"), PackSource.BUILT_IN,
+                Optional.empty());
+        Pack.ResourcesSupplier resources = new Pack.ResourcesSupplier() {
+            @Override
+            public OnlyTheFurnace openPrimary(PackLocationInfo info) {
+                return new OnlyTheFurnace(info, root);
+            }
+
+            @Override
+            public OnlyTheFurnace openFull(PackLocationInfo info, Pack.Metadata metadata) {
+                return new OnlyTheFurnace(info, root);
+            }
+        };
+        // The folder has no pack.mcmeta of its own: the pack's metadata is made here.
+        Pack.Metadata metadata = new Pack.Metadata(location.title(), PackCompatibility.COMPATIBLE, FeatureFlagSet.of(), List.of());
+        Pack pack = new Pack(location, resources, metadata, new PackSelectionConfig(true, Pack.Position.TOP, true));
+        event.addRepositorySource(consumer -> consumer.accept(pack.hidden()));
     }
 
     /** The pack's files: client resources under Minecraft's name only. */
     private static final class OnlyTheFurnace extends PathPackResources {
-        OnlyTheFurnace(String id, Path root) {
-            super(id, root, true);
+        OnlyTheFurnace(PackLocationInfo info, Path root) {
+            super(info, root);
         }
 
         @Override

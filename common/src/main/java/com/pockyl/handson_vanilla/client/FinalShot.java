@@ -63,7 +63,7 @@ final class FinalShot {
     /** The shot of the scene file, {@code assets/<namespace>/diegesis/scenes/<path>.json}; empty without a field of view of its own. */
     @SuppressWarnings("removal")
     private static Optional<Shot> read(ResourceLocation scene) {
-        ResourceLocation file = new ResourceLocation(scene.getNamespace(), "diegesis/scenes/" + scene.getPath() + ".json");
+        ResourceLocation file = ResourceLocation.fromNamespaceAndPath(scene.getNamespace(), "diegesis/scenes/" + scene.getPath() + ".json");
         try (Reader reader = Minecraft.getInstance().getResourceManager().openAsReader(file)) {
             JsonObject camera = JsonParser.parseReader(reader).getAsJsonObject().getAsJsonObject("camera");
             if (camera == null || !camera.has("fov") || camera.get("fov").getAsDouble() <= 0.0) {

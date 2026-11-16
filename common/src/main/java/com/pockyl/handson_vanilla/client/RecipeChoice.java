@@ -8,10 +8,11 @@ import net.minecraft.client.renderer.texture.OverlayTexture;
 import net.minecraft.core.NonNullList;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraft.sounds.SoundEvents;
-import net.minecraft.world.inventory.TransientCraftingContainer;
 import net.minecraft.world.item.ItemDisplayContext;
 import net.minecraft.world.item.ItemStack;
+import net.minecraft.world.item.crafting.CraftingInput;
 import net.minecraft.world.item.crafting.CraftingRecipe;
+import net.minecraft.world.item.crafting.RecipeHolder;
 import net.minecraft.world.item.crafting.RecipeType;
 
 import com.pockyl.diegesis.api.client.NodeView;
@@ -106,21 +107,21 @@ final class RecipeChoice {
         for (int i = 0; i < now.length; i++) {
             items.set(i, now[i].copy());
         }
-        TransientCraftingContainer container = new TransientCraftingContainer(view.menu().handle(), 3, 3, items);
-        List<CraftingRecipe> matches = level.getRecipeManager().getRecipesFor(RecipeType.CRAFTING, container, level);
+        CraftingInput container = CraftingInput.of(3, 3, items);
+        List<RecipeHolder<CraftingRecipe>> matches = level.getRecipeManager().getRecipesFor(RecipeType.CRAFTING, container, level);
         int place = 0;
         List<ItemStack> seen = new ArrayList<>();
         if (!shown.isEmpty()) {
             seen.add(shown);
         }
-        for (CraftingRecipe recipe : matches) {
-            ItemStack makes = recipe.assemble(container, level.registryAccess());
-            if (makes.isEmpty() || seen.stream().anyMatch(other -> ItemStack.isSameItemSameTags(other, makes))) {
+        for (RecipeHolder<CraftingRecipe> recipe : matches) {
+            ItemStack makes = recipe.value().assemble(container, level.registryAccess());
+            if (makes.isEmpty() || seen.stream().anyMatch(other -> ItemStack.isSameItemSameComponents(other, makes))) {
                 continue;
             }
             seen.add(makes);
             if (place < PLACES) {
-                recipes[place] = recipe.getId();
+                recipes[place] = recipe.id();
                 outputs[place] = makes;
                 place++;
             }
@@ -144,9 +145,9 @@ final class RecipeChoice {
             return;
         }
         try {
-            Object api = Class.forName("com.illusivesoulworks.polymorph.api.PolymorphApi").getMethod("common").invoke(null);
-            Object distributor = api.getClass().getMethod("getPacketDistributor").invoke(api);
-            send.invoke(distributor, recipes[place]);
+            Object api = Class.forName("com.illusivesoulworks.polymorph.api.PolymorphApi").getMethod("getInstance").invoke(null);
+            Object network = api.getClass().getMethod("getNetwork").invoke(api);
+            send.invoke(network, recipes[place]);
         } catch (ReflectiveOperationException | RuntimeException ignored) {
             return;
         }
@@ -206,8 +207,8 @@ final class RecipeChoice {
         if (!looked) {
             looked = true;
             try {
-                Class<?> distributor = Class.forName("com.illusivesoulworks.polymorph.api.common.base.IPolymorphPacketDistributor");
-                selection = distributor.getMethod("sendPlayerRecipeSelectionC2S", ResourceLocation.class);
+                Class<?> network = Class.forName("com.illusivesoulworks.polymorph.api.common.base.IPolymorphNetwork");
+                selection = network.getMethod("sendPlayerRecipeSelectionC2S", ResourceLocation.class);
             } catch (ReflectiveOperationException | LinkageError ignored) {
                 selection = null;
             }

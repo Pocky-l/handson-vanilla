@@ -14,7 +14,7 @@ import net.minecraft.network.protocol.game.ServerboundRecipeBookChangeSettingsPa
 import net.minecraft.network.protocol.game.ServerboundRecipeBookSeenRecipePacket;
 import net.minecraft.world.inventory.RecipeBookType;
 import net.minecraft.world.item.crafting.Ingredient;
-import net.minecraft.world.item.crafting.Recipe;
+import net.minecraft.world.item.crafting.RecipeHolder;
 import net.minecraft.world.item.crafting.RecipeType;
 import net.minecraft.world.item.crafting.ShapedRecipe;
 import net.minecraft.world.level.Level;
@@ -37,7 +37,7 @@ import java.util.Locale;
 final class CraftingBook implements RecipeBook.Source {
     private static final int GRID = 3;
     /** The recipes the pages were last made from, and those pages: the same recipes give the same list, made once. */
-    private List<CraftingRecipe> madeFrom = List.of();
+    private List<RecipeHolder<CraftingRecipe>> madeFrom = List.of();
     private List<RecipeBook.Page> made = List.of();
 
     @Override
@@ -47,10 +47,11 @@ final class CraftingBook implements RecipeBook.Source {
         if (player == null) {
             return List.of();
         }
-        List<CraftingRecipe> unlocked = new ArrayList<>();
-        for (CraftingRecipe recipe : level.getRecipeManager().getAllRecipesFor(RecipeType.CRAFTING)) {
-            if (!recipe.isSpecial() && !recipe.getIngredients().isEmpty() && player.getRecipeBook().contains(recipe)) {
-                unlocked.add(recipe);
+        List<RecipeHolder<CraftingRecipe>> unlocked = new ArrayList<>();
+        for (RecipeHolder<CraftingRecipe> holder : level.getRecipeManager().getAllRecipesFor(RecipeType.CRAFTING)) {
+            CraftingRecipe recipe = holder.value();
+            if (!recipe.isSpecial() && !recipe.getIngredients().isEmpty() && player.getRecipeBook().contains(holder)) {
+                unlocked.add(holder);
             }
         }
         // Read four times a second: a big pack's thousands of pages are made again only when a recipe came, went or was reloaded.
@@ -58,12 +59,13 @@ final class CraftingBook implements RecipeBook.Source {
             return made;
         }
         List<RecipeBook.Page> pages = new ArrayList<>();
-        for (CraftingRecipe recipe : unlocked) {
+        for (RecipeHolder<CraftingRecipe> holder : unlocked) {
+            CraftingRecipe recipe = holder.value();
             ItemStack result = recipe.getResultItem(level.registryAccess());
             if (result.isEmpty()) {
                 continue;
             }
-            pages.add(new RecipeBook.Page(recipe.getId(), result.copy(), laid(recipe), List.of(), null, false,
+            pages.add(new RecipeBook.Page(holder.id(), result.copy(), laid(recipe), List.of(), null, false,
                     recipe.category().name().toLowerCase(Locale.ROOT), recipe.getGroup()));
         }
         madeFrom = unlocked;
@@ -72,7 +74,7 @@ final class CraftingBook implements RecipeBook.Source {
     }
 
     /** Whether these are the very recipes the pages were made from: the same objects, so a reload is a change too. */
-    private boolean sameRecipes(List<CraftingRecipe> unlocked) {
+    private boolean sameRecipes(List<RecipeHolder<CraftingRecipe>> unlocked) {
         if (unlocked.size() != madeFrom.size()) {
             return false;
         }
@@ -164,21 +166,21 @@ final class CraftingBook implements RecipeBook.Source {
     @Override
     public boolean isNew(RecipeBook.Page page) {
         LocalPlayer player = Minecraft.getInstance().player;
-        Recipe<?> recipe = recipe(page);
+        RecipeHolder<?> recipe = recipe(page);
         return player != null && recipe != null && player.getRecipeBook().willHighlight(recipe);
     }
 
     @Override
     public void seen(RecipeBook.Page page) {
         LocalPlayer player = Minecraft.getInstance().player;
-        Recipe<?> recipe = recipe(page);
+        RecipeHolder<?> recipe = recipe(page);
         if (player != null && recipe != null) {
             player.getRecipeBook().removeHighlight(recipe);
             player.connection.send(new ServerboundRecipeBookSeenRecipePacket(recipe));
         }
     }
 
-    private static Recipe<?> recipe(RecipeBook.Page page) {
+    private static RecipeHolder<?> recipe(RecipeBook.Page page) {
         var level = Minecraft.getInstance().level;
         return level == null || !(page.key() instanceof ResourceLocation id) ? null : level.getRecipeManager().byKey(id).orElse(null);
     }

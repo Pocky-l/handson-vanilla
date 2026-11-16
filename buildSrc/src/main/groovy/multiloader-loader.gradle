@@ -1,4 +1,4 @@
-// A loader project (forge, fabric): compiles the common sources and resources into its own jar and publishes it.
+// A loader project (neoforge, fabric): compiles the common sources and resources into its own jar and publishes it.
 plugins {
     id 'multiloader-common'
     id 'me.modmuss50.mod-publish-plugin'
@@ -45,13 +45,13 @@ static String extractChangelog(String changelog, String version) {
     return body ?: null
 }
 
-// A branch may have its own "## [<version>+<minecraft version>]" sections; the plain version is the fallback. A release of
-// this loader alone (release.ps1 -Loaders) has a "## [<version>+<minecraft version>-<loader>]" section, or
-// "## [<version>-<loader>]" on main, which releases without -Mc; that one is used first.
+// This branch has its own "## [<version>+<minecraft version>]" sections; the plain version is the fallback. A release of
+// this loader alone (release.ps1 -Loaders) has a "## [<version>+<minecraft version>-<loader>]" section, used first.
+// "## [<version>-<loader>]" is main's (1.20.1, released without -Mc): it comes after this line's own section.
 def changelogText = providers.fileContents(rootProject.layout.projectDirectory.file('CHANGELOG.md')).asText.getOrElse('')
 def releaseNotes = extractChangelog(changelogText, "${mod_version}+${minecraft_version}-${project.name}".toString())
-        ?: extractChangelog(changelogText, "${mod_version}-${project.name}".toString())
         ?: extractChangelog(changelogText, "${mod_version}+${minecraft_version}".toString())
+        ?: extractChangelog(changelogText, "${mod_version}-${project.name}".toString())
         ?: extractChangelog(changelogText, mod_version)
 def curseforgeToken = providers.gradleProperty('curseforge_token')
         .orElse(providers.environmentVariable('CURSEFORGE_TOKEN'))
@@ -91,7 +91,7 @@ publishMods {
         projectId = curseforge_project_id
         accessToken = curseforgeToken
         minecraftVersions.add(minecraft_version)
-        javaVersions.add(JavaVersion.VERSION_17)
+        javaVersions.add(JavaVersion.VERSION_21)
         client = curseforge_client.toBoolean()
         server = curseforge_server.toBoolean()
         // curseforge_requires_<loader> replaces the shared list for that loader.

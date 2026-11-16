@@ -1,11 +1,12 @@
 package com.pockyl.handson_vanilla.client;
 
 import net.minecraft.client.Minecraft;
-import net.minecraft.world.SimpleContainer;
 import net.minecraft.world.item.Item;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.item.crafting.AbstractCookingRecipe;
+import net.minecraft.world.item.crafting.RecipeHolder;
 import net.minecraft.world.item.crafting.RecipeType;
+import net.minecraft.world.item.crafting.SingleRecipeInput;
 import net.minecraft.world.level.Level;
 import net.minecraft.world.level.block.entity.AbstractFurnaceBlockEntity;
 
@@ -53,7 +54,7 @@ final class FurnaceUse {
         }
         return RESULTS.computeIfAbsent(stack.getItem(), item -> {
             Optional<? extends AbstractCookingRecipe> recipe = level.getRecipeManager()
-                    .getRecipeFor(RecipeType.SMELTING, new SimpleContainer(new ItemStack(item)), level);
+                    .getRecipeFor(RecipeType.SMELTING, new SingleRecipeInput(new ItemStack(item)), level).map(RecipeHolder::value);
             return recipe.map(found -> found.getResultItem(level.registryAccess()).copy()).orElse(ItemStack.EMPTY);
         });
     }

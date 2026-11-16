@@ -27,6 +27,7 @@ import net.minecraft.world.inventory.CraftingMenu;
 import net.minecraft.world.inventory.MenuType;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.item.crafting.CraftingRecipe;
+import net.minecraft.world.item.crafting.RecipeHolder;
 
 import com.pockyl.handson_vanilla.HandsOnVanilla;
 import com.pockyl.handson_vanilla.client.StationHover;
@@ -90,37 +91,37 @@ public final class VanillaJeiPlugin implements IModPlugin {
             }
             return new IGuiProperties() {
                 @Override
-                public Class<? extends Screen> getScreenClass() {
+                public Class<? extends Screen> screenClass() {
                     return station;
                 }
 
                 @Override
-                public int getGuiLeft() {
+                public int guiLeft() {
                     return 0;
                 }
 
                 @Override
-                public int getGuiTop() {
+                public int guiTop() {
                     return 0;
                 }
 
                 @Override
-                public int getGuiXSize() {
+                public int guiXSize() {
                     return middle;
                 }
 
                 @Override
-                public int getGuiYSize() {
+                public int guiYSize() {
                     return height;
                 }
 
                 @Override
-                public int getScreenWidth() {
+                public int screenWidth() {
                     return width;
                 }
 
                 @Override
-                public int getScreenHeight() {
+                public int screenHeight() {
                     return height;
                 }
             };
@@ -130,7 +131,7 @@ public final class VanillaJeiPlugin implements IModPlugin {
     @Override
     public void registerRecipeTransferHandlers(IRecipeTransferRegistration registration) {
         IRecipeTransferHandlerHelper helper = registration.getTransferHelper();
-        IRecipeTransferHandler<CraftingMenu, CraftingRecipe> basic = helper.createUnregisteredRecipeTransferHandler(
+        IRecipeTransferHandler<CraftingMenu, RecipeHolder<CraftingRecipe>> basic = helper.createUnregisteredRecipeTransferHandler(
                 helper.createBasicRecipeTransferInfo(CraftingMenu.class, MenuType.CRAFTING, RecipeTypes.CRAFTING, 1, 9, 10, 36));
         registration.addRecipeTransferHandler(new StationTransfer(basic, helper), RecipeTypes.CRAFTING);
     }
@@ -148,8 +149,8 @@ public final class VanillaJeiPlugin implements IModPlugin {
     }
 
     /** At the crafting table station: the vanilla book's packet. Anywhere else: JEI's own crafting transfer, unchanged. */
-    private record StationTransfer(IRecipeTransferHandler<CraftingMenu, CraftingRecipe> basic, IRecipeTransferHandlerHelper helper)
-            implements IRecipeTransferHandler<CraftingMenu, CraftingRecipe> {
+    private record StationTransfer(IRecipeTransferHandler<CraftingMenu, RecipeHolder<CraftingRecipe>> basic,
+            IRecipeTransferHandlerHelper helper) implements IRecipeTransferHandler<CraftingMenu, RecipeHolder<CraftingRecipe>> {
         @Override
         public Class<? extends CraftingMenu> getContainerClass() {
             return CraftingMenu.class;
@@ -161,13 +162,13 @@ public final class VanillaJeiPlugin implements IModPlugin {
         }
 
         @Override
-        public RecipeType<CraftingRecipe> getRecipeType() {
+        public RecipeType<RecipeHolder<CraftingRecipe>> getRecipeType() {
             return RecipeTypes.CRAFTING;
         }
 
         @Override
-        public IRecipeTransferError transferRecipe(CraftingMenu container, CraftingRecipe recipe, IRecipeSlotsView slots, Player player,
-                boolean maxTransfer, boolean doTransfer) {
+        public IRecipeTransferError transferRecipe(CraftingMenu container, RecipeHolder<CraftingRecipe> recipe, IRecipeSlotsView slots,
+                Player player, boolean maxTransfer, boolean doTransfer) {
             if (StationHover.menu() != container) {
                 return basic.transferRecipe(container, recipe, slots, player, maxTransfer, doTransfer);
             }
@@ -175,7 +176,7 @@ public final class VanillaJeiPlugin implements IModPlugin {
                 return helper.createUserErrorWithTooltip(Component.translatable("handson_vanilla.jei.locked"));
             }
             if (doTransfer) {
-                StationHover.placeRecipe(recipe.getId(), maxTransfer);
+                StationHover.placeRecipe(recipe.id(), maxTransfer);
             }
             return null;
         }

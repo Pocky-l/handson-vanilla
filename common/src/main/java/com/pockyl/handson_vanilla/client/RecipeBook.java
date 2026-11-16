@@ -979,7 +979,7 @@ final class RecipeBook implements NodePainter {
         for (ItemStack stack : pool) {
             signature = signature * 31 + System.identityHashCode(stack.getItem());
             signature = signature * 31 + stack.getCount();
-            signature = signature * 31 + (stack.getTag() == null ? 0 : stack.getTag().hashCode());
+            signature = signature * 31 + stack.getComponentsPatch().hashCode();
         }
         return signature;
     }
@@ -1327,7 +1327,7 @@ final class RecipeBook implements NodePainter {
     private void type(StationView view, String text) {
         StringBuilder added = new StringBuilder(query);
         for (char character : text.toCharArray()) {
-            if (net.minecraft.SharedConstants.isAllowedChatCharacter(character) && added.length() < QUERY_MOST) {
+            if (net.minecraft.util.StringUtil.isAllowedChatCharacter(character) && added.length() < QUERY_MOST) {
                 added.append(character);
             }
         }
@@ -2498,10 +2498,10 @@ final class RecipeBook implements NodePainter {
             int r = argb >> 16 & 0xFF;
             int g = argb >> 8 & 0xFF;
             int b = argb & 0xFF;
-            consumer.vertex(matrix, x0, y0, lift).color(r, g, b, a).uv(u0, v0).uv2(shade).endVertex();
-            consumer.vertex(matrix, x0, y1, lift).color(r, g, b, a).uv(u0, v1).uv2(shade).endVertex();
-            consumer.vertex(matrix, x1, y1, lift).color(r, g, b, a).uv(u1, v1).uv2(shade).endVertex();
-            consumer.vertex(matrix, x1, y0, lift).color(r, g, b, a).uv(u1, v0).uv2(shade).endVertex();
+            consumer.addVertex(matrix, x0, y0, lift).setColor(r, g, b, a).setUv(u0, v0).setLight(shade);
+            consumer.addVertex(matrix, x0, y1, lift).setColor(r, g, b, a).setUv(u0, v1).setLight(shade);
+            consumer.addVertex(matrix, x1, y1, lift).setColor(r, g, b, a).setUv(u1, v1).setLight(shade);
+            consumer.addVertex(matrix, x1, y0, lift).setColor(r, g, b, a).setUv(u1, v0).setLight(shade);
         }
 
         void item(ItemStack stack, float x, float y, float size) {
@@ -2514,11 +2514,15 @@ final class RecipeBook implements NodePainter {
             poseStack.translate(x + size / 2.0F, y + size / 2.0F, ITEM_LIFT);
             ItemRenderer renderer = Minecraft.getInstance().getItemRenderer();
             BakedModel model = renderer.getModel(stack, station.level(), null, 0);
+            Matrix3f facing = new Matrix3f(poseStack.last().normal());
             poseStack.scale(size, -size, model.isGui3d() ? BLOCK_DEPTH : ITEM_DEPTH);
+            // As in the GUI, the flip and the depth leave the normals alone: IconLight lights the faces as the GUI does.
+            poseStack.last().normal().set(facing);
             // The icon looks as in a GUI, but is drawn as no GUI item: mods that decorate every GUI item (Shadow Drop's shadows and
             // its shift) take its world pose for a screen's and move or cover the icon.
             BakedModel shown = guiModel.apply(model, poseStack);
-            renderer.render(stack, ItemDisplayContext.NONE, false, poseStack, faded ? DiegesisClient.tinted(buffers, FADED) : buffers, shade,
+            MultiBufferSource lit = IconLight.of(buffers, facing, model.usesBlockLight());
+            renderer.render(stack, ItemDisplayContext.NONE, false, poseStack, faded ? DiegesisClient.tinted(lit, FADED) : lit, shade,
                     OverlayTexture.NO_OVERLAY, shown);
             poseStack.popPose();
         }

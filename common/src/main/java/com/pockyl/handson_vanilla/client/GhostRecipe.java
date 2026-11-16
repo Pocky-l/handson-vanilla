@@ -15,6 +15,7 @@ import net.minecraft.world.item.ItemDisplayContext;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.item.crafting.Ingredient;
 import net.minecraft.world.item.crafting.Recipe;
+import net.minecraft.world.item.crafting.RecipeHolder;
 import org.joml.Vector3f;
 import org.joml.Vector3fc;
 
@@ -23,8 +24,6 @@ import com.pockyl.diegesis.api.client.MenuAccess;
 import com.pockyl.diegesis.api.client.NodePainter;
 import com.pockyl.diegesis.api.client.StationView;
 import com.pockyl.diegesis.api.state.SlotRef;
-
-import java.util.Iterator;
 
 /**
  * The vanilla book's ghost recipe at the table: a recipe picked without its items comes back from the server as a ghost, and what it
@@ -75,25 +74,25 @@ public final class GhostRecipe {
     }
 
     /** Lays the ghost out as the vanilla book does, by the same placing as the server's, so it lies where the items would go. */
-    private void show(Recipe<?> recipe, AbstractContainerMenu menu) {
+    private void show(RecipeHolder<?> holder, AbstractContainerMenu menu) {
+        Recipe<?> recipe = holder.value();
         clear();
         int width = 3;
         int height = 3;
         int resultSlot = 0;
-        if (menu instanceof RecipeBookMenu<?> book) {
+        if (menu instanceof RecipeBookMenu<?, ?> book) {
             width = book.getGridWidth();
             height = book.getGridHeight();
             resultSlot = book.getResultSlotIndex();
         }
         int first = resultSlot == 0 ? 1 : 0;
-        PlaceRecipe<Ingredient> placing = (Iterator<Ingredient> ingredients, int slot, int maxAmount, int y, int x) -> {
-            Ingredient ingredient = ingredients.next();
+        PlaceRecipe<Ingredient> placing = (Ingredient ingredient, int slot, int maxAmount, int x, int y) -> {
             int cell = slot - first;
             if (!ingredient.isEmpty() && cell >= 0 && cell < CELLS) {
                 cells[cell] = ingredient;
             }
         };
-        placing.placeRecipe(width, height, resultSlot, recipe, recipe.getIngredients().iterator(), 0);
+        placing.placeRecipe(width, height, resultSlot, holder, recipe.getIngredients().iterator(), 0);
         result = recipe.getResultItem(view.level().registryAccess()).copy();
         shown = true;
     }

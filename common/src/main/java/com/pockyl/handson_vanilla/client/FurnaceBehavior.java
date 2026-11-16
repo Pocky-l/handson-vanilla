@@ -18,6 +18,7 @@ import com.pockyl.diegesis.api.client.StationBehavior;
 import com.pockyl.diegesis.api.client.StationView;
 import com.pockyl.diegesis.api.scene.Visual;
 import com.pockyl.diegesis.api.state.SlotRef;
+import com.pockyl.handson_vanilla.HandsOnVanilla;
 
 import java.util.Optional;
 
@@ -35,7 +36,7 @@ final class FurnaceBehavior implements StationBehavior {
     static final String FUEL = "fuel";
     static final String RESULT = "result";
 
-    private static final ResourceLocation EMBERS = new ResourceLocation("handson_vanilla", "block/furnace_embers");
+    private static final ResourceLocation EMBERS = HandsOnVanilla.id("block/furnace_embers");
     private static final Visual BODY = body("diegesis/furnace_body");
     private static final Visual BODY_LIT = body("diegesis/furnace_body_on");
     /** The door leaves hinged on the viewer's right, and those on the left (turned round in the scene). */
@@ -83,7 +84,7 @@ final class FurnaceBehavior implements StationBehavior {
 
     /** The scene's copy of the block, lit as the world lights the block so the two look the same as they swap. */
     private static Visual body(String model) {
-        return new Visual(Optional.of(new ResourceLocation("handson_vanilla", model)), Optional.empty(), Optional.empty(),
+        return new Visual(Optional.of(HandsOnVanilla.id(model)), Optional.empty(), Optional.empty(),
                 Optional.empty(), Optional.empty(), Visual.DEFAULT_ANCHOR, Visual.WHITE, false, false, false, 0.0F, true);
     }
 
@@ -209,7 +210,8 @@ final class FurnaceBehavior implements StationBehavior {
 
     /** The cooking as a thin bar floating over the grate's front edge: shown while something cooks, filling from the viewer's left. */
     private void progress(StationView view, AbstractFurnaceMenu menu) {
-        int fill = menu == null ? 0 : menu.getBurnProgress();
+        // In 24ths, as the vanilla arrow is drawn.
+        int fill = menu == null ? 0 : (int) (menu.getBurnProgress() * 24.0F);
         boolean cooking = menu != null && (fill > 0 || menu.isLit() && FurnaceUse.smelts(view.state().getItem(SlotRef.of(INPUT, 0))));
         view.node("progress").ifPresent(node -> {
             if (cooking) {
