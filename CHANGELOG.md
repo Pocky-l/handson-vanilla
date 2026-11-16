@@ -1,7 +1,6 @@
 # Changelog
 
-## [1.0.0+1.21.1] - Unreleased
-
+## [1.0.0+1.21.1] - 2026-11-16
 Hands-On Vanilla on Minecraft 1.21.1, for [NeoForge](https://neoforged.net) and [Fabric](https://fabricmc.net), with
 everything 1.0.0 does on 1.20.1: the crafting table and the furnace worked by hand, the recipe book and the recipe viewers' keys.
 
