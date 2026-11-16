@@ -13,9 +13,11 @@
 <hr>
 
 <h2 style="text-align:center"><span style="color:#e0884a">The crafting table</span></h2>
+<p style="text-align:center"><img src="https://raw.githubusercontent.com/Pocky-l/handson-vanilla/main/docs/showcase/table.gif" width="720" alt="Oak planks laid into the crafting table's grid by hand, then a chest picked from the recipe book and crafted"></p>
 <p style="text-align:center"><em>Use the table and the camera glides to its top. Lay the items into the grid one by one or all at once,<br>and take the result that hovers over it. Shift + click crafts as many as the grid allows.</em></p>
 
 <h2 style="text-align:center"><span style="color:#e0884a">The furnace</span></h2>
+<p style="text-align:center"><img src="https://raw.githubusercontent.com/Pocky-l/handson-vanilla/main/docs/showcase/furnace.gif" width="720" alt="Coal and raw iron put into the open furnace, the iron smelting on the grate over the fire until the ingot lies beside it"></p>
 <p style="text-align:center"><em>Its grille doors swing open: the ore lies on the grate, the fuel on the glowing coals below,<br>and a thin bar shows how far it has cooked. Every furnace in the world shows what smelts in it.</em></p>
 
 <h2 style="text-align:center"><span style="color:#e0884a">The recipe book</span></h2>

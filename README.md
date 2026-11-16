@@ -15,6 +15,10 @@
 
 <p align="center"><b>The crafting table and the furnace open right where they stand, with no menu screen. You lay the items into the grid yourself, take the result off the table and watch your ore on the furnace's grate. Client-side: it works on any server.</b></p>
 
+<p align="center"><img src="docs/showcase/table.gif" alt="Oak planks laid into the crafting table's grid by hand, then a chest picked from the recipe book and crafted" width="720"></p>
+
+<p align="center"><img src="docs/showcase/furnace.gif" alt="Coal and raw iron put into the open furnace, the iron smelting on the grate over the fire until the ingot lies beside it" width="720"></p>
+
 <p align="center"><b>No menus</b>, the blocks open in the world &middot; <b>Every recipe</b> of the game and your mods &middot; <b>No new blocks or items</b></p>
 
 Built on [Diegesis](https://www.curseforge.com/minecraft/mc-mods/diegesis), from the maker of
