@@ -1,0 +1,8 @@
+{
+  "parent": "handson_vanilla:diegesis/smoker_body",
+  "textures": {
+    "lining": "handson_vanilla:block/furnace_lining_lit",
+    "log": "minecraft:block/campfire_log_lit",
+    "embers": "minecraft:block/magma"
+  }
+}

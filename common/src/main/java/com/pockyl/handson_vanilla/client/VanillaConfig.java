@@ -22,12 +22,26 @@ public final class VanillaConfig {
             "Hands-On Vanilla. Restart the game after a change.",
             "crafting_table: the crafting table is worked at with your hands. Off, it opens its vanilla screen.",
             "furnace: the furnace is worked at with your hands. Off, it opens its vanilla screen.",
+            "smoker: the smoker is worked at with your hands. Off, it opens its vanilla screen.",
+            "blast_furnace: the blast furnace is worked at with your hands. Off, it opens its vanilla screen.",
+            "stonecutter: the stonecutter is worked at with your hands. Off, it opens its vanilla screen.",
+            "smithing_table: the smithing table is worked at with your hands. Off, it opens its vanilla screen.",
+            "grindstone: the grindstone is worked at with your hands. Off, it opens its vanilla screen.",
+            "brewing_stand: the brewing stand is worked at with your hands. Off, it opens its vanilla screen.",
+            "anvil: the anvil is worked at with your hands. Off, it opens its vanilla screen.",
             "recipe_book: the recipe book beside the crafting table. Off, there is none.",
             "sound_volume: the stations' own sounds, from 0 (silent) to 1.");
 
     private static boolean craftingTable = true;
     private static boolean recipeBook = true;
     private static boolean furnace = true;
+    private static boolean smoker = true;
+    private static boolean blastFurnace = true;
+    private static boolean stonecutter = true;
+    private static boolean smithingTable = true;
+    private static boolean grindstone = true;
+    private static boolean brewingStand = true;
+    private static boolean anvil = true;
     private static Path configDir = Path.of("config");
     private static float soundVolume = 1.0F;
 
@@ -49,6 +63,13 @@ public final class VanillaConfig {
         }
         craftingTable = Boolean.parseBoolean(values.getProperty("crafting_table", Boolean.toString(craftingTable)).trim());
         furnace = Boolean.parseBoolean(values.getProperty("furnace", Boolean.toString(furnace)).trim());
+        smoker = Boolean.parseBoolean(values.getProperty("smoker", Boolean.toString(smoker)).trim());
+        blastFurnace = Boolean.parseBoolean(values.getProperty("blast_furnace", Boolean.toString(blastFurnace)).trim());
+        stonecutter = Boolean.parseBoolean(values.getProperty("stonecutter", Boolean.toString(stonecutter)).trim());
+        smithingTable = Boolean.parseBoolean(values.getProperty("smithing_table", Boolean.toString(smithingTable)).trim());
+        grindstone = Boolean.parseBoolean(values.getProperty("grindstone", Boolean.toString(grindstone)).trim());
+        brewingStand = Boolean.parseBoolean(values.getProperty("brewing_stand", Boolean.toString(brewingStand)).trim());
+        anvil = Boolean.parseBoolean(values.getProperty("anvil", Boolean.toString(anvil)).trim());
         recipeBook = Boolean.parseBoolean(values.getProperty("recipe_book", Boolean.toString(recipeBook)).trim());
         try {
             soundVolume = Mth.clamp(Float.parseFloat(values.getProperty("sound_volume", Float.toString(soundVolume)).trim()), 0.0F, 1.0F);
@@ -66,6 +87,13 @@ public final class VanillaConfig {
             }
             writer.write("crafting_table=" + craftingTable + "\n");
             writer.write("furnace=" + furnace + "\n");
+            writer.write("smoker=" + smoker + "\n");
+            writer.write("blast_furnace=" + blastFurnace + "\n");
+            writer.write("stonecutter=" + stonecutter + "\n");
+            writer.write("smithing_table=" + smithingTable + "\n");
+            writer.write("grindstone=" + grindstone + "\n");
+            writer.write("brewing_stand=" + brewingStand + "\n");
+            writer.write("anvil=" + anvil + "\n");
             writer.write("recipe_book=" + recipeBook + "\n");
             writer.write("sound_volume=" + soundVolume + "\n");
         } catch (IOException exception) {
@@ -79,6 +107,34 @@ public final class VanillaConfig {
 
     public static boolean furnace() {
         return furnace;
+    }
+
+    public static boolean smoker() {
+        return smoker;
+    }
+
+    public static boolean blastFurnace() {
+        return blastFurnace;
+    }
+
+    public static boolean stonecutter() {
+        return stonecutter;
+    }
+
+    public static boolean smithingTable() {
+        return smithingTable;
+    }
+
+    public static boolean grindstone() {
+        return grindstone;
+    }
+
+    public static boolean brewingStand() {
+        return brewingStand;
+    }
+
+    public static boolean anvil() {
+        return anvil;
     }
 
     public static boolean recipeBook() {

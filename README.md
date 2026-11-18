@@ -13,7 +13,7 @@
 
 <p align="center"><i>Craft and smelt with your own hands.</i></p>
 
-<p align="center"><b>The crafting table and the furnace open right where they stand, with no menu screen. You lay the items into the grid yourself, take the result off the table and watch your ore on the furnace's grate. Client-side: it works on any server.</b></p>
+<p align="center"><b>The crafting table, all three furnaces, the stonecutter, the smithing table, the grindstone, the brewing stand and the anvil open right where they stand, with no menu screen. You lay the items into the grid yourself, take the result off the table and watch your ore on the furnace's grate. Client-side: it works on any server.</b></p>
 
 <p align="center"><img src="docs/showcase/table.gif" alt="Oak planks laid into the crafting table's grid by hand, then a chest picked from the recipe book and crafted" width="720"></p>
 
@@ -32,8 +32,28 @@ Built on [Diegesis](https://www.curseforge.com/minecraft/mc-mods/diegesis), from
 - **Furnace.** Its grille doors swing open: what smelts lies on the grate in its mouth, the result beside it, and the
   fuel on the coals below, glowing while it burns. A thin bar over the grate fills as it cooks. Use a furnace with ore
   or coal in hand and it goes in by itself.
-- **Furnaces in the world.** Every furnace shows its open mouth, grate and coals, with flames and smoke inside when it is
-  lit, and what smelts in it behind the grille. On a server you see what you last saw in it.
+- **Smoker.** Its glazed door swings out like an oven's: the food lies on an iron rack in the chamber, the fuel in front
+  of the logs that burn below, and smoke seeps out round the door while it cooks.
+- **Blast furnace.** Its iron hatch drops open like an oven door: the ore lies on a cast iron grate in the hearth, the result
+  beside it, and the fuel on the glowing coals under the grate.
+- **Stonecutter.** Pick a piece in the recipe book beside it and all the stone on the slab is fed through the turning saw,
+  dust flying; the pieces drop beside it and fly into your inventory. Shift + click cuts one piece. A page whose stone is not
+  on the slab lays it there from your inventory.
+- **Smithing table.** The hammer hanging on its side comes down onto the iron plate. Lay the template, the gear and the
+  material on the plate, and what they make hovers beside them; click the hammer or the result and the hammer strikes,
+  sparks fly, and the new gear is in your hand. Shift + click puts it into your inventory.
+- **Grindstone.** On the floor, a wall or the ceiling, from any side: the two pieces are held up to the stone and what they
+  make hovers over the wheel. Click the wheel or the result and they are pressed to the turning stone, sparks fly, and
+  the mended or disenchanted piece is in your hand, the experience orbs flying to you.
+- **Brewing stand.** The bottles stand on the stand's own stone feet, the ingredient on top of the rod, the blaze powder at
+  its foot. While it brews the ingredient melts away bit by bit, drops fall from it, bubbles of each potion's colour rise in
+  the bottles and a small flame burns under the rod.
+- **Anvil.** The two pieces lie side by side on its face, what they make hovers over it, and above that a name tag shows
+  the name it will bear and what it costs. Click the name to type a new one; click the result and a hammer comes down on
+  the anvil, sparks fly, and the piece is yours.
+- **Furnaces in the world.** Every furnace shows its open mouth, grate and coals, every smoker its rack and logs behind a
+  glazed door, every blast furnace its hearth behind the hatch's slits, with flames and smoke inside when lit, and what
+  cooks in them. On a server you see what you last saw in it.
 - **Recipe book.** A green book lies on the table's edge. Click it and it opens beside the table with everything the
   vanilla book has: recipes of one kind share a place (right click lays them all out), a switch for what you can craft
   now, red marks on new recipes, and a see-through recipe in the grid when items are missing.
@@ -50,7 +70,12 @@ Built on [Diegesis](https://www.curseforge.com/minecraft/mc-mods/diegesis), from
 
 | Action | How |
 |---|---|
-| Open a station | Right-click the crafting table or the furnace |
+| Open a station | Right-click a crafting table, furnace, smoker, blast furnace, stonecutter, smithing table, grindstone, brewing stand or anvil |
+| Cut stone | Click a piece in the stonecutter's book to cut all the stone on the slab; Shift + click cuts one |
+| Upgrade or trim gear | Click the smithing table's hammer or the result over the plate; Shift + click sends it to the inventory |
+| Mend or disenchant | Click the grindstone's wheel or the result over it; Shift + click sends it to the inventory |
+| Rename on the anvil | Click the name over the anvil, type, then Enter; the first key replaces the whole name |
+| Take from the anvil | Click the result over it; Shift + click sends it to the inventory |
 | Place a block on it | Sneak + right-click with the block in hand |
 | Put items in | Click a stack in your inventory, then the cell: left click lays all, right click one |
 | Spread a stack | Drag it over the cells |
@@ -72,7 +97,7 @@ Built on [Diegesis](https://www.curseforge.com/minecraft/mc-mods/diegesis), from
 
 [![Mouse Tweaks](https://raw.githubusercontent.com/Pocky-l/handson-vanilla/main/docs/compat/mouse-tweaks.png)](https://www.curseforge.com/minecraft/mc-mods/mouse-tweaks) ✅ **[Mouse Tweaks](https://www.curseforge.com/minecraft/mc-mods/mouse-tweaks)** (optional) - its drags work at both stations
 
-Resource packs keep their furnace textures. The open furnace stays this mod's, so a pack cannot misplace what lies in it.
+Resource packs keep their furnace, smoker and blast furnace textures. The open furnaces stay this mod's, so a pack cannot misplace what lies in them.
 
 ## Configuration
 
@@ -82,6 +107,13 @@ Resource packs keep their furnace textures. The open furnace stays this mod's, s
 |---|---|---|
 | `crafting_table` | `true` | The crafting table as a station. Off, it opens its vanilla screen |
 | `furnace` | `true` | The furnace as a station, and its open look in the world. Off, it is vanilla's again |
+| `smoker` | `true` | The smoker as a station, and its open look in the world. Off, it is vanilla's again |
+| `blast_furnace` | `true` | The blast furnace as a station, and its open look in the world. Off, it is vanilla's again |
+| `stonecutter` | `true` | The stonecutter as a station. Off, it opens its vanilla screen |
+| `smithing_table` | `true` | The smithing table as a station. Off, it opens its vanilla screen |
+| `grindstone` | `true` | The grindstone as a station. Off, it opens its vanilla screen |
+| `brewing_stand` | `true` | The brewing stand as a station. Off, it opens its vanilla screen |
+| `anvil` | `true` | The anvil as a station. Off, it opens its vanilla screen |
 | `recipe_book` | `true` | The recipe book beside the crafting table |
 | `sound_volume` | `1.0` | The stations' own sounds, from `0` (silent) to `1` |
 
@@ -108,8 +140,8 @@ The jars are written to `forge/build/libs/` and `fabric/build/libs/`. The `1.21.
 ## Credits
 
 - Author: **Pocky**.
-- Built on [Diegesis](https://www.curseforge.com/minecraft/mc-mods/diegesis). The furnace's lining, grate and doors are
-  this mod's own textures; everything else comes from the game.
+- Built on [Diegesis](https://www.curseforge.com/minecraft/mc-mods/diegesis). The furnace's lining, grate and doors, the
+  smoker's rack and door, the blast furnace's hatch and the smithing hammer are this mod's own textures; everything else comes from the game.
 
 <!-- more-mods:start -->
 ## More mods by Pocky

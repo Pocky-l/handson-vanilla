@@ -1,0 +1,67 @@
+{
+  "$schema": "https://raw.githubusercontent.com/Pocky-l/diegesis/main/docs/schema/scene.schema.json",
+  "$comment": "The smoker's own model (this mod's, always) has the window of vanilla's front as a real smoking chamber (x 3-13, y 8-12, 6 pixels deep) with an iron rack for a floor behind an iron-framed lattice door, and the woodpile under it as a firebox (x 3-13, y 2-7) where logs lie on a bed of coals, burning while it is lit. At the station the block is swapped for body (the same without the door) and the door's leaf, hinged at x 13 on the viewer's left in the front's plane; code swings it out towards the player like an oven door and shut again. input stands on the rack on the viewer's left, result on the right, fuel in front of the logs. progress is a thin bar floating just over the front edge of the rack (its track, and progress_fill glowing as the cooking goes), shown while something cooks. The camera stands in front and a little to the right, above, looking into the chamber and the fire, as at the furnace; the open door stands out on the left, clear of the lines to the slots. The fire's own flames and the smoke seeping from the chamber stay seen. A held stack moves over the smoker's front (carry plane over the block). Idle the scene draws what is known to lie in the smoker (FurnaceContents, painters on the slots) behind the shut door. The hotbar stays where the HUD has it and takes clicks; over it rows of the other stacks that smoke or burn.",
+  "work_plane": 0,
+  "idle_visible": true,
+  "camera": {
+    "position": [-2.5, 14, -28],
+    "target": [8, 7, 3],
+    "fov": 40,
+    "interactive_at": 0.6
+  },
+  "interface": {
+    "hide_player": true,
+    "inventory_panel": false,
+    "sounds": false,
+    "carry_lift": 0.5,
+    "highlight_color": "#26FFFFFF",
+    "hover_outline": false
+  },
+  "inventory_drawer": {
+    "layout": "hotbar",
+    "always_open": true,
+    "carry_size": 3.2
+  },
+  "clear_view": {"particles": false},
+  "carry_planes": [
+    {"from": [-6, 0], "to": [22, 16], "height": 16, "blend": 3}
+  ],
+  "nodes": [
+    {
+      "id": "body",
+      "pos": [8, 0, 8],
+      "pickable": false,
+      "hidden": true,
+      "visual": {"model": "handson_vanilla:diegesis/smoker_body", "lit_as_block": true}
+    },
+    {"id": "door", "pos": [13, 8, 0], "pickable": false, "hidden": true,
+      "visual": {"model": "handson_vanilla:diegesis/smoker_door", "anchor": [16, 0, 8], "lit_as_block": true}},
+    {
+      "id": "input",
+      "pos": [11.2, 8, 3],
+      "slot": {"slot": "input[0]", "display": "upright", "size": 3.2, "count_facing": "front"},
+      "collider": {"from": [-2.6, 0, -3.2], "to": [2.6, 4, 3]}
+    },
+    {
+      "id": "result",
+      "pos": [6.4, 8, 3],
+      "slot": {"slot": "result[0]", "display": "upright", "size": 3.2, "count_facing": "front"},
+      "collider": {"from": [-2.6, 0, -3.2], "to": [2.6, 4, 3]}
+    },
+    {
+      "id": "fuel",
+      "pos": [8, 2, 1.2],
+      "slot": {"slot": "fuel[0]", "display": "upright", "size": 2.8, "count_facing": "front"},
+      "collider": {"from": [-4.6, 0, -2.2], "to": [4.6, 5, 3]}
+    },
+    {
+      "id": "progress",
+      "pos": [8, 8.2, 0.4],
+      "pickable": false,
+      "hidden": true,
+      "children": [
+        {"id": "progress_fill", "pos": [0, 0, 0], "pickable": false, "hidden": true}
+      ]
+    }
+  ]
+}

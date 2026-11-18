@@ -1,0 +1,46 @@
+{
+  "parent": "minecraft:block/block",
+  "render_type": "minecraft:cutout",
+  "__lint_allow": [
+    "Z002"
+  ],
+  "textures": {
+    "particle": "minecraft:block/iron_block",
+    "door": "handson_vanilla:block/smoker_door"
+  },
+  "elements": [
+    {
+      "name": "leaf",
+      "from": [
+        6,
+        0,
+        8
+      ],
+      "to": [
+        16,
+        4,
+        8
+      ],
+      "faces": {
+        "north": {
+          "uv": [
+            0,
+            0,
+            10,
+            4
+          ],
+          "texture": "#door"
+        },
+        "south": {
+          "uv": [
+            10,
+            0,
+            0,
+            4
+          ],
+          "texture": "#door"
+        }
+      }
+    }
+  ]
+}

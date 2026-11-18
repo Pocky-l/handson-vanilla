@@ -1,0 +1,47 @@
+{
+  "$schema": "https://raw.githubusercontent.com/Pocky-l/diegesis/main/docs/schema/scene.schema.json",
+  "$comment": "The anvil is vanilla's block (also chipped and damaged), its face 10 wide and 16 long at y 16: the scene turns to the player, so the face runs across the scene (x 0-16, z 3-13) or along it (x 3-13, z 0-16); the places below fit both. left and right are vanilla's two inputs, lying side by side on the face as the vanilla screen has them. The result hovers over the face between them; over it name, the name the result will bear, turned to the camera like a name tag, with the cost under it (vanilla's words and colours): a click on the name lets the player type a new one. A click on the result brings the hammer (the smithing table's) in from the right; it strikes the left piece, sparks fly, and the result is taken at the blow (the vanilla click on the result slot). The camera stands above the near side looking down, as at the smithing table. The hotbar stays where the HUD has it and takes clicks; over it rows of the other stacks (an anvil takes anything: it renames). forged shows the result rising off the left piece for a moment after the blow.",
+  "work_plane": 16,
+  "idle_visible": false,
+  "camera": {
+    "position": [8, 39, -15],
+    "target": [8, 17, 8],
+    "fov": 40,
+    "interactive_at": 0.6
+  },
+  "interface": {
+    "hide_player": true,
+    "inventory_panel": false,
+    "sounds": false,
+    "carry_lift": 1.5,
+    "highlight_color": "#26FFFFFF",
+    "hover_outline": false
+  },
+  "inventory_drawer": {
+    "layout": "hotbar",
+    "always_open": true,
+    "carry_size": 2.6
+  },
+  "nodes": [
+    {"id": "left", "pos": [10.6, 16.02, 8], "slot": {"slot": "inputs[0]", "size": 4.8, "item_size": 4.4, "count_facing": "camera", "idle_highlight": 0.55}},
+    {"id": "right", "pos": [5.4, 16.02, 8], "slot": {"slot": "inputs[1]", "size": 4.8, "item_size": 4.4, "count_facing": "camera", "idle_highlight": 0.55}},
+    {"id": "forged", "pos": [10.6, 16.02, 8], "hidden": true, "pickable": false},
+    {
+      "id": "result",
+      "pos": [8, 18.4, 9.5],
+      "collider": {"from": [-2.4, -0.4, -2.4], "to": [2.4, 5.2, 2.4]}
+    },
+    {
+      "id": "name",
+      "pos": [8, 25.5, 9.5],
+      "collider": {"from": [-7, -1.4, -0.8], "to": [7, 1.2, 0.8]}
+    },
+    {
+      "id": "hammer",
+      "pos": [5.1, 19.1, 8],
+      "hidden": true,
+      "pickable": false,
+      "visual": {"model": "handson_vanilla:diegesis/smithing_hammer", "anchor": [0, 7.5, 7.5], "lit_as_block": true}
+    }
+  ]
+}

@@ -50,8 +50,9 @@ def title_layer():
     small = ImageFont.truetype("fonts/Fraunces.ttf", 29)
     small.set_variation_by_axes([24, 500, 50, 0])
     tx, ty = 70, 140
+    title = "Hands-On Vanilla"
     mask = Image.new("L", (W, H), 0)
-    ImageDraw.Draw(mask).text((tx, ty), "Hands-On Vanilla", font=font, fill=255)
+    ImageDraw.Draw(mask).text((tx, ty), title, font=font, fill=255)
     glow = Image.new("RGBA", (W, H), (255, 160, 70, 0))
     glow.putalpha(mask.filter(ImageFilter.GaussianBlur(22)).point(lambda a: int(a * 0.45)))
     layer.alpha_composite(glow)
@@ -65,11 +66,11 @@ def title_layer():
     grad[..., 3] = np.array(mask)
     layer.alpha_composite(Image.fromarray(grad, "RGBA"))
     d = ImageDraw.Draw(layer)
-    text = "CRAFTING TABLE  ·  FURNACE  ·  RECIPE BOOK"
+    text = "Client-side, works on any server"  # no list of stations: it ages with every new one
     line_y = ty + 160
-    d.line([(tx + 6, line_y), (tx + 6 + d.textlength(text, font=small), line_y)], fill=(226, 140, 66, 210), width=2)
+    end = tx + font.getbbox(title)[2]  # the rule runs to the title's last letter
+    d.line([(tx + 6, line_y), (end, line_y)], fill=(226, 140, 66, 210), width=2)
     d.text((tx + 6, line_y + 20), text, font=small, fill=(255, 226, 180, 255))
-    d.text((tx + 6, line_y + 64), "Client-side, works on any server", font=small, fill=(232, 196, 150, 220))
     return layer
 
 

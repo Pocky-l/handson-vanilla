@@ -1,0 +1,67 @@
+{
+  "$schema": "https://raw.githubusercontent.com/Pocky-l/diegesis/main/docs/schema/scene.schema.json",
+  "$comment": "The blast furnace's own model (this mod's, always) has vanilla's iron hatch (x 4-13, y 3-11) as a real hearth 6 pixels deep lined with firebrick: a cast iron grate across it (top at y 7) for what smelts and what it became, glowing coals on its floor under the grate where the fuel goes. At the station the block is swapped for body (the same without the hatch) and the hatch's leaf, hinged along its foot at y 3 in the front's plane; code lets it down and out like an oven's door, its inside turned up to the light, and shuts it again. input stands on the grate on the viewer's left, result on the right, fuel on the coals in the middle. progress is a thin bar floating just over the front edge of the grate (its track, and progress_fill glowing as the cooking goes), shown while something smelts. The camera stands in front and a little to the right, above, looking into the hearth over the let-down hatch, as at the furnace. The fire's flames and the smoke curling out of the hatch stay seen. A held stack moves over the furnace's front (carry plane over the block). Idle the scene draws what is known to lie in the blast furnace (FurnaceContents, painters on the slots) behind the hatch's slits. The hotbar stays where the HUD has it and takes clicks; over it rows of the other stacks that smelt here or burn.",
+  "work_plane": 0,
+  "idle_visible": true,
+  "camera": {
+    "position": [-2.5, 14, -28],
+    "target": [8.5, 7, 3],
+    "fov": 40,
+    "interactive_at": 0.6
+  },
+  "interface": {
+    "hide_player": true,
+    "inventory_panel": false,
+    "sounds": false,
+    "carry_lift": 0.5,
+    "highlight_color": "#26FFFFFF",
+    "hover_outline": false
+  },
+  "inventory_drawer": {
+    "layout": "hotbar",
+    "always_open": true,
+    "carry_size": 3.2
+  },
+  "clear_view": {"particles": false},
+  "carry_planes": [
+    {"from": [-6, 0], "to": [22, 16], "height": 16, "blend": 3}
+  ],
+  "nodes": [
+    {
+      "id": "body",
+      "pos": [8, 0, 8],
+      "pickable": false,
+      "hidden": true,
+      "visual": {"model": "handson_vanilla:diegesis/blast_furnace_body", "lit_as_block": true}
+    },
+    {"id": "hatch", "pos": [4, 3, 0], "pickable": false, "hidden": true,
+      "visual": {"model": "handson_vanilla:diegesis/blast_furnace_hatch", "anchor": [0, 0, 8], "lit_as_block": true}},
+    {
+      "id": "input",
+      "pos": [10.6, 7, 3.2],
+      "slot": {"slot": "input[0]", "display": "upright", "size": 3.0, "count_facing": "front"},
+      "collider": {"from": [-2.2, 0, -3.4], "to": [2.2, 4, 2.8]}
+    },
+    {
+      "id": "result",
+      "pos": [6.2, 7, 3.2],
+      "slot": {"slot": "result[0]", "display": "upright", "size": 3.0, "count_facing": "front"},
+      "collider": {"from": [-2.2, 0, -3.4], "to": [2.2, 4, 2.8]}
+    },
+    {
+      "id": "fuel",
+      "pos": [8.5, 3, 1.4],
+      "slot": {"slot": "fuel[0]", "display": "upright", "size": 2.4, "count_facing": "front"},
+      "collider": {"from": [-4.4, 0, -2.4], "to": [4.4, 3, 3]}
+    },
+    {
+      "id": "progress",
+      "pos": [8.5, 7.2, 0.6],
+      "pickable": false,
+      "hidden": true,
+      "children": [
+        {"id": "progress_fill", "pos": [0, 0, 0], "pickable": false, "hidden": true}
+      ]
+    }
+  ]
+}

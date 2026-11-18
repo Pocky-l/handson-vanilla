@@ -1,5 +1,20 @@
 # Changelog
 
+## [1.1.0+1.21.1] - Unreleased
+- The smoker is worked by hand: its glazed door swings open, the food lies on an iron rack and the fuel before the logs.
+- The blast furnace is worked by hand: its iron hatch drops open onto a hearth with a grate and coals.
+- Smokers and blast furnaces everywhere show their insides, with flames and smoke while lit.
+- The stonecutter is worked by hand: pieces are picked in its recipe book and the stone is fed through the turning saw.
+- The smithing table is worked by hand: its hammer comes off the hook and strikes the gear into its upgrade or trim.
+- The grindstone is worked by hand on the floor, a wall or the ceiling.
+- The brewing stand is worked by hand: the bottles stand on its feet and the ingredient on the rod melts away as it brews.
+- The anvil is worked by hand: the name and the cost hang over it on a tag, and the name is typed right there.
+- Each new station can be turned off on its own in `config/handson_vanilla.properties`.
+- Stations standing side by side are one workshop: the movement keys and the screen edge go to the next one without leaving.
+- The count of the stack in the hand is turned to you, as the counts on the stations are.
+- Needs [Diegesis](https://www.curseforge.com/minecraft/mc-mods/diegesis) 1.0.0-beta.13 for 1.21.1; Fabric also needs
+  [Fabric API](https://www.curseforge.com/minecraft/mc-mods/fabric-api).
+
 ## [1.0.0+1.21.1] - 2026-11-16
 Hands-On Vanilla on Minecraft 1.21.1, for [NeoForge](https://neoforged.net) and [Fabric](https://fabricmc.net), with
 everything 1.0.0 does on 1.20.1: the crafting table and the furnace worked by hand, the recipe book and the recipe viewers' keys.

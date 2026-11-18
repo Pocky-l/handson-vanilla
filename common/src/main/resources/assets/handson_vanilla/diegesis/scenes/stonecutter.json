@@ -1,0 +1,103 @@
+{
+  "$schema": "https://raw.githubusercontent.com/Pocky-l/diegesis/main/docs/schema/scene.schema.json",
+  "$comment": "The stonecutter is vanilla's block, a slab (top at 9) with its saw standing on a line through the middle along two of its sides. The scene turns to the player, so the saw runs across it (z 8) when the player came to the block's face or back and along it (x 8) when to an end; StonecutterBehavior reads which. The camera looks down from the corner at the scene's low x and front, half turned, so the saw is seen aslant either way; back far enough that the slab takes about half the frame's height and the book, the size it has at the crafting table, hangs clear of it on the left. input is the stone: the behaviour lays it beside the saw (8, 3.6 across; 3.6, 8 along) and for a cut sets it on the saw's line at its far end (13) and feeds it along the line to 4, through the saw; cut_out shows the cut pieces springing up where the pass ends, dropping onto the slab's corner nearest the camera (2.6, 3 across; 3, 2.6 along) and flying from there into the inventory. book_open is the recipe book hanging on the screen's left, before the stonecutter's high-x side, its turn the one that faces the camera with the pages upright (the book only keeps that as it is moved); put away it lies small on the slab's corner nearest it (13.5, 2.5), skewed 12 degrees (extra.rest: offset from where it hangs, the turn that lays it flat, scale). The hotbar stays where the HUD has it and takes clicks; over it rows of the other stacks the stonecutter can cut.",
+  "work_plane": 9,
+  "idle_visible": false,
+  "camera": {
+    "position": [
+      -16,
+      30.6,
+      -14.6
+    ],
+    "target": [
+      8,
+      8,
+      8
+    ],
+    "fov": 40,
+    "interactive_at": 0.6
+  },
+  "interface": {
+    "hide_player": true,
+    "inventory_panel": false,
+    "sounds": false,
+    "carry_lift": 1.2,
+    "highlight_color": "#26FFFFFF",
+    "hover_outline": false
+  },
+  "inventory_drawer": {
+    "layout": "hotbar",
+    "always_open": true,
+    "carry_size": 2.6
+  },
+  "nodes": [
+    {
+      "id": "input",
+      "pos": [
+        8,
+        9,
+        3.6
+      ],
+      "slot": {
+        "slot": "input[0]",
+        "display": "flat",
+        "size": 5,
+        "item_size": 4,
+        "count_facing": "camera",
+        "idle_highlight": 0.55
+      }
+    },
+    {
+      "id": "cut_out",
+      "pos": [
+        8,
+        9,
+        8
+      ],
+      "hidden": true,
+      "pickable": false
+    },
+    {
+      "id": "book_open",
+      "pos": [
+        18,
+        13,
+        -6
+      ],
+      "rotation": [
+        -61.98,
+        81.25,
+        0
+      ],
+      "scale": 0.85,
+      "hidden": true,
+      "collider": {
+        "from": [
+          -5.3,
+          -0.4,
+          -3.9
+        ],
+        "to": [
+          5.3,
+          1.4,
+          3.9
+        ]
+      },
+      "extra": {
+        "rest": {
+          "offset": [
+            -4.5,
+            -3.9,
+            8.5
+          ],
+          "turn": [
+            18.23,
+            -79.91,
+            -60.36
+          ],
+          "scale": 0.41
+        }
+      }
+    }
+  ]
+}

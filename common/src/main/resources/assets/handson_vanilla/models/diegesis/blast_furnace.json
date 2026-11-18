@@ -1,0 +1,517 @@
+{
+  "parent": "minecraft:block/block",
+  "render_type": "minecraft:cutout",
+  "textures": {
+    "particle": "minecraft:block/blast_furnace_front",
+    "front": "minecraft:block/blast_furnace_front",
+    "side": "minecraft:block/blast_furnace_side",
+    "top": "minecraft:block/blast_furnace_top",
+    "embers": "minecraft:block/coal_block",
+    "lining": "handson_vanilla:block/furnace_lining",
+    "grate": "handson_vanilla:block/furnace_grate",
+    "hatch": "handson_vanilla:block/blast_furnace_hatch"
+  },
+  "elements": [
+    {
+      "name": "back",
+      "from": [
+        0,
+        0,
+        6
+      ],
+      "to": [
+        16,
+        16,
+        16
+      ],
+      "faces": {
+        "north": {
+          "uv": [
+            0,
+            0,
+            16,
+            16
+          ],
+          "texture": "#lining"
+        },
+        "east": {
+          "uv": [
+            0,
+            0,
+            10,
+            16
+          ],
+          "texture": "#side",
+          "cullface": "east"
+        },
+        "south": {
+          "uv": [
+            0,
+            0,
+            16,
+            16
+          ],
+          "texture": "#side",
+          "cullface": "south"
+        },
+        "west": {
+          "uv": [
+            6,
+            0,
+            16,
+            16
+          ],
+          "texture": "#side",
+          "cullface": "west"
+        },
+        "up": {
+          "uv": [
+            0,
+            6,
+            16,
+            16
+          ],
+          "texture": "#top",
+          "cullface": "up"
+        },
+        "down": {
+          "uv": [
+            0,
+            0,
+            16,
+            10
+          ],
+          "texture": "#top",
+          "cullface": "down"
+        }
+      }
+    },
+    {
+      "name": "top_band",
+      "from": [
+        0,
+        11,
+        0
+      ],
+      "to": [
+        16,
+        16,
+        6
+      ],
+      "faces": {
+        "north": {
+          "uv": [
+            0,
+            0,
+            16,
+            5
+          ],
+          "texture": "#front",
+          "cullface": "north"
+        },
+        "east": {
+          "uv": [
+            10,
+            0,
+            16,
+            5
+          ],
+          "texture": "#side",
+          "cullface": "east"
+        },
+        "west": {
+          "uv": [
+            0,
+            0,
+            6,
+            5
+          ],
+          "texture": "#side",
+          "cullface": "west"
+        },
+        "up": {
+          "uv": [
+            0,
+            0,
+            16,
+            6
+          ],
+          "texture": "#top",
+          "cullface": "up"
+        },
+        "down": {
+          "uv": [
+            0,
+            10,
+            16,
+            16
+          ],
+          "texture": "#lining"
+        }
+      }
+    },
+    {
+      "name": "hearth_left",
+      "from": [
+        13,
+        3,
+        0
+      ],
+      "to": [
+        16,
+        11,
+        6
+      ],
+      "faces": {
+        "north": {
+          "uv": [
+            0,
+            5,
+            3,
+            13
+          ],
+          "texture": "#front",
+          "cullface": "north"
+        },
+        "east": {
+          "uv": [
+            10,
+            5,
+            16,
+            13
+          ],
+          "texture": "#side",
+          "cullface": "east"
+        },
+        "west": {
+          "uv": [
+            0,
+            5,
+            6,
+            13
+          ],
+          "texture": "#lining"
+        }
+      }
+    },
+    {
+      "name": "hearth_right",
+      "from": [
+        0,
+        3,
+        0
+      ],
+      "to": [
+        4,
+        11,
+        6
+      ],
+      "faces": {
+        "north": {
+          "uv": [
+            12,
+            5,
+            16,
+            13
+          ],
+          "texture": "#front",
+          "cullface": "north"
+        },
+        "east": {
+          "uv": [
+            10,
+            5,
+            16,
+            13
+          ],
+          "texture": "#lining"
+        },
+        "west": {
+          "uv": [
+            0,
+            5,
+            6,
+            13
+          ],
+          "texture": "#side",
+          "cullface": "west"
+        }
+      }
+    },
+    {
+      "name": "bottom_band",
+      "from": [
+        0,
+        0,
+        0
+      ],
+      "to": [
+        16,
+        3,
+        6
+      ],
+      "faces": {
+        "north": {
+          "uv": [
+            0,
+            13,
+            16,
+            16
+          ],
+          "texture": "#front",
+          "cullface": "north"
+        },
+        "east": {
+          "uv": [
+            10,
+            13,
+            16,
+            16
+          ],
+          "texture": "#side",
+          "cullface": "east"
+        },
+        "west": {
+          "uv": [
+            0,
+            13,
+            6,
+            16
+          ],
+          "texture": "#side",
+          "cullface": "west"
+        },
+        "up": {
+          "uv": [
+            0,
+            0,
+            16,
+            6
+          ],
+          "texture": "#lining"
+        },
+        "down": {
+          "uv": [
+            0,
+            10,
+            16,
+            16
+          ],
+          "texture": "#top",
+          "cullface": "down"
+        }
+      }
+    },
+    {
+      "name": "grate",
+      "from": [
+        4,
+        6,
+        1
+      ],
+      "to": [
+        13,
+        7,
+        6
+      ],
+      "faces": {
+        "north": {
+          "uv": [
+            0,
+            3,
+            9,
+            4
+          ],
+          "texture": "#grate"
+        },
+        "up": {
+          "uv": [
+            4,
+            1,
+            13,
+            6
+          ],
+          "texture": "#grate"
+        }
+      }
+    },
+    {
+      "name": "coals",
+      "from": [
+        5,
+        3,
+        2
+      ],
+      "to": [
+        12,
+        4,
+        6
+      ],
+      "faces": {
+        "north": {
+          "uv": [
+            5,
+            12,
+            12,
+            13
+          ],
+          "texture": "#embers"
+        },
+        "up": {
+          "uv": [
+            5,
+            2,
+            12,
+            6
+          ],
+          "texture": "#embers"
+        }
+      }
+    },
+    {
+      "name": "lump_left",
+      "from": [
+        9,
+        3,
+        3
+      ],
+      "to": [
+        11,
+        5,
+        5
+      ],
+      "rotation": {
+        "angle": -22.5,
+        "axis": "y",
+        "origin": [
+          10,
+          3,
+          4
+        ]
+      },
+      "faces": {
+        "north": {
+          "uv": [
+            9,
+            11,
+            11,
+            13
+          ],
+          "texture": "#embers"
+        },
+        "east": {
+          "uv": [
+            3,
+            11,
+            5,
+            13
+          ],
+          "texture": "#embers"
+        },
+        "west": {
+          "uv": [
+            11,
+            11,
+            13,
+            13
+          ],
+          "texture": "#embers"
+        },
+        "up": {
+          "uv": [
+            9,
+            3,
+            11,
+            5
+          ],
+          "texture": "#embers"
+        }
+      }
+    },
+    {
+      "name": "lump_right",
+      "from": [
+        5,
+        3,
+        2
+      ],
+      "to": [
+        7,
+        5,
+        4
+      ],
+      "rotation": {
+        "angle": 45,
+        "axis": "y",
+        "origin": [
+          6,
+          3,
+          3
+        ]
+      },
+      "faces": {
+        "north": {
+          "uv": [
+            5,
+            11,
+            7,
+            13
+          ],
+          "texture": "#embers"
+        },
+        "east": {
+          "uv": [
+            12,
+            11,
+            14,
+            13
+          ],
+          "texture": "#embers"
+        },
+        "west": {
+          "uv": [
+            2,
+            11,
+            4,
+            13
+          ],
+          "texture": "#embers"
+        },
+        "up": {
+          "uv": [
+            5,
+            2,
+            7,
+            4
+          ],
+          "texture": "#embers"
+        }
+      }
+    },
+    {
+      "name": "hatch",
+      "from": [
+        4,
+        3,
+        0
+      ],
+      "to": [
+        13,
+        11,
+        0
+      ],
+      "faces": {
+        "north": {
+          "uv": [
+            0,
+            0,
+            9,
+            8
+          ],
+          "texture": "#hatch",
+          "cullface": "north"
+        }
+      }
+    }
+  ]
+}

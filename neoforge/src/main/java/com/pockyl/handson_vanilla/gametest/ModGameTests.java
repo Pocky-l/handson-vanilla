@@ -9,7 +9,10 @@ import com.pockyl.handson_vanilla.HandsOnVanilla;
 
 /**
  * The mod is client-side only: this checks that it loads on a server and stays out of the way there, and runs the book's
- * arithmetic ({@link BookTests}).
+ * arithmetic ({@link BookTests}) and the smoker's and blast furnace's pack files and
+ * shift-clicks ({@link FurnaceTests}), the stonecutter's clicks ({@link StonecutterTests}),
+ * the smithing table's ({@link SmithingTests}), the grindstone's ({@link GrindstoneTests})
+ * the brewing stand's ({@link BrewingTests}) and the anvil's ({@link AnvilTests}).
  */
 @GameTestHolder(HandsOnVanilla.MOD_ID)
 @PrefixGameTestTemplate(false)
@@ -35,5 +38,45 @@ public final class ModGameTests {
     @GameTest(template = "empty")
     public static void bookSearch(GameTestHelper helper) {
         BookTests.bookSearch(helper);
+    }
+
+    @GameTest(template = "empty")
+    public static void furnaceFilesServed(GameTestHelper helper) {
+        FurnaceTests.furnaceFilesServed(helper);
+    }
+
+    @GameTest(template = "empty")
+    public static void smokerShiftClicksRoute(GameTestHelper helper) {
+        FurnaceTests.smokerShiftClicksRoute(helper);
+    }
+
+    @GameTest(template = "empty")
+    public static void blastFurnaceShiftClicksRoute(GameTestHelper helper) {
+        FurnaceTests.blastFurnaceShiftClicksRoute(helper);
+    }
+
+    @GameTest(template = "empty")
+    public static void stonecutterPicksAndCuts(GameTestHelper helper) {
+        StonecutterTests.stonecutterPicksAndCuts(helper);
+    }
+
+    @GameTest(template = "empty")
+    public static void smithingTableUpgrades(GameTestHelper helper) {
+        SmithingTests.smithingTableUpgrades(helper);
+    }
+
+    @GameTest(template = "empty")
+    public static void grindstoneMendsAndCleans(GameTestHelper helper) {
+        GrindstoneTests.grindstoneMendsAndCleans(helper);
+    }
+
+    @GameTest(template = "empty", timeoutTicks = BrewingTests.TIMEOUT)
+    public static void brewingStandBrews(GameTestHelper helper) {
+        BrewingTests.brewingStandBrews(helper);
+    }
+
+    @GameTest(template = "empty")
+    public static void anvilRenamesAndKeepsNames(GameTestHelper helper) {
+        AnvilTests.anvilRenamesAndKeepsNames(helper);
     }
 }

@@ -4,9 +4,12 @@
   "package": "com.pockyl.handson_vanilla.mixin",
   "compatibilityLevel": "JAVA_21",
   "client": [
+    "AnvilSoundMixin",
+    "BlastFurnaceParticlesMixin",
     "FurnaceParticlesMixin",
     "GhostRecipeMixin",
     "JeiRecipesGuiMixin",
+    "SmokerParticlesMixin",
     "StationRenderersMixin"
   ],
   "injectors": {

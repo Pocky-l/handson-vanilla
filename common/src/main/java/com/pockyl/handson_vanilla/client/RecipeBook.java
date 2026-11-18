@@ -343,11 +343,18 @@ final class RecipeBook implements NodePainter {
      * the chosen tabs, as {@code <book>.open}).
      */
     private boolean keptOpen() {
-        return "true".equals(BookTabs.get(source.memory() + ".open"));
+        String kept = BookTabs.get(source.memory() + ".open");
+        return source.openByDefault() ? !"false".equals(kept) : "true".equals(kept);
     }
 
     private void keepOpen(boolean value) {
-        BookTabs.put(source.memory() + ".open", value ? "true" : null);
+        String kept = source.openByDefault() ? value ? null : "false" : value ? "true" : null;
+        BookTabs.put(source.memory() + ".open", kept);
+    }
+
+    /** Whether the book is shown: the config can hide it, unless the station cannot be worked without it. */
+    private boolean shown() {
+        return source.required() || VanillaConfig.recipeBook();
     }
     /** The book in the air between two stations, while the camera flies over, so it does not vanish and open again. */
     private static Handoff handoff;
@@ -494,11 +501,26 @@ final class RecipeBook implements NodePainter {
             return false;
         }
 
+        /** The icon on the switch: the station whose work it filters. */
+        default ItemStack filterIcon() {
+            return new ItemStack(net.minecraft.world.item.Items.CRAFTING_TABLE);
+        }
+
         default boolean filtering() {
             return false;
         }
 
         default void setFiltering(boolean value) {
+        }
+
+        /** Whether the book opens by itself until the player shuts it: a station worked only through its book. */
+        default boolean openByDefault() {
+            return false;
+        }
+
+        /** Whether the station cannot be worked without the book, so the config switch that hides books leaves it. */
+        default boolean required() {
+            return false;
         }
 
         /** Whether the player has not seen the page's recipe in a recipe book since it was unlocked. */
@@ -647,7 +669,7 @@ final class RecipeBook implements NodePainter {
 
     /** The player came to the pot: the book is open already, unless they put it away. */
     void opened(StationView view) {
-        if (!wanted && keptOpen() && VanillaConfig.recipeBook()) {
+        if (!wanted && keptOpen() && shown()) {
             toggle(view);
         }
     }
@@ -1129,7 +1151,7 @@ final class RecipeBook implements NodePainter {
         if (node == null) {
             return;
         }
-        if (!VanillaConfig.recipeBook()) {
+        if (!shown()) {
             node.setVisible(false);
             return;
         }
@@ -2215,7 +2237,7 @@ final class RecipeBook implements NodePainter {
                 float since = time - switchNodFrom;
                 float nod = since >= 0.0F && since < NOD_TIME ? Math.abs(Mth.sin(since / NOD_TIME * Mth.TWO_PI)) * NOD_HEIGHT : 0.0F;
                 canvas.tab(FILTER_X, TAB_WIDE, TAB_ICON, source.filtering(), overFilter,
-                        new ItemStack(net.minecraft.world.item.Items.CRAFTING_TABLE), nod, source.filtering(), false);
+                        source.filterIcon(), nod, source.filtering(), false);
             }
             if (resting) {
                 canvas.tab(SEARCH_X, TAB_WIDE, TAB_ICON, searching(), overSearch, ItemStack.EMPTY, 0.0F, false, false);

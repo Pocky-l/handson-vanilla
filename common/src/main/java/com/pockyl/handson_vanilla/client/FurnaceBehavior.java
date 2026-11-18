@@ -23,13 +23,14 @@ import com.pockyl.handson_vanilla.HandsOnVanilla;
 import java.util.Optional;
 
 /**
- * A furnace worked by hand. The furnace's own model (this mod's, always) has its mouth and firebox as real hollows lined with
- * firebrick behind grille doors, a grate under the mouth and lumps of coal in the firebox that glow while it burns. At the
- * station the block is swapped for the scene's copy without doors and the doors' leaves, which swing open as the player comes
- * and shut as they leave: what smelts stands on the grate on the left, what it became on the right, the fuel in the middle of
- * the embers. A thin bar floating over the front edge of the grate fills from left to right as the cooking goes. What the hand held on opening
- * goes in by itself (one vanilla shift-click), so a top-up is "use with coal, Escape". Everything is read from the vanilla menu;
- * all of it is local.
+ * A furnace worked by hand: the furnace, the smoker or the blast furnace ({@link FurnaceKind}). Its own model (this mod's, always)
+ * has its cooking place and fire as real hollows behind doors: the furnace a grate under the mouth and lumps of coal that glow while
+ * it burns, the smoker a rack in its chamber and logs that burn below, the blast furnace a grate across its hearth over glowing
+ * coals. At the station the block is swapped for the scene's copy without doors and the doors' leaves, which swing open as the
+ * player comes and shut as they leave: what cooks stands on the left, what it became on the right, the fuel in the middle of the
+ * fire. A thin bar floating over the front edge of the cooking place fills from left to right as the cooking goes. What the hand
+ * held on opening goes in by itself (one vanilla shift-click), so a top-up is "use with coal, Escape". Everything is read from the
+ * vanilla menu; all of it is local.
  */
 final class FurnaceBehavior implements StationBehavior {
     static final String INPUT = "input";
@@ -37,13 +38,6 @@ final class FurnaceBehavior implements StationBehavior {
     static final String RESULT = "result";
 
     private static final ResourceLocation EMBERS = HandsOnVanilla.id("block/furnace_embers");
-    private static final Visual BODY = body("diegesis/furnace_body");
-    private static final Visual BODY_LIT = body("diegesis/furnace_body_on");
-    /** The door leaves hinged on the viewer's right, and those on the left (turned round in the scene). */
-    private static final String[] RIGHT_DOORS = {"mouth_door_right", "firebox_door_right"};
-    private static final String[] LEFT_DOORS = {"mouth_door_left", "firebox_door_left"};
-    /** How far an open leaf swings out, degrees: it lies along the front beside its opening, inside the block's width. */
-    private static final float DOOR_OPEN = 170.0F;
     /** Seconds the doors take to swing open or shut. */
     private static final float DOOR_SECONDS = 0.35F;
 
@@ -66,6 +60,9 @@ final class FurnaceBehavior implements StationBehavior {
 
     /** How often a furnace nobody works at asks what lies in it (singleplayer), ticks. */
     private static final int IDLE_ASK_TICKS = 20;
+    private final FurnaceKind kind;
+    private final Visual body;
+    private final Visual bodyLit;
     private int idleTicks;
     private int heldSlot = -1;
     private long autoAt;
@@ -82,6 +79,12 @@ final class FurnaceBehavior implements StationBehavior {
     private ItemStack lastResult = ItemStack.EMPTY;
     private boolean known;
 
+    FurnaceBehavior(FurnaceKind kind) {
+        this.kind = kind;
+        this.body = body("diegesis/" + kind.id() + "_body");
+        this.bodyLit = body("diegesis/" + kind.id() + "_body_on");
+    }
+
     /** The scene's copy of the block, lit as the world lights the block so the two look the same as they swap. */
     private static Visual body(String model) {
         return new Visual(Optional.of(HandsOnVanilla.id(model)), Optional.empty(), Optional.empty(),
@@ -90,21 +93,26 @@ final class FurnaceBehavior implements StationBehavior {
 
     @Override
     public void onSceneReady(StationView view) {
-        view.setInventoryFilter(FurnaceUse::usable);
+        view.setInventoryFilter(this::usable);
         shownIdle(view, INPUT, FurnaceContents.INPUT);
         shownIdle(view, FUEL, FurnaceContents.FUEL);
         shownIdle(view, RESULT, FurnaceContents.RESULT);
     }
 
+    /** Whether this furnace can cook or burn the stack. */
+    private boolean usable(ItemStack stack) {
+        return FurnaceUse.usable(kind.recipes(), stack);
+    }
+
     /**
      * While nobody works at the furnace its slots are empty to the client (a server sends them only with the menu): what is known
-     * to lie there stands in them as it does at the station, seen through the grille doors.
+     * to lie there stands in them as it does at the station, seen through the doors.
      */
-    private static void shownIdle(StationView view, String node, int slot) {
+    private void shownIdle(StationView view, String node, int slot) {
         view.node(node).ifPresent(at -> {
             float size = at.definition().slot().map(binding -> binding.shownItemSize()).orElse(3.0F);
             at.setPainter((poseStack, buffers, light) -> {
-                if (view.menu() != null || !VanillaConfig.furnace()) {
+                if (view.menu() != null || !kind.on()) {
                     // Off, the furnace is a full block again (vanilla's or a resource pack's): nothing can be seen inside.
                     return;
                 }
@@ -131,20 +139,20 @@ final class FurnaceBehavior implements StationBehavior {
         FurnaceUse.refresh();
         heldSlot = -1;
         LocalPlayer player = Minecraft.getInstance().player;
-        if (player != null && view.openedByUse() && FurnaceUse.usable(player.getMainHandItem())) {
+        if (player != null && view.openedByUse() && usable(player.getMainHandItem())) {
             heldSlot = player.getInventory().selected;
         }
         shownFill = -2;
         known = false;
         opening = true;
-        play(view, SoundEvents.IRON_TRAPDOOR_OPEN, "body", 0.25F, 1.2F + 0.1F * random(view));
+        play(view, kind.openSound(), "body", 0.25F, kind.pitch() + 0.1F * random(view));
     }
 
     @Override
     public void onMenuOpened(StationView view) {
         LocalPlayer player = Minecraft.getInstance().player;
         MenuAccess menu = view.menu();
-        if (heldSlot >= 0 && player != null && menu != null && FurnaceUse.usable(player.getInventory().getItem(heldSlot))) {
+        if (heldSlot >= 0 && player != null && menu != null && usable(player.getInventory().getItem(heldSlot))) {
             // One vanilla shift-click of the held stack: the furnace's own rule sends it to the top or into the fire.
             menu.quickMoveFromInventory(heldSlot);
             autoAt = net.minecraft.Util.getMillis();
@@ -159,7 +167,7 @@ final class FurnaceBehavior implements StationBehavior {
         heldSlot = -1;
         known = false;
         opening = false;
-        play(view, SoundEvents.IRON_TRAPDOOR_CLOSE, "body", 0.25F, 1.2F + 0.1F * random(view));
+        play(view, kind.closeSound(), "body", 0.25F, kind.pitch() + 0.1F * random(view));
     }
 
     /** The doors are still swinging shut after the player left: the scene keeps standing in for the block until they are. */
@@ -180,7 +188,7 @@ final class FurnaceBehavior implements StationBehavior {
         view.node("body").ifPresent(body -> {
             body.setVisible(shown);
             if (changed) {
-                body.setVisual(burning ? BODY_LIT : BODY);
+                body.setVisual(burning ? bodyLit : this.body);
             }
         });
         doors(view, dt, shown);
@@ -188,31 +196,30 @@ final class FurnaceBehavior implements StationBehavior {
     }
 
     /**
-     * The leaves swing with an ease in and out, the right ones out to the right, the left ones (turned round in the scene) to the
-     * left. A node's rotation is on top of the one its scene gives it.
+     * The leaves swing about their hinges with an ease in and out, each as far and as its kind says (the furnace's along the front,
+     * the smoker's door out towards the player, the blast furnace's hatch down and out). A node's rotation is on top of the one its
+     * scene gives it.
      */
     private void doors(StationView view, float dt, boolean shown) {
         doors = net.minecraft.util.Mth.clamp(doors + (opening ? dt : -dt) / DOOR_SECONDS, 0.0F, 1.0F);
         float eased = doors * doors * (3.0F - 2.0F * doors);
-        for (String id : RIGHT_DOORS) {
-            view.node(id).ifPresent(node -> {
+        for (FurnaceKind.Leaf leaf : kind.leaves()) {
+            view.node(leaf.node()).ifPresent(node -> {
                 node.setVisible(shown);
-                node.rotateTo(0.0F, DOOR_OPEN * eased, 0.0F, 0.0F);
-            });
-        }
-        for (String id : LEFT_DOORS) {
-            view.node(id).ifPresent(node -> {
-                node.setVisible(shown);
-                node.rotateTo(0.0F, -DOOR_OPEN * eased, 0.0F, 0.0F);
+                node.rotateTo(leaf.openX() * eased, leaf.openY() * eased, 0.0F, 0.0F);
             });
         }
     }
 
-    /** The cooking as a thin bar floating over the grate's front edge: shown while something cooks, filling from the viewer's left. */
+    /**
+     * The cooking as a thin bar floating over the front edge of the cooking place: shown while something cooks, filling from the
+     * viewer's left.
+     */
     private void progress(StationView view, AbstractFurnaceMenu menu) {
         // In 24ths, as the vanilla arrow is drawn.
         int fill = menu == null ? 0 : (int) (menu.getBurnProgress() * 24.0F);
-        boolean cooking = menu != null && (fill > 0 || menu.isLit() && FurnaceUse.smelts(view.state().getItem(SlotRef.of(INPUT, 0))));
+        boolean cooking = menu != null
+                && (fill > 0 || menu.isLit() && FurnaceUse.cooks(kind.recipes(), view.state().getItem(SlotRef.of(INPUT, 0))));
         view.node("progress").ifPresent(node -> {
             if (cooking) {
                 node.moveTo(0.0F, BOB * (float) Math.sin(clock * BOB_RATE), 0.0F, 0.0F);
@@ -267,7 +274,7 @@ final class FurnaceBehavior implements StationBehavior {
         if (view.menu() != null) {
             FurnaceContents.put(view.level(), view.pos(), view.state().getItem(SlotRef.of(INPUT, 0)), view.state().getItem(SlotRef.of(FUEL, 0)),
                     view.state().getItem(SlotRef.of(RESULT, 0)));
-        } else if (++idleTicks % IDLE_ASK_TICKS == 0 && VanillaConfig.furnace()) {
+        } else if (++idleTicks % IDLE_ASK_TICKS == 0 && kind.on()) {
             FurnaceContents.ask(view.level(), view.pos());
         }
         if (!view.isFocused() || view.menu() == null) {
