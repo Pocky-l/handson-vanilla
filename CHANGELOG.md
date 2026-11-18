@@ -1,5 +1,8 @@
 # Changelog
 
+## [1.1.1]
+- JEI's "+" at the crafting table also lays out recipes that are not in your recipe book yet, as at the vanilla crafting table.
+
 ## [1.1.0]
 - The smoker is worked by hand: its glazed door swings open, the food lies on an iron rack and the fuel before the logs.
 - The blast furnace is worked by hand: its iron hatch drops open onto a hearth with a grate and coals.

@@ -20,7 +20,6 @@ import mezz.jei.api.runtime.IClickableIngredient;
 import mezz.jei.api.runtime.IIngredientManager;
 import net.minecraft.client.player.LocalPlayer;
 import net.minecraft.client.renderer.Rect2i;
-import net.minecraft.network.chat.Component;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.inventory.CraftingMenu;
@@ -132,7 +131,7 @@ public final class VanillaJeiPlugin implements IModPlugin {
         IRecipeTransferHandlerHelper helper = registration.getTransferHelper();
         IRecipeTransferHandler<CraftingMenu, CraftingRecipe> basic = helper.createUnregisteredRecipeTransferHandler(
                 helper.createBasicRecipeTransferInfo(CraftingMenu.class, MenuType.CRAFTING, RecipeTypes.CRAFTING, 1, 9, 10, 36));
-        registration.addRecipeTransferHandler(new StationTransfer(basic, helper), RecipeTypes.CRAFTING);
+        registration.addRecipeTransferHandler(new StationTransfer(basic), RecipeTypes.CRAFTING);
     }
 
     private record Clickable<T>(ITypedIngredient<T> typed, Rect2i area) implements IClickableIngredient<T> {
@@ -147,8 +146,12 @@ public final class VanillaJeiPlugin implements IModPlugin {
         }
     }
 
-    /** At the crafting table station: the vanilla book's packet. Anywhere else: JEI's own crafting transfer, unchanged. */
-    private record StationTransfer(IRecipeTransferHandler<CraftingMenu, CraftingRecipe> basic, IRecipeTransferHandlerHelper helper)
+    /**
+     * At the crafting table station: the vanilla book's packet for a recipe in the player's book, which any server takes; a recipe
+     * not in the book yet goes through JEI's own transfer, as at the vanilla crafting table (the server refuses the book's packet for
+     * it). Anywhere else: JEI's own crafting transfer, unchanged.
+     */
+    private record StationTransfer(IRecipeTransferHandler<CraftingMenu, CraftingRecipe> basic)
             implements IRecipeTransferHandler<CraftingMenu, CraftingRecipe> {
         @Override
         public Class<? extends CraftingMenu> getContainerClass() {
@@ -168,11 +171,8 @@ public final class VanillaJeiPlugin implements IModPlugin {
         @Override
         public IRecipeTransferError transferRecipe(CraftingMenu container, CraftingRecipe recipe, IRecipeSlotsView slots, Player player,
                 boolean maxTransfer, boolean doTransfer) {
-            if (StationHover.menu() != container) {
+            if (StationHover.menu() != container || !(player instanceof LocalPlayer local) || !local.getRecipeBook().contains(recipe)) {
                 return basic.transferRecipe(container, recipe, slots, player, maxTransfer, doTransfer);
-            }
-            if (!(player instanceof LocalPlayer local) || !local.getRecipeBook().contains(recipe)) {
-                return helper.createUserErrorWithTooltip(Component.translatable("handson_vanilla.jei.locked"));
             }
             if (doTransfer) {
                 StationHover.placeRecipe(recipe.getId(), maxTransfer);
