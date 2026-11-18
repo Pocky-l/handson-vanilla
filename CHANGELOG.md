@@ -1,6 +1,6 @@
 # Changelog
 
-## [1.1.0+1.21.1] - Unreleased
+## [1.1.0+1.21.1] - 2026-11-18
 - The smoker is worked by hand: its glazed door swings open, the food lies on an iron rack and the fuel before the logs.
 - The blast furnace is worked by hand: its iron hatch drops open onto a hearth with a grate and coals.
 - Smokers and blast furnaces everywhere show their insides, with flames and smoke while lit.
