@@ -11,71 +11,78 @@ import net.minecraft.client.resources.model.ModelBakery;
 import net.minecraft.client.resources.model.UnbakedModel;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraft.world.level.block.Block;
-import net.minecraft.world.level.block.Blocks;
 import net.minecraft.world.level.block.state.BlockState;
 import net.minecraft.world.level.block.state.properties.Property;
 
 import com.pockyl.handson_vanilla.HandsOnVanilla;
-import com.pockyl.handson_vanilla.client.VanillaConfig;
+import com.pockyl.handson_vanilla.client.FurnaceKind;
 
 import java.io.IOException;
 import java.io.Reader;
 import java.nio.file.Files;
 import java.nio.file.Path;
+import java.util.Arrays;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 import java.util.Optional;
 
 /**
- * The furnace in the world is this mod's furnace: hollows behind grille doors where the station's slots stand, the fire inside.
- * Its block state and models lie under Minecraft's own name, where a resource pack that remodels the furnace (or only names other
- * models in its block state) would win, and the station would open on a block whose mouth is not where its slots, flames and doors
- * are. So the block state and the two furnace models are read from this mod's own copies ({@code furnace_pack}, the files Forge
- * serves as a pack above all others); a pack's furnace textures still apply to the model's outside. Only while the furnace station
- * is on: turned off, the furnace is vanilla's, or the resource pack's, again.
+ * The furnace and the smoker in the world are this mod's: hollows behind doors where the station's slots stand, the fire inside.
+ * Their block states and models lie under Minecraft's own names, where a resource pack that remodels them (or only names other
+ * models in a block state) would win, and the station would open on a block whose hollows are not where its slots, flames and doors
+ * are. So the block states and models are read from this mod's own copies ({@code furnace_pack}, the files Forge serves as a pack
+ * above all others); a pack's textures still apply to the models' outside. Each block only while its station is on: turned off, it
+ * is vanilla's, or the resource pack's, again.
  */
 final class FurnaceModels {
     private static final String FOLDER = "furnace_pack/assets/minecraft/";
-    private static final String BLOCK_STATE = FOLDER + "blockstates/furnace.json";
-    private static final String[] MODELS = {"furnace", "furnace_on"};
 
     private FurnaceModels() {
     }
 
     static void register() {
-        if (!VanillaConfig.furnace()) {
+        List<FurnaceKind> kinds = Arrays.stream(FurnaceKind.values()).filter(FurnaceKind::on).toList();
+        if (kinds.isEmpty()) {
             return;
         }
-        // The grille doors and the grate have holes: the model is drawn cut out (Forge reads its render_type).
-        BlockRenderLayerMap.INSTANCE.putBlock(Blocks.FURNACE, RenderType.cutout());
+        for (FurnaceKind kind : kinds) {
+            // The doors and the grate have holes: the model is drawn cut out (Forge reads its render_type).
+            BlockRenderLayerMap.INSTANCE.putBlock(kind.block(), RenderType.cutout());
+        }
         ModelLoadingPlugin.register(context -> {
             Map<ResourceLocation, BlockModel> models = new HashMap<>();
-            for (String name : MODELS) {
-                ResourceLocation id = new ResourceLocation(ResourceLocation.DEFAULT_NAMESPACE, "block/" + name);
-                readModel(FOLDER + "models/block/" + name + ".json").ifPresent(model -> {
-                    model.name = id.toString();
-                    models.put(id, model);
-                });
+            for (FurnaceKind kind : kinds) {
+                for (String name : new String[] {kind.id(), kind.id() + "_on"}) {
+                    ResourceLocation id = new ResourceLocation(ResourceLocation.DEFAULT_NAMESPACE, "block/" + name);
+                    readModel(FOLDER + "models/block/" + name + ".json").ifPresent(model -> {
+                        model.name = id.toString();
+                        models.put(id, model);
+                    });
+                }
             }
             context.resolveModel().register(resolver -> models.get(resolver.id()));
-            Block furnace = Blocks.FURNACE;
-            Optional<BlockModelDefinition> definition = readBlockState(furnace);
-            if (definition.isEmpty()) {
-                return;
-            }
-            try {
-                context.registerBlockStateResolver(furnace, resolver -> {
-                    Map<String, MultiVariant> variants = definition.get().getVariants();
-                    for (BlockState state : furnace.getStateDefinition().getPossibleStates()) {
-                        UnbakedModel model = variants.entrySet().stream().filter(entry -> matches(state, entry.getKey()))
-                                .<UnbakedModel>map(Map.Entry::getValue).findFirst()
-                                .orElseGet(() -> resolver.getOrLoadModel(ModelBakery.MISSING_MODEL_LOCATION));
-                        resolver.setModel(state, model);
-                    }
-                });
-            } catch (IllegalArgumentException e) {
-                // Another mod already decides how the furnace looks: its choice stands.
-                HandsOnVanilla.LOGGER.warn("The furnace's models are resolved by another mod; this mod's furnace is not used", e);
+            for (FurnaceKind kind : kinds) {
+                Block block = kind.block();
+                Optional<BlockModelDefinition> definition = readBlockState(block, FOLDER + "blockstates/" + kind.id() + ".json");
+                if (definition.isEmpty()) {
+                    continue;
+                }
+                try {
+                    context.registerBlockStateResolver(block, resolver -> {
+                        Map<String, MultiVariant> variants = definition.get().getVariants();
+                        for (BlockState state : block.getStateDefinition().getPossibleStates()) {
+                            UnbakedModel model = variants.entrySet().stream().filter(entry -> matches(state, entry.getKey()))
+                                    .<UnbakedModel>map(Map.Entry::getValue).findFirst()
+                                    .orElseGet(() -> resolver.getOrLoadModel(ModelBakery.MISSING_MODEL_LOCATION));
+                            resolver.setModel(state, model);
+                        }
+                    });
+                } catch (IllegalArgumentException e) {
+                    // Another mod already decides how the block looks: its choice stands.
+                    HandsOnVanilla.LOGGER.warn("The {}'s models are resolved by another mod; this mod's {} is not used", kind.id(),
+                            kind.id(), e);
+                }
             }
         });
     }
@@ -89,13 +96,13 @@ final class FurnaceModels {
         }
     }
 
-    private static Optional<BlockModelDefinition> readBlockState(Block block) {
-        try (Reader reader = Files.newBufferedReader(find(BLOCK_STATE))) {
+    private static Optional<BlockModelDefinition> readBlockState(Block block, String file) {
+        try (Reader reader = Files.newBufferedReader(find(file))) {
             BlockModelDefinition.Context context = new BlockModelDefinition.Context();
             context.setDefinition(block.getStateDefinition());
             return Optional.of(BlockModelDefinition.fromStream(context, reader));
         } catch (IOException | RuntimeException e) {
-            HandsOnVanilla.LOGGER.error("Cannot read {}", BLOCK_STATE, e);
+            HandsOnVanilla.LOGGER.error("Cannot read {}", file, e);
             return Optional.empty();
         }
     }

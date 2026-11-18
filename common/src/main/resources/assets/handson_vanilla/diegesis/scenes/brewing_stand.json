@@ -1,0 +1,63 @@
+{
+  "$schema": "https://raw.githubusercontent.com/Pocky-l/diegesis/main/docs/schema/scene.schema.json",
+  "$comment": "The brewing stand is vanilla's: a blaze rod (x, z 7-9, 14 high) on three stone pads, east (9-15, 5-11), north-west (1-7, 1-7) and south-west (1-7, 9-15), 2 high; its bottles hang on arms over the pads (bottle 0 east, 1 north-west, 2 south-west). The scene turns to the player; at the station the block is swapped for body (the stand without bottles: rod, pads, empty arms), which BrewingStandBehavior turns with the scene, and moves each node to where its pad or place is now: the nodes here are placed for a player who came to the stand's north side. bottle_N are vanilla's three bottle slots, standing on their pads; ingredient stands on the top of the rod; fuel (blaze powder) lies on the ground in the free corner nearest the camera (one of three places the behaviour picks from). While it brews the ingredient shrinks as the brew goes on, drops fall from it, bubbles of each potion's colour rise in the bottles and a small flame burns at the rod's foot. The camera looks down from the front, a little above the rod's top. The hotbar stays where the HUD has it and takes clicks; over it rows of the other stacks the stand takes.",
+  "work_plane": 2,
+  "idle_visible": false,
+  "camera": {
+    "position": [8, 26, -19],
+    "target": [8, 6, 8],
+    "fov": 42,
+    "interactive_at": 0.6
+  },
+  "interface": {
+    "hide_player": true,
+    "inventory_panel": false,
+    "sounds": false,
+    "carry_lift": 1.0,
+    "highlight_color": "#26FFFFFF",
+    "hover_outline": false
+  },
+  "inventory_drawer": {
+    "layout": "hotbar",
+    "always_open": true,
+    "carry_size": 3.0
+  },
+  "nodes": [
+    {
+      "id": "body",
+      "pos": [8, 0, 8],
+      "pickable": false,
+      "hidden": true,
+      "visual": {"model": "handson_vanilla:diegesis/brewing_stand_body", "lit_as_block": true}
+    },
+    {
+      "id": "bottle_0",
+      "pos": [12, 2, 8],
+      "slot": {"slot": "bottles[0]", "display": "upright", "size": 5.5, "count_facing": "camera", "idle_highlight": 0.55},
+      "collider": {"from": [-2.4, 0, -2.4], "to": [2.4, 6, 2.4]}
+    },
+    {
+      "id": "bottle_1",
+      "pos": [4, 2, 4],
+      "slot": {"slot": "bottles[1]", "display": "upright", "size": 5.5, "count_facing": "camera", "idle_highlight": 0.55},
+      "collider": {"from": [-2.4, 0, -2.4], "to": [2.4, 6, 2.4]}
+    },
+    {
+      "id": "bottle_2",
+      "pos": [4, 2, 12],
+      "slot": {"slot": "bottles[2]", "display": "upright", "size": 5.5, "count_facing": "camera", "idle_highlight": 0.55},
+      "collider": {"from": [-2.4, 0, -2.4], "to": [2.4, 6, 2.4]}
+    },
+    {
+      "id": "ingredient",
+      "pos": [8, 14, 8],
+      "slot": {"slot": "ingredient[0]", "display": "upright", "size": 3.6, "count_facing": "camera", "idle_highlight": 0.55},
+      "collider": {"from": [-2, 0, -1.5], "to": [2, 4, 1.5]}
+    },
+    {
+      "id": "fuel",
+      "pos": [11.5, 0.02, 2.5],
+      "slot": {"slot": "fuel[0]", "size": 3.4, "item_size": 2.8, "count_facing": "camera", "idle_highlight": 0.55}
+    }
+  ]
+}

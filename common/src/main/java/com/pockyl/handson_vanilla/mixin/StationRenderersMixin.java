@@ -11,12 +11,12 @@ import org.spongepowered.asm.mixin.injection.Inject;
 import org.spongepowered.asm.mixin.injection.callback.CallbackInfo;
 
 import com.pockyl.diegesis.api.client.DiegesisClient;
-import com.pockyl.handson_vanilla.client.FurnaceFire;
+import com.pockyl.handson_vanilla.client.FurnaceKind;
 
 /**
- * Vanilla gives the crafting table and the furnace no block entity renderer, but other mods do: Visual Workbench draws what lies
+ * Vanilla gives the crafting table and the furnaces no block entity renderer, but other mods do: Visual Workbench draws what lies
  * in the table's grid over it, others draw a furnace's contents in front of it. Where this mod's scene shows the same things (the
- * table's cells while its menu is open here, the furnace's mouth and firebox whenever its scene is drawn) they would be drawn twice,
+ * table's cells while its menu is open here, a furnace's or smoker's insides whenever its scene is drawn) they would be drawn twice,
  * one copy floating off its place; such a renderer is stopped there, at the dispatcher, whichever mod registered it. Everywhere
  * else, and at a table nobody here works at, it draws as before.
  */
@@ -30,7 +30,7 @@ abstract class StationRenderersMixin {
             if (DiegesisClient.station(blockEntity.getBlockPos()).map(view -> view.menu() != null).orElse(false)) {
                 callback.cancel();
             }
-        } else if (FurnaceFire.inside(state) && DiegesisClient.isSceneDrawn(blockEntity.getBlockPos())) {
+        } else if (FurnaceKind.remodelled(state) != null && DiegesisClient.isSceneDrawn(blockEntity.getBlockPos())) {
             callback.cancel();
         }
     }

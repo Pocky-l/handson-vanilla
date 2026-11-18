@@ -1,0 +1,58 @@
+{
+  "$schema": "https://raw.githubusercontent.com/Pocky-l/diegesis/main/docs/schema/scene.schema.json",
+  "$comment": "The grindstone is vanilla's: a stone wheel (x 4-12, its middle at 8, 10, 8, 12 across) between two dark oak legs, on the floor, a wall or the ceiling. The scene turns to the player; at the station the block is swapped for body (the legs and pivots) and wheel (the stone, anchored at its middle), which GrindstoneBehavior turns as the block stands (blockstate's x and y turns, then the scene's) and moves to where the wheel's middle is; the wheel turns about its axle when it grinds. Everything here is placed for a grindstone on the floor whose wheel rim faces the camera: the behaviour moves input_0 and input_1 (vanilla's two slots, left and right as the camera sees them) before the rim when it faces the camera, or to the rim left and right of the wheel when its round face (with the axle and a leg before it) does, the result over the wheel, and the camera with them. The inputs stand upright as if held to the stone; a click on the wheel or on the result grinds: they are pressed to the turning stone, sparks fly, and at the touch the result is taken (the vanilla click on the result slot). The camera stands back far enough that the result hovering over the wheel stays in the frame. The hotbar stays where the HUD has it and takes clicks; over it rows of the other stacks the grindstone takes.",
+  "work_plane": 10,
+  "idle_visible": false,
+  "camera": {
+    "position": [8, 31, -26],
+    "target": [8, 14, 4],
+    "fov": 42,
+    "interactive_at": 0.6
+  },
+  "interface": {
+    "hide_player": true,
+    "inventory_panel": false,
+    "sounds": false,
+    "carry_lift": 1.0,
+    "highlight_color": "#26FFFFFF",
+    "hover_outline": false
+  },
+  "inventory_drawer": {
+    "layout": "hotbar",
+    "always_open": true,
+    "carry_size": 3.0
+  },
+  "nodes": [
+    {
+      "id": "body",
+      "pos": [8, 8, 8],
+      "pickable": false,
+      "hidden": true,
+      "visual": {"model": "handson_vanilla:diegesis/grindstone_body", "anchor": [8, 8, 8], "lit_as_block": true}
+    },
+    {
+      "id": "wheel",
+      "pos": [8, 10, 8],
+      "hidden": true,
+      "visual": {"model": "handson_vanilla:diegesis/grindstone_wheel", "anchor": [8, 10, 8], "lit_as_block": true},
+      "collider": {"from": [-4, -6, -6], "to": [4, 6, 6]}
+    },
+    {
+      "id": "input_0",
+      "pos": [10.6, 8.2, 0.6],
+      "slot": {"slot": "input[0]", "display": "upright", "size": 3.6, "count_facing": "camera", "idle_highlight": 0.55},
+      "collider": {"from": [-2, 0, -1], "to": [2, 4, 1]}
+    },
+    {
+      "id": "input_1",
+      "pos": [5.4, 8.2, 0.6],
+      "slot": {"slot": "input[1]", "display": "upright", "size": 3.6, "count_facing": "camera", "idle_highlight": 0.55},
+      "collider": {"from": [-2, 0, -1], "to": [2, 4, 1]}
+    },
+    {
+      "id": "result",
+      "pos": [8, 17.2, 8],
+      "collider": {"from": [-2.6, -0.4, -2.6], "to": [2.6, 5.6, 2.6]}
+    }
+  ]
+}

@@ -1,0 +1,46 @@
+{
+  "parent": "minecraft:block/block",
+  "render_type": "minecraft:cutout",
+  "__lint_allow": [
+    "Z002"
+  ],
+  "textures": {
+    "particle": "minecraft:block/iron_block",
+    "hatch": "handson_vanilla:block/blast_furnace_hatch"
+  },
+  "elements": [
+    {
+      "name": "leaf",
+      "from": [
+        0,
+        0,
+        8
+      ],
+      "to": [
+        9,
+        8,
+        8
+      ],
+      "faces": {
+        "north": {
+          "uv": [
+            0,
+            0,
+            9,
+            8
+          ],
+          "texture": "#hatch"
+        },
+        "south": {
+          "uv": [
+            9,
+            0,
+            0,
+            8
+          ],
+          "texture": "#hatch"
+        }
+      }
+    }
+  ]
+}
