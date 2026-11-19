@@ -1,5 +1,8 @@
 # Changelog
 
+## [1.1.2+1.21.1]
+- Fixed: picking a piece in the stonecutter's book did nothing, so no stone was cut.
+
 ## [1.1.1+1.21.1]
 - JEI's "+" at the crafting table also lays out recipes that are not in your recipe book yet, as at the vanilla crafting table.
 

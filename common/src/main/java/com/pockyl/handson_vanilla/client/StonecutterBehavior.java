@@ -230,8 +230,9 @@ final class StonecutterBehavior implements StationBehavior {
             }
             return;
         }
-        StonecutterRecipe recipe = view.level().getRecipeManager().byKey(id).filter(StonecutterRecipe.class::isInstance)
-                .map(StonecutterRecipe.class::cast).orElse(null);
+        // byKey gives the holder on this version: test and cast its recipe, never the holder itself.
+        StonecutterRecipe recipe = view.level().getRecipeManager().byKey(id).map(RecipeHolder::value)
+                .filter(StonecutterRecipe.class::isInstance).map(StonecutterRecipe.class::cast).orElse(null);
         if (recipe == null || recipe.getIngredients().isEmpty()) {
             return;
         }
