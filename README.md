@@ -11,6 +11,10 @@
   <a href="LICENSE"><img alt="License MIT" src="https://img.shields.io/badge/License-MIT-blue"></a>
 </p>
 
+<p align="center">
+  <img src="docs/showcase/progress.png" alt="Progress: 43%" width="834">
+</p>
+
 <p align="center"><i>Craft and smelt with your own hands.</i></p>
 
 <p align="center"><b>The crafting table, all three furnaces, the stonecutter, the smithing table, the grindstone, the brewing stand and the anvil open right where they stand, with no menu screen. You lay the items into the grid yourself, take the result off the table and watch your ore on the furnace's grate. Client-side: it works on any server.</b></p>
