@@ -8,7 +8,7 @@
 
 <p style="text-align:center"><a href="https://www.curseforge.com/minecraft/mc-mods/hands-on-vanilla/files"><img src="https://img.shields.io/badge/Minecraft-1.20.1%20%7C%201.21.1-62B47A?style=for-the-badge" alt="Minecraft 1.20.1 and 1.21.1"></a> <a href="https://files.minecraftforge.net"><img src="https://img.shields.io/badge/Forge%20%7C%20NeoForge%20%7C%20Fabric-required-F16436?style=for-the-badge" alt="Forge, NeoForge or Fabric"></a> <a href="https://www.curseforge.com/minecraft/mc-mods/hands-on-vanilla"><img src="https://img.shields.io/badge/Client--side-any%20server-8a6a4a?style=for-the-badge" alt="Client-side, works on any server"></a> <a href="https://discord.gg/mGkPKccJEf"><img src="https://raw.githubusercontent.com/Pocky-l/handson-delight/main/docs/badges/discord.png" width="242" height="28" alt="Discord: Pocky's Kitchen"></a> <a href="https://github.com/Pocky-l/handson-vanilla"><img src="https://img.shields.io/badge/Source-GitHub-24292f?style=for-the-badge&amp;logo=github" alt="GitHub"></a></p>
 
-<p style="text-align:center"><img src="https://raw.githubusercontent.com/Pocky-l/handson-vanilla/main/docs/showcase/progress.png" width="834" alt="Progress: 43%" title="Progress: 43%"></p>
+<p style="text-align:center"><strong>Mod progress</strong><br><img src="https://raw.githubusercontent.com/Pocky-l/handson-vanilla/main/docs/showcase/progress.png" width="834" alt="Progress: 43%" title="Progress: 43%"></p>
 
 <p style="text-align:center"><em>Craft and smelt with your own hands.</em></p>
 

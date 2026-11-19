@@ -12,6 +12,7 @@
 </p>
 
 <p align="center">
+  <b>Mod progress</b><br>
   <img src="docs/showcase/progress.png" alt="Progress: 43%" width="834">
 </p>
 
