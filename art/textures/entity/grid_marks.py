@@ -1,4 +1,6 @@
-# Charcoal marks for Crafting Tweaks' grid tweaks on the crafting table: 6 marks of 16x16 in one 96x16 sheet.
+# Charcoal marks drawn on the crafting table for other mods' grid buttons, 16x16 each in one row: Crafting Tweaks' rotate,
+# rotate back, balance, spread, clear, force clear; Inventory Profiles Next's continuous crafting (a loop of two arrows).
+# Usage: python grid_marks.py <sheet.png> <preview.png>
 import math, sys
 from PIL import Image
 
@@ -66,7 +68,23 @@ def force_clear():
     g[11][13] = 'o'
     return g
 
-MARKS = [rotate_cw(), mirror(rotate_cw()), balance(), spread(), clear(), force_clear()]
+def repeat():
+    g = blank()
+    cx, cy, r = 7.5, 8.0, 5.0
+    for y in range(16):
+        for x in range(16):
+            d = math.hypot(x - cx, y - cy)
+            a = math.degrees(math.atan2(-(y - cy), x - cx)) % 360
+            if abs(d - r) < 0.55 and (28 <= a <= 165 or 208 <= a <= 345):
+                g[y][x] = '#'
+    # the upper arc ends on the right in a head pointing down, the lower one on the left in a head pointing up
+    for x, y in [(10, 7), (11, 7), (12, 7), (13, 7), (14, 7), (11, 8), (12, 8), (13, 8), (12, 9)]:
+        g[y][x] = '#'
+    for x, y in [(1, 9), (2, 9), (3, 9), (4, 9), (5, 9), (2, 8), (3, 8), (4, 8), (3, 7)]:
+        g[y][x] = '#'
+    return g
+
+MARKS = [rotate_cw(), mirror(rotate_cw()), balance(), spread(), clear(), force_clear(), repeat()]
 
 def roughen(g, seed):
     # charcoal: a few pixels of every stroke lighter, never the ends of thin lines

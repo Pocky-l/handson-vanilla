@@ -8,6 +8,7 @@
     "AnvilSoundMixin",
     "EnchantTableBookMixin",
     "BlastFurnaceParticlesMixin",
+    "ContinuousCraftingMixin",
     "FastBenchResultMixin",
     "FurnaceParticlesMixin",
     "GhostRecipeMixin",

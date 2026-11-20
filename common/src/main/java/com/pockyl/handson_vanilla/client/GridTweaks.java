@@ -69,7 +69,9 @@ final class GridTweaks {
     }
 
     private static final ResourceLocation SHEET = HandsOnVanilla.id("textures/entity/grid_marks.png");
-    private static final int DRAWINGS = 6;
+    private static final int DRAWINGS = 7;
+    /** Inventory Profiles Next's continuous crafting, drawn by {@link ContinuousCrafting}. */
+    static final int REPEAT_DRAWING = 6;
     /** A mark's side in pixels, how much larger it is under the cursor, how high it lies over the wood. */
     private static final float SIZE = 3.0F;
     private static final float HOVER_GROWTH = 1.1F;
@@ -158,24 +160,29 @@ final class GridTweaks {
 
     /** Lying flat on the wood, the top of the drawing to the far edge; a little larger and lit under the cursor. */
     private void paint(NodeView node, Mark mark, PoseStack poseStack, MultiBufferSource buffers, int light) {
-        boolean hovered = node.isHovered();
-        int drawing = Screen.hasShiftDown() ? mark.shiftDrawing : mark.drawing;
+        draw(poseStack, buffers, Screen.hasShiftDown() ? mark.shiftDrawing : mark.drawing, node.isHovered(), light, 1.0F);
+    }
+
+    /** One drawing of the sheet lying flat on the wood at a node, {@code alpha} of its charcoal; larger and lit when hovered. */
+    static void draw(PoseStack poseStack, MultiBufferSource buffers, int drawing, boolean hovered, int light, float alpha) {
         float half = SIZE * 0.5F * (hovered ? HOVER_GROWTH : 1.0F);
         float u0 = (float) drawing / DRAWINGS;
         float u1 = (float) (drawing + 1) / DRAWINGS;
         int lit = hovered ? LightTexture.FULL_BRIGHT : light;
+        int a = Math.round(255.0F * alpha);
         VertexConsumer consumer = buffers.getBuffer(RenderType.entityTranslucent(SHEET));
         Matrix4f pose = poseStack.last().pose();
         Matrix3f normal = poseStack.last().normal();
         // The camera looks along +z from the near edge, so +x is on its left: the drawing's left edge lies at +x.
-        vertex(consumer, pose, normal, half, -half, u0, 1.0F, lit);
-        vertex(consumer, pose, normal, -half, -half, u1, 1.0F, lit);
-        vertex(consumer, pose, normal, -half, half, u1, 0.0F, lit);
-        vertex(consumer, pose, normal, half, half, u0, 0.0F, lit);
+        vertex(consumer, pose, normal, half, -half, u0, 1.0F, lit, a);
+        vertex(consumer, pose, normal, -half, -half, u1, 1.0F, lit, a);
+        vertex(consumer, pose, normal, -half, half, u1, 0.0F, lit, a);
+        vertex(consumer, pose, normal, half, half, u0, 0.0F, lit, a);
     }
 
-    private static void vertex(VertexConsumer consumer, Matrix4f pose, Matrix3f normal, float x, float z, float u, float v, int light) {
-        consumer.vertex(pose, x, LIFT, z).color(255, 255, 255, 255).uv(u, v).overlayCoords(OverlayTexture.NO_OVERLAY).uv2(light)
+    private static void vertex(VertexConsumer consumer, Matrix4f pose, Matrix3f normal, float x, float z, float u, float v, int light,
+            int alpha) {
+        consumer.vertex(pose, x, LIFT, z).color(255, 255, 255, alpha).uv(u, v).overlayCoords(OverlayTexture.NO_OVERLAY).uv2(light)
                 .normal(normal, 0.0F, 1.0F, 0.0F).endVertex();
     }
 
@@ -190,7 +197,7 @@ final class GridTweaks {
     }
 
     /** The arm moves as the hand works; only this client sees it. */
-    private static void swing() {
+    static void swing() {
         Player player = Minecraft.getInstance().player;
         if (player != null) {
             player.swing(InteractionHand.MAIN_HAND, false);

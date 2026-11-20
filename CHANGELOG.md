@@ -7,6 +7,8 @@
   open Easy Magic's screen): the item and lapis stay in the table, and the book's turned-down corner buys new offers.
 - With [Easy Anvils](https://www.curseforge.com/minecraft/mc-mods/easy-anvils) the anvil is worked by hand too (it used to open Easy
   Anvils' screen): the pieces stay on the anvil, and a block of iron used on a worn anvil mends it as before.
+- With [Inventory Profiles Next](https://www.curseforge.com/minecraft/mc-mods/inventory-profiles-next) its continuous crafting
+  refills the crafting table's grid after a craft; a loop drawn on the table's near edge turns it on and off like its checkbox.
 - With [Quark](https://www.curseforge.com/minecraft/mc-mods/quark) or
   [More Banner Features](https://modrinth.com/mod/more-banner-features), the loom weaves as many layers as they allow.
 - The anvil shows the cost of repairs that mods such as [Tax Free Levels](https://modrinth.com/mod/tax-free-levels) allow over
