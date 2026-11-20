@@ -7,8 +7,12 @@ import net.minecraft.gametest.framework.GameTestHelper;
 import com.pockyl.handson_vanilla.gametest.AnvilTests;
 import com.pockyl.handson_vanilla.gametest.BookTests;
 import com.pockyl.handson_vanilla.gametest.BrewingTests;
+import com.pockyl.handson_vanilla.gametest.CartographyTests;
+import com.pockyl.handson_vanilla.gametest.EnchantingTests;
 import com.pockyl.handson_vanilla.gametest.FurnaceTests;
 import com.pockyl.handson_vanilla.gametest.GrindstoneTests;
+import com.pockyl.handson_vanilla.gametest.LecternTests;
+import com.pockyl.handson_vanilla.gametest.LoomTests;
 import com.pockyl.handson_vanilla.gametest.SmithingTests;
 import com.pockyl.handson_vanilla.gametest.StonecutterTests;
 
@@ -16,8 +20,10 @@ import com.pockyl.handson_vanilla.gametest.StonecutterTests;
  * The mod is client-side only: this checks that it loads on a Fabric server and stays out of the way there, and runs the book's
  * arithmetic ({@link BookTests}) and the smoker's and blast furnace's pack files and
  * shift-clicks ({@link FurnaceTests}), the stonecutter's clicks ({@link StonecutterTests}), the smithing table's
- * ({@link SmithingTests}), the grindstone's ({@link GrindstoneTests}), the brewing stand's ({@link BrewingTests}) and the
- * anvil's ({@link AnvilTests}). They run when the game starts with {@code -Dfabric-api.gametest} ({@code :fabric:runGameTest}).
+ * ({@link SmithingTests}), the grindstone's ({@link GrindstoneTests}), the brewing stand's ({@link BrewingTests}), the
+ * anvil's ({@link AnvilTests}), the enchanting table's ({@link EnchantingTests}), the lectern's ({@link LecternTests}),
+ * the loom's ({@link LoomTests}) and the cartography table's ({@link CartographyTests}).
+ * They run when the game starts with {@code -Dfabric-api.gametest} ({@code :fabric:runGameTest}).
  */
 public final class FabricGameTests implements FabricGameTest {
     @GameTest(template = FabricGameTest.EMPTY_STRUCTURE)
@@ -79,4 +85,25 @@ public final class FabricGameTests implements FabricGameTest {
     public void anvilRenamesAndKeepsNames(GameTestHelper helper) {
         AnvilTests.anvilRenamesAndKeepsNames(helper);
     }
+
+    @GameTest(template = FabricGameTest.EMPTY_STRUCTURE)
+    public void enchantingTableEnchants(GameTestHelper helper) {
+        EnchantingTests.enchantingTableEnchants(helper);
+    }
+
+    @GameTest(template = FabricGameTest.EMPTY_STRUCTURE)
+    public void lecternTurnsAndGivesBook(GameTestHelper helper) {
+        LecternTests.lecternTurnsAndGivesBook(helper);
+    }
+
+    @GameTest(template = FabricGameTest.EMPTY_STRUCTURE)
+    public void loomWeavesAndLaysBack(GameTestHelper helper) {
+        LoomTests.loomWeavesAndLaysBack(helper);
+    }
+
+    @GameTest(template = FabricGameTest.EMPTY_STRUCTURE)
+    public void cartographyCopiesLocksAndZooms(GameTestHelper helper) {
+        CartographyTests.cartographyCopiesLocksAndZooms(helper);
+    }
+
 }

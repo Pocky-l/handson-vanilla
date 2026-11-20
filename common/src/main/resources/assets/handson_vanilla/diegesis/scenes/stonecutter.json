@@ -39,7 +39,7 @@
         3.6
       ],
       "slot": {
-        "slot": "input[0]",
+        "slot": "input[0]", "ghost": ["minecraft:stone", "minecraft:cobblestone", "minecraft:stone_bricks", "minecraft:sandstone", "minecraft:copper_block"],
         "display": "flat",
         "size": 5,
         "item_size": 4,

@@ -18,7 +18,8 @@ import com.pockyl.handson_vanilla.client.FurnaceKind;
  * in the table's grid over it, others draw a furnace's contents in front of it. Where this mod's scene shows the same things (the
  * table's cells while its menu is open here, a furnace's or smoker's insides whenever its scene is drawn) they would be drawn twice,
  * one copy floating off its place; such a renderer is stopped there, at the dispatcher, whichever mod registered it. Everywhere
- * else, and at a table nobody here works at, it draws as before.
+ * else, and at a table nobody here works at, it draws as before. The enchanting table's and the lectern's own books are stopped
+ * the same way while the scene draws them.
  */
 @Mixin(BlockEntityRenderDispatcher.class)
 abstract class StationRenderersMixin {
@@ -31,6 +32,14 @@ abstract class StationRenderersMixin {
                 callback.cancel();
             }
         } else if (FurnaceKind.remodelled(state) != null && DiegesisClient.isSceneDrawn(blockEntity.getBlockPos())) {
+            callback.cancel();
+        } else if (state.is(Blocks.ENCHANTING_TABLE)
+                && DiegesisClient.station(blockEntity.getBlockPos()).map(view -> view.isBlockHidden()).orElse(false)) {
+            // The table's book is drawn by the scene while it comes to the player and goes back; its ticks go on, so it returns to
+            // where the table's own book is then.
+            callback.cancel();
+        } else if (state.is(Blocks.LECTERN) && DiegesisClient.isSceneDrawn(blockEntity.getBlockPos())) {
+            // The lectern's book is the scene's, in the same place and pose, with its text on it while it is read.
             callback.cancel();
         }
     }

@@ -11,8 +11,10 @@ import com.pockyl.handson_vanilla.HandsOnVanilla;
  * The mod is client-side only: this checks that it loads on a server and stays out of the way there, and runs the book's
  * arithmetic ({@link BookTests}) and the smoker's and blast furnace's pack files and
  * shift-clicks ({@link FurnaceTests}), the stonecutter's clicks ({@link StonecutterTests}),
- * the smithing table's ({@link SmithingTests}), the grindstone's ({@link GrindstoneTests})
- * the brewing stand's ({@link BrewingTests}) and the anvil's ({@link AnvilTests}).
+ * the smithing table's ({@link SmithingTests}), the grindstone's ({@link GrindstoneTests}),
+ * the brewing stand's ({@link BrewingTests}), the anvil's ({@link AnvilTests}), the enchanting table's
+ * ({@link EnchantingTests}), the lectern's ({@link LecternTests}), the loom's ({@link LoomTests}), the cartography table's
+ * and the cartography table's ({@link CartographyTests}).
  */
 @GameTestHolder(HandsOnVanilla.MOD_ID)
 @PrefixGameTestTemplate(false)
@@ -79,4 +81,25 @@ public final class ModGameTests {
     public static void anvilRenamesAndKeepsNames(GameTestHelper helper) {
         AnvilTests.anvilRenamesAndKeepsNames(helper);
     }
+
+    @GameTest(template = "empty")
+    public static void enchantingTableEnchants(GameTestHelper helper) {
+        EnchantingTests.enchantingTableEnchants(helper);
+    }
+
+    @GameTest(template = "empty")
+    public static void lecternTurnsAndGivesBook(GameTestHelper helper) {
+        LecternTests.lecternTurnsAndGivesBook(helper);
+    }
+
+    @GameTest(template = "empty")
+    public static void loomWeavesAndLaysBack(GameTestHelper helper) {
+        LoomTests.loomWeavesAndLaysBack(helper);
+    }
+
+    @GameTest(template = "empty")
+    public static void cartographyCopiesLocksAndZooms(GameTestHelper helper) {
+        CartographyTests.cartographyCopiesLocksAndZooms(helper);
+    }
+
 }

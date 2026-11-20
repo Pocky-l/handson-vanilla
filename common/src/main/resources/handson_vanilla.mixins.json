@@ -6,11 +6,13 @@
   "refmap": "handson_vanilla.refmap.json",
   "client": [
     "AnvilSoundMixin",
+    "EnchantTableBookMixin",
     "BlastFurnaceParticlesMixin",
     "FastBenchResultMixin",
     "FurnaceParticlesMixin",
     "GhostRecipeMixin",
     "JeiRecipesGuiMixin",
+    "LecternBookMixin",
     "SmokerParticlesMixin",
     "StationRenderersMixin"
   ],

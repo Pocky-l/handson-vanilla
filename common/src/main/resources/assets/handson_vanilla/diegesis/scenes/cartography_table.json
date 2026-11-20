@@ -1,0 +1,30 @@
+{
+  "$schema": "https://raw.githubusercontent.com/Pocky-l/diegesis/main/docs/schema/scene.schema.json",
+  "$comment": "The cartography table is vanilla's block. On its top, near the front, as in vanilla's screen (top and bottom there) from left to right as the camera sees it: map, the filled map lying as a map (CartographyTableBehavior paints vanilla's parchment and the map's picture on it, 6 x 6 pixels, under a pane of glass when locked; the slot itself draws nothing), and extra, the paper, empty map or glass pane. result is what the two make, a sheet hovering over the far half and leaning back towards the camera: the picture on a sheet twice as wide (zoomed out), two maps (copied), the map under glass (locked), or another mod's result as an item; a click does the work on the table (the paper or pane hops from extra onto the map: the sheet spreads, or the pane settles; or the picture is drawn onto the empty map in extra line by line), then takes it. The camera stands above the near edge looking down, as at the smithing table. The hotbar stays where the HUD has it and takes clicks; over it rows of the maps, paper, empty maps and glass panes.",
+  "work_plane": 16,
+  "idle_visible": false,
+  "camera": {
+    "position": [8, 44.5, -4.5],
+    "target": [8, 19.5, 8],
+    "fov": 44,
+    "interactive_at": 0.6
+  },
+  "interface": {
+    "hide_player": true,
+    "inventory_panel": false,
+    "sounds": false,
+    "carry_lift": 1.5,
+    "highlight_color": "#26FFFFFF",
+    "hover_outline": false
+  },
+  "inventory_drawer": {
+    "layout": "hotbar",
+    "always_open": true,
+    "carry_size": 2.6
+  },
+  "nodes": [
+    {"id": "map", "pos": [11.2, 16.05, 6.2], "slot": {"slot": "map[0]", "ghost": ["minecraft:filled_map"], "display": "hidden", "size": 6.4, "count_facing": "camera", "idle_highlight": 0.55}},
+    {"id": "extra", "pos": [4.6, 16.02, 6.2], "slot": {"slot": "extra[0]", "ghost": ["minecraft:paper", "minecraft:map", "minecraft:glass_pane"], "size": 4.6, "item_size": 4, "count_facing": "camera", "idle_highlight": 0.55}},
+    {"id": "result", "pos": [8, 17.4, 11.8], "collider": {"from": [-4.6, -0.4, -1.5], "to": [4.6, 8.6, 3.5]}}
+  ]
+}

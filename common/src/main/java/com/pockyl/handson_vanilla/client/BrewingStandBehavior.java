@@ -5,6 +5,8 @@ import net.minecraft.client.player.LocalPlayer;
 import net.minecraft.util.RandomSource;
 import net.minecraft.world.inventory.BrewingStandMenu;
 import net.minecraft.world.item.ItemStack;
+import net.minecraft.world.item.Items;
+import net.minecraft.world.item.alchemy.Potions;
 import net.minecraft.world.item.alchemy.PotionUtils;
 import org.joml.Matrix3f;
 import org.joml.Vector3f;
@@ -15,6 +17,8 @@ import com.pockyl.diegesis.api.client.MenuAccess;
 import com.pockyl.diegesis.api.client.StationBehavior;
 import com.pockyl.diegesis.api.client.StationView;
 import com.pockyl.diegesis.api.state.SlotRef;
+
+import java.util.List;
 
 /**
  * The brewing stand worked by hand, from whichever side the player comes. Its three bottles stand on the stand's own pads, the
@@ -57,6 +61,11 @@ final class BrewingStandBehavior implements StationBehavior {
     @Override
     public void onSceneReady(StationView view) {
         view.setInventoryFilter(stack -> usable(view, stack));
+        // An empty foot shows a water bottle, as the potions start from one: a scene file cannot name a potion's contents.
+        ItemStack water = PotionUtils.setPotion(new ItemStack(Items.POTION), Potions.WATER);
+        for (int n = 0; n < 3; n++) {
+            view.node("bottle_" + n).ifPresent(node -> node.setGhostItems(List.of(water)));
+        }
     }
 
     /** What the stand takes, by the vanilla menu's own slots (on Forge they also know modded brewing recipes). */

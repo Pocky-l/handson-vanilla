@@ -196,6 +196,9 @@ final class RecipeBook implements NodePainter {
     private static final float DISH_Y = 2.0F;
     /** Where the dish's name starts, and the room between the rule under it and what goes in. */
     private static final float NAME_Y = 20.0F;
+    /** A name longer than two lines: drawn this much smaller, in this many lines at most. */
+    private static final float LONG_NAME_SCALE = 0.72F;
+    private static final int LONG_NAME_LINES = 3;
     private static final float INGREDIENTS_GAP = 3.0F;
     /** How many recipes laid last the "made lately" tab keeps, and its kind. */
     private static final int RECENT_MOST = 24;
@@ -332,6 +335,8 @@ final class RecipeBook implements NodePainter {
     private long statsAsked;
     /** The dish's name broken into lines, for the entry it was broken for. */
     private Entry nameFor;
+    /** The scale the dish's name is drawn at: 1, or smaller for a name that needs more than two lines. */
+    private float nameScale = 1.0F;
     private List<FormattedCharSequence> nameLines = List.of();
     /** Where the cursor is on the left page (units), or on the right one past its width; negative: not on the book. */
     private float cursorX = -1.0F;
@@ -530,6 +535,26 @@ final class RecipeBook implements NodePainter {
 
         /** The page was shown: the recipe is no longer new, here and in the vanilla book. */
         default void seen(Page page) {
+        }
+
+        /**
+         * Whether the list is ordered by name within its bands (new, ready, the rest); false keeps the order {@link #pages} gives,
+         * the bands still applying: a station whose choices are numbered by their place, as the loom's patterns.
+         */
+        default boolean sorted() {
+            return true;
+        }
+
+        /** The page under the cursor on the list or at the head of the right page, every frame; null for none. */
+        default void hovered(StationView view, Page page) {
+        }
+
+        /**
+         * Whether the right page shows the station's {@link #current} page when the one picked is no longer listed: a station whose
+         * list changes with what lies in it (the loom with a pattern item, which offers one pattern).
+         */
+        default boolean followsCurrent() {
+            return false;
         }
     }
 
@@ -949,8 +974,10 @@ final class RecipeBook implements NodePainter {
             // Newest first, and they stay where they are: the point of the tab is that sticks are always in the same place.
             found.sort(Comparator.comparingInt(entry -> recent.indexOf(entry.page().key().toString())));
         } else {
-            // New to the player first, then what can be made now, then the rest; by name within each, so a recipe has a place.
-            found.sort(Comparator.comparingInt((Entry entry) -> band(entry, newKeys)).thenComparing(byName));
+            // New to the player first, then what can be made now, then the rest; by name within each, so a recipe has a place
+            // (or in the source's own order, which a stable sort keeps).
+            Comparator<Entry> bands = Comparator.comparingInt((Entry entry) -> band(entry, newKeys));
+            found.sort(source.sorted() ? bands.thenComparing(byName) : bands);
         }
         if (!resort && cursorX >= 0.0F && !entries.isEmpty()) {
             java.util.Map<Object, Integer> before = new java.util.HashMap<>();
@@ -969,6 +996,13 @@ final class RecipeBook implements NodePainter {
             Entry listed = listedVariant(kept);
             Page page = byKey.get(kept);
             picked = listed != null ? listed : page != null ? entry(page, pool) : null;
+        }
+        if (source.followsCurrent() && (picked == null || listedVariant(picked.page().key()) == null)) {
+            Object current = source.current(view);
+            Entry now = current == null ? null : listedVariant(current);
+            if (now != null) {
+                picked = now;
+            }
         }
         if (previewed != null) {
             previewed = listedVariant(previewed.page().key());
@@ -1765,6 +1799,7 @@ final class RecipeBook implements NodePainter {
         } else if (cursorX < 0.0F) {
             previewed = null;
         }
+        Entry under = hovered;
         // The right page: the dish at its head and what goes in, under the cursor.
         Entry right = rightShown();
         if (right != null && cursorX >= UNITS_WIDE && cursorY >= 0.0F) {
@@ -1777,6 +1812,7 @@ final class RecipeBook implements NodePainter {
                 }
             }
         }
+        source.hovered(view, under != null ? under.page() : overDish && right != null ? right.page() : null);
         if (hoveredSpot == null) {
             spotFor = null;
             spotTarget = null;
@@ -1894,18 +1930,29 @@ final class RecipeBook implements NodePainter {
 
     /** Where the rule under the dish's name is, and the things that go in start just under it. */
     private float ruleY(Entry entry) {
-        return NAME_Y + Math.min(2, nameLines(entry).size()) * Minecraft.getInstance().font.lineHeight;
+        List<FormattedCharSequence> name = nameLines(entry);
+        return NAME_Y + Math.min(nameScale < 1.0F ? LONG_NAME_LINES : 2, name.size()) * Minecraft.getInstance().font.lineHeight * nameScale;
     }
 
     private float ingredientsTop(Entry entry) {
         return ruleY(entry) + INGREDIENTS_GAP;
     }
 
-    /** The dish's name broken into lines; two are shown at most, so that a long modded name leaves room for what goes in. */
+    /**
+     * The dish's name broken into lines: two at most, or a name that needs more (a banner's "Blue Creeper Charge") smaller in three,
+     * so that a long modded name still leaves room for what goes in.
+     */
     private List<FormattedCharSequence> nameLines(Entry entry) {
         if (nameFor != entry) {
             nameFor = entry;
-            nameLines = Minecraft.getInstance().font.split(entry.dish().getHoverName(), Math.round(2.0F * (UNITS_WIDE - RIGHT_MIDDLE) - 6.0F));
+            Font font = Minecraft.getInstance().font;
+            float wide = 2.0F * (UNITS_WIDE - RIGHT_MIDDLE) - 6.0F;
+            nameScale = 1.0F;
+            nameLines = font.split(entry.dish().getHoverName(), Math.round(wide));
+            if (nameLines.size() > 2) {
+                nameScale = LONG_NAME_SCALE;
+                nameLines = font.split(entry.dish().getHoverName(), Math.round(wide / LONG_NAME_SCALE));
+            }
         }
         return nameLines;
     }
@@ -2356,9 +2403,9 @@ final class RecipeBook implements NodePainter {
         }
         float line = NAME_Y;
         List<FormattedCharSequence> name = nameLines(entry);
-        for (FormattedCharSequence text : name.subList(0, Math.min(2, name.size()))) {
-            canvas.text(text, middle - font.width(text) / 2.0F, line);
-            line += font.lineHeight;
+        for (FormattedCharSequence text : name.subList(0, Math.min(nameScale < 1.0F ? LONG_NAME_LINES : 2, name.size()))) {
+            canvas.text(text, middle - font.width(text) * nameScale / 2.0F, line, nameScale);
+            line += font.lineHeight * nameScale;
         }
         canvas.rect(middle - LIST_WIDE / 2.0F, ruleY(entry) + 0.5F, LIST_WIDE, 0.6F, WELL_LIFT, RULE);
         for (Spot spot : layout(entry)) {
@@ -2559,6 +2606,12 @@ final class RecipeBook implements NodePainter {
         void text(FormattedCharSequence text, float x, float y) {
             Matrix4f matrix = new Matrix4f(poseStack.last().pose()).translate(0.0F, 0.0F, ITEM_LIFT);
             Minecraft.getInstance().font.drawInBatch(text, x, y, INK, false, matrix, buffers, Font.DisplayMode.NORMAL, 0, shade);
+        }
+
+        /** Text drawn at {@code scale} from its top left corner. */
+        void text(FormattedCharSequence text, float x, float y, float scale) {
+            Matrix4f matrix = new Matrix4f(poseStack.last().pose()).translate(x, y, ITEM_LIFT).scale(scale, scale, 1.0F);
+            Minecraft.getInstance().font.drawInBatch(text, 0.0F, 0.0F, INK, false, matrix, buffers, Font.DisplayMode.NORMAL, 0, shade);
         }
     }
 }

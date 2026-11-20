@@ -39,7 +39,7 @@
     {
       "id": "input",
       "pos": [10.6, 7, 3.2],
-      "slot": {"slot": "input[0]", "display": "upright", "size": 3.0, "count_facing": "front"},
+      "slot": {"slot": "input[0]", "ghost": ["minecraft:raw_iron", "minecraft:raw_gold", "minecraft:raw_copper", "minecraft:iron_ore"], "display": "upright", "size": 3.0, "count_facing": "front"},
       "collider": {"from": [-2.2, 0, -3.4], "to": [2.2, 4, 2.8]}
     },
     {
@@ -51,7 +51,7 @@
     {
       "id": "fuel",
       "pos": [8.5, 3, 1.4],
-      "slot": {"slot": "fuel[0]", "display": "upright", "size": 2.4, "count_facing": "front"},
+      "slot": {"slot": "fuel[0]", "ghost": ["minecraft:coal", "minecraft:charcoal"], "display": "upright", "size": 2.4, "count_facing": "front"},
       "collider": {"from": [-4.4, 0, -2.4], "to": [4.4, 3, 3]}
     },
     {

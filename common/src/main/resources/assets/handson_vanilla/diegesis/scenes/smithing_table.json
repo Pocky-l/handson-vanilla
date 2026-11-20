@@ -30,9 +30,9 @@
       "hidden": true,
       "visual": {"model": "handson_vanilla:diegesis/smithing_table_body", "lit_as_block": true}
     },
-    {"id": "template", "pos": [13, 16.02, 5], "slot": {"slot": "template[0]", "size": 4, "item_size": 3.4, "count_facing": "camera", "idle_highlight": 0.55}},
-    {"id": "base", "pos": [8.5, 16.02, 5.5], "slot": {"slot": "base[0]", "size": 5, "item_size": 4.4, "count_facing": "camera", "idle_highlight": 0.55}},
-    {"id": "addition", "pos": [4, 16.02, 5], "slot": {"slot": "addition[0]", "size": 4, "item_size": 3.4, "count_facing": "camera", "idle_highlight": 0.55}},
+    {"id": "template", "pos": [13, 16.02, 5], "slot": {"slot": "template[0]", "ghost": ["minecraft:netherite_upgrade_smithing_template", "#minecraft:trim_templates"], "size": 4, "item_size": 3.4, "count_facing": "camera", "idle_highlight": 0.55}},
+    {"id": "base", "pos": [8.5, 16.02, 5.5], "slot": {"slot": "base[0]", "ghost": ["minecraft:diamond_sword", "minecraft:diamond_chestplate", "minecraft:diamond_pickaxe", "minecraft:iron_helmet"], "size": 5, "item_size": 4.4, "count_facing": "camera", "idle_highlight": 0.55}},
+    {"id": "addition", "pos": [4, 16.02, 5], "slot": {"slot": "addition[0]", "ghost": ["minecraft:netherite_ingot", "#minecraft:trim_materials"], "size": 4, "item_size": 3.4, "count_facing": "camera", "idle_highlight": 0.55}},
     {"id": "forged", "pos": [8.5, 16.02, 5.5], "hidden": true, "pickable": false},
     {
       "id": "result",

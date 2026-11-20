@@ -40,13 +40,13 @@
     {
       "id": "input_0",
       "pos": [10.6, 8.2, 0.6],
-      "slot": {"slot": "input[0]", "display": "upright", "size": 3.6, "count_facing": "camera", "idle_highlight": 0.55},
+      "slot": {"slot": "input[0]", "ghost": ["minecraft:enchanted_book", "minecraft:iron_sword"], "display": "upright", "size": 3.6, "count_facing": "camera", "idle_highlight": 0.55},
       "collider": {"from": [-2, 0, -1], "to": [2, 4, 1]}
     },
     {
       "id": "input_1",
       "pos": [5.4, 8.2, 0.6],
-      "slot": {"slot": "input[1]", "display": "upright", "size": 3.6, "count_facing": "camera", "idle_highlight": 0.55},
+      "slot": {"slot": "input[1]", "ghost": ["minecraft:iron_sword", "minecraft:iron_pickaxe"], "display": "upright", "size": 3.6, "count_facing": "camera", "idle_highlight": 0.55},
       "collider": {"from": [-2, 0, -1], "to": [2, 4, 1]}
     },
     {

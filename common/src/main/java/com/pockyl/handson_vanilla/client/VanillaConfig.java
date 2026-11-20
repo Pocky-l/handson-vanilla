@@ -29,6 +29,10 @@ public final class VanillaConfig {
             "grindstone: the grindstone is worked at with your hands. Off, it opens its vanilla screen.",
             "brewing_stand: the brewing stand is worked at with your hands. Off, it opens its vanilla screen.",
             "anvil: the anvil is worked at with your hands. Off, it opens its vanilla screen.",
+            "enchanting_table: the enchanting table is worked at with your hands. Off, it opens its vanilla screen.",
+            "lectern: a book on a lectern is read on the lectern. Off, it opens its vanilla screen.",
+            "loom: the loom is worked at with your hands. Off, it opens its vanilla screen.",
+            "cartography_table: the cartography table is worked at with your hands. Off, it opens its vanilla screen.",
             "recipe_book: the recipe book beside the crafting table. Off, there is none.",
             "sound_volume: the stations' own sounds, from 0 (silent) to 1.");
 
@@ -42,6 +46,10 @@ public final class VanillaConfig {
     private static boolean grindstone = true;
     private static boolean brewingStand = true;
     private static boolean anvil = true;
+    private static boolean enchantingTable = true;
+    private static boolean lectern = true;
+    private static boolean loom = true;
+    private static boolean cartographyTable = true;
     private static Path configDir = Path.of("config");
     private static float soundVolume = 1.0F;
 
@@ -70,6 +78,10 @@ public final class VanillaConfig {
         grindstone = Boolean.parseBoolean(values.getProperty("grindstone", Boolean.toString(grindstone)).trim());
         brewingStand = Boolean.parseBoolean(values.getProperty("brewing_stand", Boolean.toString(brewingStand)).trim());
         anvil = Boolean.parseBoolean(values.getProperty("anvil", Boolean.toString(anvil)).trim());
+        enchantingTable = Boolean.parseBoolean(values.getProperty("enchanting_table", Boolean.toString(enchantingTable)).trim());
+        lectern = Boolean.parseBoolean(values.getProperty("lectern", Boolean.toString(lectern)).trim());
+        loom = Boolean.parseBoolean(values.getProperty("loom", Boolean.toString(loom)).trim());
+        cartographyTable = Boolean.parseBoolean(values.getProperty("cartography_table", Boolean.toString(cartographyTable)).trim());
         recipeBook = Boolean.parseBoolean(values.getProperty("recipe_book", Boolean.toString(recipeBook)).trim());
         try {
             soundVolume = Mth.clamp(Float.parseFloat(values.getProperty("sound_volume", Float.toString(soundVolume)).trim()), 0.0F, 1.0F);
@@ -94,6 +106,10 @@ public final class VanillaConfig {
             writer.write("grindstone=" + grindstone + "\n");
             writer.write("brewing_stand=" + brewingStand + "\n");
             writer.write("anvil=" + anvil + "\n");
+            writer.write("enchanting_table=" + enchantingTable + "\n");
+            writer.write("lectern=" + lectern + "\n");
+            writer.write("loom=" + loom + "\n");
+            writer.write("cartography_table=" + cartographyTable + "\n");
             writer.write("recipe_book=" + recipeBook + "\n");
             writer.write("sound_volume=" + soundVolume + "\n");
         } catch (IOException exception) {
@@ -136,6 +152,23 @@ public final class VanillaConfig {
     public static boolean anvil() {
         return anvil;
     }
+
+    public static boolean enchantingTable() {
+        return enchantingTable;
+    }
+
+    public static boolean lectern() {
+        return lectern;
+    }
+
+    public static boolean loom() {
+        return loom;
+    }
+
+    public static boolean cartographyTable() {
+        return cartographyTable;
+    }
+
 
     public static boolean recipeBook() {
         return recipeBook;
