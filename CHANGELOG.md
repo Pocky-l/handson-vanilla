@@ -1,5 +1,19 @@
 # Changelog
 
+## [1.2.0] - Unreleased
+- The enchanting table is worked by hand: its book opens over the table with the three offers written in it.
+- The enchanting book is drawn anew, with living runes in the glint's colours and drawings on its pages, also in the world.
+- A book on a lectern is read on the lectern, two pages at once, and taken by its ribbon.
+- The loom is worked by hand: the banner lies on it as cloth and a brush paints the chosen pattern onto it.
+- The cartography table is worked by hand: the map lies on it and what it will become hovers over it.
+- Empty places at every station show what goes into them, see-through, taking turns when several things fit.
+- The recipe books show long names smaller in up to three lines instead of cutting them.
+- Each new station can be turned off on its own in `config/handson_vanilla.properties`.
+- Fixed: a station used from the edge of reach opened the block's vanilla screen.
+- Fixed: with some JEI builds (15.74) JEI was gone: no item list and no recipe pages.
+- Fixed: JEI's "+" was missing at the stations with JEI 15.70 and newer.
+- Needs [Diegesis](https://www.curseforge.com/minecraft/mc-mods/diegesis) 1.0.0-beta.14.
+
 ## [1.1.1]
 - JEI's "+" at the crafting table also lays out recipes that are not in your recipe book yet, as at the vanilla crafting table.
 
