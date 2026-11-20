@@ -1,6 +1,6 @@
 # Changelog
 
-## [1.2.0] - Unreleased
+## [1.2.0] - 2026-11-20
 - The enchanting table is worked by hand: its book opens over the table with the three offers written in it.
 - The enchanting book is drawn anew, with living runes in the glint's colours and drawings on its pages, also in the world.
 - A book on a lectern is read on the lectern, two pages at once, and taken by its ribbon.
