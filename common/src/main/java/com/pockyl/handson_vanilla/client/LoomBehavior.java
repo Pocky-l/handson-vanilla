@@ -352,7 +352,7 @@ final class LoomBehavior implements StationBehavior {
     }
 
     /**
-     * The weave: banner and dye must lie on the loom (else the empty place shakes), the banner bear fewer than six layers, the pattern
+     * The weave: banner and dye must lie on the loom (else the empty place shakes), the banner bear fewer layers than its limit ({@link BannerLimit}), the pattern
      * be one the loom offers now (looked up at the pick, never kept); then the menu's button and the shuttle's pass, whose middle
      * takes the woven banner.
      */
@@ -368,7 +368,7 @@ final class LoomBehavior implements StationBehavior {
             refuse(view, banner.isEmpty() ? BANNER : DYE);
             return;
         }
-        if (BannerBlockEntity.getPatternCount(banner) >= BannerBlockEntity.MAX_PATTERNS) {
+        if (BannerBlockEntity.getPatternCount(banner) >= BannerLimit.of(banner)) {
             refuse(view, RESULT);
             return;
         }
@@ -635,7 +635,7 @@ final class LoomBehavior implements StationBehavior {
             Pair<Holder<BannerPattern>, DyeColor> layer = null;
             if (!standing && previewShown > 0.0F && previewShownKey != null
                     && loom.getSlot(DYE_SLOT).getItem().getItem() instanceof DyeItem dye
-                    && BannerBlockEntity.getPatternCount(banner) < BannerBlockEntity.MAX_PATTERNS) {
+                    && BannerBlockEntity.getPatternCount(banner) < BannerLimit.of(banner)) {
                 List<Holder<BannerPattern>> list = LoomBook.patterns(view, loom.getSlot(2).getItem());
                 int index = indexOf(list, previewShownKey);
                 if (index >= 0) {
