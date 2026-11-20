@@ -23,6 +23,9 @@ public final class HandsOnVanillaClient {
     @SuppressWarnings("removal")
     private static final net.minecraft.resources.ResourceLocation VISUAL_WORKBENCH =
             new net.minecraft.resources.ResourceLocation("visualworkbench", "crafting");
+    /** Easy Magic's menu for the enchanting table: the vanilla one, the item and lapis kept in the table, new offers for a price. */
+    private static final net.minecraft.resources.ResourceLocation EASY_MAGIC =
+            new net.minecraft.resources.ResourceLocation("easymagic", "enchanting");
 
     private HandsOnVanillaClient() {
     }
@@ -160,7 +163,7 @@ public final class HandsOnVanillaClient {
                 .hidesBlock()
                 // The item and the lapis are slots; an offer is taken by the menu's button, a click on its row of the book.
                 .schema(StationSchema.builder().slots(EnchantingTableBehavior.ITEM, 1).slots(EnchantingTableBehavior.LAPIS, 1).build())
-                .menu(MenuBinding.of(MenuType.ENCHANTMENT).slots(EnchantingTableBehavior.ITEM, 0, 1)
+                .menu(MenuBinding.of(MenuType.ENCHANTMENT).alsoAccepts(EASY_MAGIC).slots(EnchantingTableBehavior.ITEM, 0, 1)
                         .slots(EnchantingTableBehavior.LAPIS, 1, 1).build())
                 .openWhen((player, pos, state) -> VanillaConfig.enchantingTable())
                 .register();

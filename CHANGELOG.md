@@ -3,6 +3,8 @@
 ## [1.2.1]
 - With [Crafting Tweaks](https://www.curseforge.com/minecraft/mc-mods/crafting-tweaks), its rotate, balance and clear buttons lie
   as charcoal marks on the far edge of the crafting table (Shift: rotate back, spread, force clear), and its keys work there.
+- With [Easy Magic](https://www.curseforge.com/minecraft/mc-mods/easy-magic) the enchanting table is worked by hand too (it used to
+  open Easy Magic's screen): the item and lapis stay in the table, and the book's turned-down corner buys new offers.
 - With [Quark](https://www.curseforge.com/minecraft/mc-mods/quark) or
   [More Banner Features](https://modrinth.com/mod/more-banner-features), the loom weaves as many layers as they allow.
 - The anvil shows the cost of repairs that mods such as [Tax Free Levels](https://modrinth.com/mod/tax-free-levels) allow over
