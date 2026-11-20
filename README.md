@@ -13,7 +13,7 @@
 
 <p align="center"><i>Craft and smelt with your own hands.</i></p>
 
-<p align="center"><b>The crafting table, all three furnaces, the stonecutter, the smithing table, the grindstone, the brewing stand and the anvil open right where they stand, with no menu screen. You lay the items into the grid yourself, take the result off the table and watch your ore on the furnace's grate. Client-side: it works on any server.</b></p>
+<p align="center"><b>The crafting table, all three furnaces, the stonecutter, the smithing table, the grindstone, the brewing stand, the anvil, the enchanting table, the lectern, the loom and the cartography table open right where they stand, with no menu screen. You lay the items into the grid yourself, take the result off the table and watch your ore on the furnace's grate. Client-side: it works on any server.</b></p>
 
 <p align="center"><img src="docs/showcase/table.gif" alt="Oak planks laid into the crafting table's grid by hand, then a chest picked from the recipe book and crafted" width="720"></p>
 
@@ -51,6 +51,15 @@ Built on [Diegesis](https://www.curseforge.com/minecraft/mc-mods/diegesis), from
 - **Anvil.** The two pieces lie side by side on its face, what they make hovers over it, and above that a name tag shows
   the name it will bear and what it costs. Click the name to type a new one; click the result and a hammer comes down on
   the anvil, sparks fly, and the piece is yours.
+- **Enchanting table.** Its book comes to you and opens over the table with the three offers written on its pages: the
+  clue and what it costs on the left, the runes and the level needed on the right. The lapis lies down by itself; click an
+  offer to enchant.
+- **Lectern.** Read the book right on the lectern, two pages at once. Turn the pages with a click on their foot, the wheel
+  or Page Up and Page Down, and take the book by its ribbon.
+- **Loom.** The banner hangs over the loom and shows the pattern under the cursor before you weave it. Click a pattern in
+  the book beside it and the shuttle weaves it into the cloth; the banner stays on the loom for the next layer.
+- **Cartography table.** The map lies on the table as a map, and what it will become hovers over it: a wider map, two
+  copies or the map under glass. Click it to take it.
 - **Furnaces in the world.** Every furnace shows its open mouth, grate and coals, every smoker its rack and logs behind a
   glazed door, every blast furnace its hearth behind the hatch's slits, with flames and smoke inside when lit, and what
   cooks in them. On a server you see what you last saw in it.
@@ -70,12 +79,15 @@ Built on [Diegesis](https://www.curseforge.com/minecraft/mc-mods/diegesis), from
 
 | Action | How |
 |---|---|
-| Open a station | Right-click a crafting table, furnace, smoker, blast furnace, stonecutter, smithing table, grindstone, brewing stand or anvil |
+| Open a station | Right-click a crafting table, furnace, smoker, blast furnace, stonecutter, smithing table, grindstone, brewing stand, anvil, enchanting table, lectern with a book, loom or cartography table |
 | Cut stone | Click a piece in the stonecutter's book to cut all the stone on the slab; Shift + click cuts one |
 | Upgrade or trim gear | Click the smithing table's hammer or the result over the plate; Shift + click sends it to the inventory |
 | Mend or disenchant | Click the grindstone's wheel or the result over it; Shift + click sends it to the inventory |
 | Rename on the anvil | Click the name over the anvil, type, then Enter; the first key replaces the whole name |
 | Take from the anvil | Click the result over it; Shift + click sends it to the inventory |
+| Enchant | Click an offer on the enchanting table's book |
+| Read on a lectern | Click the foot of a page, use the wheel or Page Up and Page Down; click the ribbon to take the book |
+| Weave a banner | Click a pattern in the loom's book; Shift + click weaves the whole stack |
 | Place a block on it | Sneak + right-click with the block in hand |
 | Put items in | Click a stack in your inventory, then the cell: left click lays all, right click one |
 | Spread a stack | Drag it over the cells |
@@ -114,6 +126,10 @@ Resource packs keep their furnace, smoker and blast furnace textures. The open f
 | `grindstone` | `true` | The grindstone as a station. Off, it opens its vanilla screen |
 | `brewing_stand` | `true` | The brewing stand as a station. Off, it opens its vanilla screen |
 | `anvil` | `true` | The anvil as a station. Off, it opens its vanilla screen |
+| `enchanting_table` | `true` | The enchanting table as a station. Off, it opens its vanilla screen |
+| `lectern` | `true` | A book on a lectern is read on the lectern. Off, it opens its vanilla screen |
+| `loom` | `true` | The loom as a station. Off, it opens its vanilla screen |
+| `cartography_table` | `true` | The cartography table as a station. Off, it opens its vanilla screen |
 | `recipe_book` | `true` | The recipe book beside the crafting table |
 | `sound_volume` | `1.0` | The stations' own sounds, from `0` (silent) to `1` |
 

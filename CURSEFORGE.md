@@ -10,7 +10,7 @@
 
 <p style="text-align:center"><em>Craft and smelt with your own hands.</em></p>
 
-<p style="text-align:center"><strong>The crafting table, all three furnaces, the stonecutter, the smithing table, the grindstone, the brewing stand and the anvil open right where they stand, with no menu screen. You lay the items into the grid yourself, take the result off the table and watch your ore on the furnace's grate. Client-side: it works on any server.</strong></p>
+<p style="text-align:center"><strong>The crafting table, all three furnaces, the stonecutter, the smithing table, the grindstone, the brewing stand, the anvil, the enchanting table, the lectern, the loom and the cartography table open right where they stand, with no menu screen. You lay the items into the grid yourself, take the result off the table and watch your ore on the furnace's grate. Client-side: it works on any server.</strong></p>
 
 <p style="text-align:center"><span style="color:#e0884a"><strong>No menus</strong></span>, the blocks open in the world &nbsp;&middot;&nbsp; <span style="color:#e0884a"><strong>Every recipe</strong></span> of the game and your mods &nbsp;&middot;&nbsp; <span style="color:#e0884a"><strong>No new blocks or items</strong></span></p>
 
@@ -30,7 +30,7 @@
 <hr>
 
 <h3 style="text-align:center">Getting started</h3>
-<p style="text-align:center">Put the mod and <a href="https://www.curseforge.com/minecraft/mc-mods/diegesis">Diegesis</a> into the mods folder of the client, then right-click a crafting table, any furnace, a stonecutter, a smithing table, a grindstone, a brewing stand or an anvil.<br>On <a href="https://fabricmc.net">Fabric</a> it needs <a href="https://www.curseforge.com/minecraft/mc-mods/fabric-api">Fabric API</a> too. The server needs none of them: the stations use the game's own menus, and every vanilla click works at them.<br><code>config/handson_vanilla.properties</code> turns off any station or the recipe book.</p>
+<p style="text-align:center">Put the mod and <a href="https://www.curseforge.com/minecraft/mc-mods/diegesis">Diegesis</a> into the mods folder of the client, then right-click a crafting table, any furnace, a stonecutter, a smithing table, a grindstone, a brewing stand, an anvil, an enchanting table, a lectern with a book, a loom or a cartography table.<br>On <a href="https://fabricmc.net">Fabric</a> it needs <a href="https://www.curseforge.com/minecraft/mc-mods/fabric-api">Fabric API</a> too. The server needs none of them: the stations use the game's own menus, and every vanilla click works at them.<br><code>config/handson_vanilla.properties</code> turns off any station or the recipe book.</p>
 
 <p style="text-align:center"><a href="https://discord.gg/mGkPKccJEf"><img src="https://raw.githubusercontent.com/Pocky-l/handson-delight/main/docs/badges/discord.png" width="242" height="28" alt="Discord: Pocky's Kitchen"></a><br>Bug reports, questions and ideas for new stations are welcome in <a href="https://discord.gg/mGkPKccJEf">Pocky's Kitchen</a>, our Discord server.</p>
 
