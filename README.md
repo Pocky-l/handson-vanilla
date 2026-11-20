@@ -111,6 +111,8 @@ Built on [Diegesis](https://www.curseforge.com/minecraft/mc-mods/diegesis), from
 
 [![Easy Magic](https://raw.githubusercontent.com/Pocky-l/handson-vanilla/main/docs/compat/easy-magic.png)](https://www.curseforge.com/minecraft/mc-mods/easy-magic) ✅ **[Easy Magic](https://www.curseforge.com/minecraft/mc-mods/easy-magic)** (optional) - the enchanting table keeps its items, the book's turned-down corner buys new offers
 
+[![Easy Anvils](https://raw.githubusercontent.com/Pocky-l/handson-vanilla/main/docs/compat/easy-anvils.png)](https://www.curseforge.com/minecraft/mc-mods/easy-anvils) ✅ **[Easy Anvils](https://www.curseforge.com/minecraft/mc-mods/easy-anvils)** (optional) - the anvil is worked by hand and keeps its pieces, a block of iron still mends it
+
 [![Mouse Tweaks](https://raw.githubusercontent.com/Pocky-l/handson-vanilla/main/docs/compat/mouse-tweaks.png)](https://www.curseforge.com/minecraft/mc-mods/mouse-tweaks) ✅ **[Mouse Tweaks](https://www.curseforge.com/minecraft/mc-mods/mouse-tweaks)** (optional) - its drags work at both stations
 
 Resource packs keep their furnace, smoker and blast furnace textures. The open furnaces stay this mod's, so a pack cannot misplace what lies in them.

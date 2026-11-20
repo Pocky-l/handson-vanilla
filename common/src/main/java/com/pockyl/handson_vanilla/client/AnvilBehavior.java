@@ -611,4 +611,27 @@ final class AnvilBehavior implements StationBehavior {
         MenuAccess menu = view.menu();
         return menu != null && menu.handle() instanceof AnvilMenu anvil ? anvil : null;
     }
+
+    private static Boolean easyAnvils;
+
+    /**
+     * Whether a use of this anvil is Easy Anvils' mending: a block of iron in either hand on a chipped or damaged anvil, which it
+     * turns one step back to whole instead of opening the anvil.
+     */
+    static boolean mendsWithIron(net.minecraft.world.entity.player.Player player, net.minecraft.world.level.block.state.BlockState state) {
+        if (easyAnvils == null) {
+            try {
+                Class.forName("fuzs.easyanvils.EasyAnvils", false, AnvilBehavior.class.getClassLoader());
+                easyAnvils = true;
+            } catch (ClassNotFoundException | LinkageError e) {
+                easyAnvils = false;
+            }
+        }
+        if (!easyAnvils || !(state.is(net.minecraft.world.level.block.Blocks.CHIPPED_ANVIL)
+                || state.is(net.minecraft.world.level.block.Blocks.DAMAGED_ANVIL))) {
+            return false;
+        }
+        return player.getMainHandItem().is(net.minecraft.world.item.Items.IRON_BLOCK)
+                || player.getOffhandItem().is(net.minecraft.world.item.Items.IRON_BLOCK);
+    }
 }

@@ -26,6 +26,9 @@ public final class HandsOnVanillaClient {
     /** Easy Magic's menu for the enchanting table: the vanilla one, the item and lapis kept in the table, new offers for a price. */
     private static final net.minecraft.resources.ResourceLocation EASY_MAGIC =
             new net.minecraft.resources.ResourceLocation("easymagic", "enchanting");
+    /** Easy Anvils' menu: the vanilla one, the two pieces kept in the anvil. */
+    private static final net.minecraft.resources.ResourceLocation EASY_ANVILS =
+            new net.minecraft.resources.ResourceLocation("easyanvils", "repair");
 
     private HandsOnVanillaClient() {
     }
@@ -150,8 +153,9 @@ public final class HandsOnVanillaClient {
                 .reach(4.5)
                 // The two pieces are slots; the result is taken at the hammer's blow (the behaviour's click on slot 2).
                 .schema(StationSchema.builder().slots(AnvilBehavior.INPUTS, 2).build())
-                .menu(MenuBinding.of(MenuType.ANVIL).slots(AnvilBehavior.INPUTS, 0, 2).build())
-                .openWhen((player, pos, state) -> VanillaConfig.anvil())
+                .menu(MenuBinding.of(MenuType.ANVIL).alsoAccepts(EASY_ANVILS).slots(AnvilBehavior.INPUTS, 0, 2).build())
+                // Easy Anvils mends a worn anvil with a block of iron used on it: that use stays the game's.
+                .openWhen((player, pos, state) -> VanillaConfig.anvil() && !AnvilBehavior.mendsWithIron(player, state))
                 .register();
         DiegesisClient.registerBehavior(HandsOnVanilla.id("anvil"), view -> new AnvilBehavior());
         Diegesis.station(HandsOnVanilla.id("enchanting_table"))
