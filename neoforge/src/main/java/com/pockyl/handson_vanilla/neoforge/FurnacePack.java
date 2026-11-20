@@ -15,7 +15,7 @@ import net.neoforged.fml.ModList;
 import net.neoforged.neoforge.event.AddPackFindersEvent;
 
 import com.pockyl.handson_vanilla.HandsOnVanilla;
-import com.pockyl.handson_vanilla.client.FurnaceKind;
+import com.pockyl.handson_vanilla.client.RemodelledBlocks;
 
 import java.io.InputStream;
 import java.nio.file.Path;
@@ -28,8 +28,9 @@ import java.util.Set;
  * Their block states and models lie under Minecraft's own names, and a resource pack sits above every mod: a pack that remodels a
  * furnace (or only names other models in its block state) would win, and the station would open on a block whose hollows are not
  * where its slots, flames and doors are. So the files come as a hidden built-in pack fixed above all others; a pack's furnace and
- * smoker textures still apply to the models' outside. Each block's files are there only while its station is on
- * ({@link FurnaceKind#served}): turned off, it is vanilla's, or the resource pack's, again.
+ * smoker textures still apply to the models' outside. The cartography table's tray of felt comes the same way
+ * ({@link RemodelledBlocks}). Each block's files are there only while its station is on ({@link RemodelledBlocks#served}): turned
+ * off, it is vanilla's, or the resource pack's, again.
  */
 final class FurnacePack {
     private static final String ID = HandsOnVanilla.MOD_ID + "_furnace";
@@ -40,11 +41,11 @@ final class FurnacePack {
     }
 
     static void add(AddPackFindersEvent event) {
-        if (event.getPackType() != PackType.CLIENT_RESOURCES || !FurnaceKind.anyOn()) {
+        if (event.getPackType() != PackType.CLIENT_RESOURCES || !RemodelledBlocks.anyOn()) {
             return;
         }
         Path root = ModList.get().getModFileById(HandsOnVanilla.MOD_ID).getFile().getSecureJar().getRootPath().resolve(FOLDER);
-        PackLocationInfo location = new PackLocationInfo(ID, Component.literal("Hands-On Vanilla: furnaces"), PackSource.BUILT_IN,
+        PackLocationInfo location = new PackLocationInfo(ID, Component.literal("Hands-On Vanilla: blocks"), PackSource.BUILT_IN,
                 Optional.empty());
         Pack.ResourcesSupplier resources = new Pack.ResourcesSupplier() {
             @Override
@@ -71,14 +72,14 @@ final class FurnacePack {
 
         @Override
         public IoSupplier<InputStream> getResource(PackType type, ResourceLocation location) {
-            return type == PackType.CLIENT_RESOURCES && FurnaceKind.served(location.getPath()) ? super.getResource(type, location) : null;
+            return type == PackType.CLIENT_RESOURCES && RemodelledBlocks.served(location.getPath()) ? super.getResource(type, location) : null;
         }
 
         @Override
         public void listResources(PackType type, String namespace, String path, ResourceOutput output) {
             if (type == PackType.CLIENT_RESOURCES) {
                 super.listResources(type, namespace, path, (id, resource) -> {
-                    if (FurnaceKind.served(id.getPath())) {
+                    if (RemodelledBlocks.served(id.getPath())) {
                         output.accept(id, resource);
                     }
                 });

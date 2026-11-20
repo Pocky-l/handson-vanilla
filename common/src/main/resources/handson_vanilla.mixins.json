@@ -5,10 +5,12 @@
   "compatibilityLevel": "JAVA_21",
   "client": [
     "AnvilSoundMixin",
+    "EnchantTableBookMixin",
     "BlastFurnaceParticlesMixin",
     "FurnaceParticlesMixin",
     "GhostRecipeMixin",
     "JeiRecipesGuiMixin",
+    "LecternBookMixin",
     "SmokerParticlesMixin",
     "StationRenderersMixin"
   ],

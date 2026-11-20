@@ -1,0 +1,32 @@
+{
+  "$schema": "https://raw.githubusercontent.com/Pocky-l/diegesis/main/docs/schema/scene.schema.json",
+  "$comment": "The lectern is vanilla's block, its book lying open on the slanted top. The scene is turned to the lectern's facing (the front at z 0), so the book always lies the same way in it. LecternBehavior's painter on book draws the lectern's book exactly where and as LecternRenderer draws it (the renderer is stopped while the scene is drawn; vanilla's book while nobody reads, this mod's book while the player does, cross-faded early in the camera's flight), with the text on its two loose sheets; book stands at the middle of the spread and takes the clicks. ribbon stands at the foot of the spine: a thin red bookmark (drawn with the book) comes out of the spine there and hangs over the lectern's lip; a click on it takes the book. The camera stands on the lectern's centre line, in front and above (45 degrees up, 26 pixels from the middle of the spread): the lectern reads as a lectern, the lines of text run level across the screen. The lectern's menu has no inventory, so the scene shows none.",
+  "work_plane": 14,
+  "idle_visible": true,
+  "camera": {
+    "position": [8, 36.4, -13],
+    "target": [8, 16, 6],
+    "fov": 40,
+    "interactive_at": 0.6
+  },
+  "interface": {
+    "hide_player": true,
+    "inventory_panel": false,
+    "sounds": false,
+    "highlight_color": "#26FFFFFF",
+    "hover_outline": false
+  },
+  "nodes": [
+    {
+      "id": "book",
+      "pos": [8, 18, 5.4],
+      "collider": {"from": [-7.2, -2.4, -4.9], "to": [7.2, 2.4, 4.9]}
+    },
+    {
+      "id": "ribbon",
+      "pos": [8, 15.6, 2.1],
+      "hidden": true,
+      "collider": {"from": [-1.6, -4.4, -2.8], "to": [1.6, -0.4, -0.8]}
+    }
+  ]
+}

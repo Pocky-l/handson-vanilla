@@ -23,8 +23,8 @@
     "carry_size": 2.6
   },
   "nodes": [
-    {"id": "left", "pos": [10.6, 16.02, 8], "slot": {"slot": "inputs[0]", "size": 4.8, "item_size": 4.4, "count_facing": "camera", "idle_highlight": 0.55}},
-    {"id": "right", "pos": [5.4, 16.02, 8], "slot": {"slot": "inputs[1]", "size": 4.8, "item_size": 4.4, "count_facing": "camera", "idle_highlight": 0.55}},
+    {"id": "left", "pos": [10.6, 16.02, 8], "slot": {"slot": "inputs[0]", "ghost": ["minecraft:iron_sword", "minecraft:diamond_pickaxe", "minecraft:iron_chestplate", "minecraft:bow"], "size": 4.8, "item_size": 4.4, "count_facing": "camera", "idle_highlight": 0.55}},
+    {"id": "right", "pos": [5.4, 16.02, 8], "slot": {"slot": "inputs[1]", "ghost": ["minecraft:iron_ingot", "minecraft:diamond", "minecraft:enchanted_book"], "size": 4.8, "item_size": 4.4, "count_facing": "camera", "idle_highlight": 0.55}},
     {"id": "forged", "pos": [10.6, 16.02, 8], "hidden": true, "pickable": false},
     {
       "id": "result",

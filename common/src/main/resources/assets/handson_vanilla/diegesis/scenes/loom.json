@@ -1,0 +1,170 @@
+{
+  "$schema": "https://raw.githubusercontent.com/Pocky-l/diegesis/main/docs/schema/scene.schema.json",
+  "$comment": "The loom is vanilla's block. On its top, near the front, as in vanilla's screen from left to right as the camera sees it: banner, dye and pattern. result is the banner itself lying on the loom's far half as its cloth (LoomBehavior's painter draws vanilla's flag, 4.8 x 9.6 pixels, its upper edge at the node by the far edge, its foot towards the near edge, clear of the three places): the woven banner when one stands by itself (a click takes it), else the banner on the loom with the pattern under the cursor in the book as a faint layer. While a pattern is woven, vanilla's brush paints it onto the cloth. woven_out draws woven banners flying into the inventory. book_open is the loom's book of patterns, hanging in the air left of the loom as at the crafting table, open by itself; put away it lies on the loom's left edge (extra.rest). The camera stands above the near edge looking down, as at the crafting table. The hotbar stays where the HUD has it and takes clicks; over it rows of the banners, dyes and patterns.",
+  "work_plane": 16,
+  "idle_visible": false,
+  "camera": {
+    "position": [
+      8,
+      40,
+      -15
+    ],
+    "target": [
+      8,
+      16.5,
+      8
+    ],
+    "fov": 40,
+    "interactive_at": 0.6
+  },
+  "interface": {
+    "hide_player": true,
+    "inventory_panel": false,
+    "sounds": false,
+    "carry_lift": 1.5,
+    "highlight_color": "#26FFFFFF",
+    "hover_outline": false
+  },
+  "inventory_drawer": {
+    "layout": "hotbar",
+    "always_open": true,
+    "carry_size": 2.6
+  },
+  "nodes": [
+    {
+      "id": "banner",
+      "pos": [
+        12.6,
+        16.02,
+        4.2
+      ],
+      "slot": {
+        "slot": "banner[0]",
+        "ghost": [
+          "minecraft:white_banner",
+          "minecraft:red_banner",
+          "minecraft:blue_banner"
+        ],
+        "size": 4.6,
+        "item_size": 4,
+        "count_facing": "camera",
+        "idle_highlight": 0.55
+      }
+    },
+    {
+      "id": "dye",
+      "pos": [
+        8,
+        16.02,
+        3.6
+      ],
+      "slot": {
+        "slot": "dye[0]",
+        "ghost": [
+          "minecraft:red_dye",
+          "minecraft:yellow_dye",
+          "minecraft:blue_dye",
+          "minecraft:black_dye",
+          "minecraft:lime_dye"
+        ],
+        "size": 4,
+        "item_size": 3.4,
+        "count_facing": "camera",
+        "idle_highlight": 0.55
+      }
+    },
+    {
+      "id": "pattern",
+      "pos": [
+        3.4,
+        16.02,
+        4.2
+      ],
+      "slot": {
+        "slot": "pattern[0]",
+        "ghost": [
+          "minecraft:flower_banner_pattern",
+          "minecraft:creeper_banner_pattern",
+          "minecraft:skull_banner_pattern",
+          "minecraft:globe_banner_pattern"
+        ],
+        "size": 4,
+        "item_size": 3.4,
+        "count_facing": "camera",
+        "idle_highlight": 0.55
+      }
+    },
+    {
+      "id": "result",
+      "pos": [
+        8,
+        16,
+        15.6
+      ],
+      "collider": {
+        "from": [
+          -2.6,
+          -0.2,
+          -9.8
+        ],
+        "to": [
+          2.6,
+          1.2,
+          0.2
+        ]
+      }
+    },
+    {
+      "id": "woven_out",
+      "pos": [
+        8,
+        16,
+        8
+      ],
+      "hidden": true,
+      "pickable": false
+    },
+    {
+      "id": "book_open",
+      "pos": [
+        22.5,
+        22,
+        5
+      ],
+      "rotation": [
+        -56,
+        0,
+        0
+      ],
+      "scale": 0.85,
+      "hidden": true,
+      "collider": {
+        "from": [
+          -5.3,
+          -0.4,
+          -3.9
+        ],
+        "to": [
+          5.3,
+          1.4,
+          3.9
+        ]
+      },
+      "extra": {
+        "rest": {
+          "offset": [
+            -8.1,
+            -5.9,
+            3
+          ],
+          "turn": [
+            54.19,
+            20.81,
+            17.13
+          ],
+          "scale": 0.4
+        }
+      }
+    }
+  ]
+}

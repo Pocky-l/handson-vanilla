@@ -2,6 +2,7 @@ package com.pockyl.handson_vanilla.client;
 
 import net.minecraft.world.inventory.MenuType;
 import net.minecraft.world.level.block.Blocks;
+import net.minecraft.world.level.block.LecternBlock;
 
 import com.pockyl.diegesis.api.Diegesis;
 import com.pockyl.diegesis.api.client.DiegesisClient;
@@ -31,8 +32,34 @@ public final class HandsOnVanillaClient {
         RecipeBook.guiModel = how;
     }
 
+    /**
+     * The enchanting table's runes as scene particles: one style a letter of vanilla's standard galactic alphabet (its own sprites,
+     * so a pack's glyphs are used), pale violet as the glyphs drifting to a vanilla table, gone as they reach the item.
+     */
+    static final java.util.List<net.minecraft.resources.ResourceLocation> GLYPHS = java.util.stream.IntStream.range(0, 8)
+            .mapToObj(n -> HandsOnVanilla.id("glyph_" + n)).toList();
+    /** The same runes crumbling off a page: slower, rising and swaying, fading as they shrink. */
+    static final java.util.List<net.minecraft.resources.ResourceLocation> DRIFTING_GLYPHS = java.util.stream.IntStream.range(0, 8)
+            .mapToObj(n -> HandsOnVanilla.id("drifting_glyph_" + n)).toList();
+    private static final String GLYPH_LETTERS = "aeklqrvz";
+
+    @SuppressWarnings("removal")
+    private static void registerGlyphs() {
+        for (int n = 0; n < GLYPHS.size(); n++) {
+            net.minecraft.resources.ResourceLocation sprite = net.minecraft.resources.ResourceLocation.withDefaultNamespace(
+                    "sga_" + GLYPH_LETTERS.charAt(n));
+            DiegesisClient.registerParticle(GLYPHS.get(n), com.pockyl.diegesis.api.client.ParticleStyle.builder(sprite)
+                    .color(0xFFEDE6FF).size(1.1F, 1.5F).life(EnchantingTableBehavior.GLYPH_FLIGHT, EnchantingTableBehavior.GLYPH_FLIGHT)
+                    .drag(0.0F).emissive().grow(0.6F).build());
+            DiegesisClient.registerParticle(DRIFTING_GLYPHS.get(n), com.pockyl.diegesis.api.client.ParticleStyle.builder(sprite)
+                    .color(0xFFB98EFF).size(0.8F, 1.2F).life(1.0F, 1.6F).gravity(-2.0F).drag(1.4F).wobble(0.5F).emissive()
+                    .grow(0.4F).fadeIn(0.1F).build());
+        }
+    }
+
     public static void init(Path configDir) {
         VanillaConfig.load(configDir);
+        registerGlyphs();
         Diegesis.station(HandsOnVanilla.id("crafting_table"))
                 .blocks(Blocks.CRAFTING_TABLE)
                 .orientation(StationType.Orientation.PLAYER)
@@ -123,6 +150,55 @@ public final class HandsOnVanillaClient {
                 .openWhen((player, pos, state) -> VanillaConfig.anvil())
                 .register();
         DiegesisClient.registerBehavior(HandsOnVanilla.id("anvil"), view -> new AnvilBehavior());
+        Diegesis.station(HandsOnVanilla.id("enchanting_table"))
+                .blocks(Blocks.ENCHANTING_TABLE)
+                // Alike from every side: the camera comes from where the player stands, not from the nearest side.
+                .orientation(StationType.Orientation.PLAYER_FREE)
+                .reach(4.5)
+                // Its book comes to the camera and goes back: the scene stands in for the block meanwhile.
+                .hidesBlock()
+                // The item and the lapis are slots; an offer is taken by the menu's button, a click on its row of the book.
+                .schema(StationSchema.builder().slots(EnchantingTableBehavior.ITEM, 1).slots(EnchantingTableBehavior.LAPIS, 1).build())
+                .menu(MenuBinding.of(MenuType.ENCHANTMENT).slots(EnchantingTableBehavior.ITEM, 0, 1)
+                        .slots(EnchantingTableBehavior.LAPIS, 1, 1).build())
+                .openWhen((player, pos, state) -> VanillaConfig.enchantingTable())
+                .register();
+        DiegesisClient.registerBehavior(HandsOnVanilla.id("enchanting_table"), view -> new EnchantingTableBehavior());
+        Diegesis.station(HandsOnVanilla.id("lectern"))
+                .blocks(Blocks.LECTERN)
+                // Read from the side the book faces, wherever the player stands.
+                .orientation(StationType.Orientation.BLOCK)
+                .reach(4.5)
+                // The book's slot only lets the behaviour read the stack: no node shows it, vanilla's screen never offers it.
+                .schema(StationSchema.builder().slots(LecternBehavior.BOOK, 1).build())
+                .menu(MenuBinding.of(MenuType.LECTERN).slots(LecternBehavior.BOOK, 0, 1).build())
+                // Without a book a lectern opens nothing: the book in the hand is laid on it.
+                .openWhen((player, pos, state) -> VanillaConfig.lectern() && state.getValue(LecternBlock.HAS_BOOK))
+                .register();
+        DiegesisClient.registerBehavior(HandsOnVanilla.id("lectern"), view -> new LecternBehavior());
+        Diegesis.station(HandsOnVanilla.id("loom"))
+                .blocks(Blocks.LOOM)
+                .orientation(StationType.Orientation.PLAYER)
+                .reach(4.5)
+                // Banner, dye and pattern are slots; the result is the behaviour's, taken in the middle of the shuttle's pass.
+                .schema(StationSchema.builder().slots(LoomBehavior.BANNER, 1).slots(LoomBehavior.DYE, 1)
+                        .slots(LoomBehavior.PATTERN, 1).build())
+                .menu(MenuBinding.of(MenuType.LOOM).slots(LoomBehavior.BANNER, 0, 1).slots(LoomBehavior.DYE, 1, 1)
+                        .slots(LoomBehavior.PATTERN, 2, 1).build())
+                .openWhen((player, pos, state) -> VanillaConfig.loom())
+                .register();
+        DiegesisClient.registerBehavior(HandsOnVanilla.id("loom"), view -> new LoomBehavior());
+        Diegesis.station(HandsOnVanilla.id("cartography_table"))
+                .blocks(Blocks.CARTOGRAPHY_TABLE)
+                .orientation(StationType.Orientation.PLAYER)
+                .reach(4.5)
+                // The map and the piece beside it are slots; the result is the behaviour's sheet hovering over the table.
+                .schema(StationSchema.builder().slots(CartographyTableBehavior.MAP, 1).slots(CartographyTableBehavior.EXTRA, 1).build())
+                .menu(MenuBinding.of(MenuType.CARTOGRAPHY_TABLE).slots(CartographyTableBehavior.MAP, 0, 1)
+                        .slots(CartographyTableBehavior.EXTRA, 1, 1).build())
+                .openWhen((player, pos, state) -> VanillaConfig.cartographyTable())
+                .register();
+        DiegesisClient.registerBehavior(HandsOnVanilla.id("cartography_table"), view -> new CartographyTableBehavior());
         // A recipe viewer's page opened by its key over an item at a station keeps the station; leaving it is back at the station.
         DiegesisClient.registerChildScreen(screen -> {
             String name = screen.getClass().getName();

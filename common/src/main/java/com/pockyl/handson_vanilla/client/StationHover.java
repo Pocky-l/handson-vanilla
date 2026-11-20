@@ -1,6 +1,11 @@
 package com.pockyl.handson_vanilla.client;
 
+import net.minecraft.client.Minecraft;
+import net.minecraft.client.gui.GuiGraphics;
+import net.minecraft.client.gui.screens.inventory.AbstractContainerScreen;
+import net.minecraft.network.chat.Component;
 import net.minecraft.resources.ResourceLocation;
+import net.minecraft.world.entity.player.Inventory;
 import net.minecraft.world.inventory.AbstractContainerMenu;
 import net.minecraft.world.item.ItemStack;
 
@@ -10,6 +15,8 @@ import com.pockyl.diegesis.api.client.StationView;
 
 /** What recipe viewers ask of a station: the item under the cursor, and the vanilla menu it works through. */
 public final class StationHover {
+    private static MenuScreen menuScreen;
+
     private StationHover() {
     }
 
@@ -29,6 +36,32 @@ public final class StationHover {
         }
         MenuAccess menu = DiegesisClient.focusedStation().map(StationView::menu).orElse(null);
         return menu == null ? null : menu.handle();
+    }
+
+    /**
+     * A container screen over the station's open menu that is never shown, or null away from a station: later JEI builds ask the
+     * screen under their recipe page for the menu their "+" fills, and a station's own screen is none.
+     */
+    public static AbstractContainerScreen<?> menuScreen() {
+        AbstractContainerMenu menu = menu();
+        if (menu == null || Minecraft.getInstance().player == null) {
+            menuScreen = null;
+            return null;
+        }
+        if (menuScreen == null || menuScreen.getMenu() != menu) {
+            menuScreen = new MenuScreen(menu, Minecraft.getInstance().player.getInventory());
+        }
+        return menuScreen;
+    }
+
+    private static final class MenuScreen extends AbstractContainerScreen<AbstractContainerMenu> {
+        MenuScreen(AbstractContainerMenu menu, Inventory inventory) {
+            super(menu, inventory, Component.empty());
+        }
+
+        @Override
+        protected void renderBg(GuiGraphics graphics, float partialTick, int mouseX, int mouseY) {
+        }
     }
 
     /**
