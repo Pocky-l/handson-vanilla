@@ -107,6 +107,14 @@ Built on [Diegesis](https://www.curseforge.com/minecraft/mc-mods/diegesis), from
 
 [![Polymorph](https://raw.githubusercontent.com/Pocky-l/handson-vanilla/main/docs/compat/polymorph.png)](https://www.curseforge.com/minecraft/mc-mods/polymorph) ✅ **[Polymorph](https://www.curseforge.com/minecraft/mc-mods/polymorph)** (optional) - the other results of a grid lie beside it, click one to make it
 
+[![Crafting Tweaks](https://raw.githubusercontent.com/Pocky-l/handson-vanilla/main/docs/compat/crafting-tweaks.png)](https://www.curseforge.com/minecraft/mc-mods/crafting-tweaks) ✅ **[Crafting Tweaks](https://www.curseforge.com/minecraft/mc-mods/crafting-tweaks)** (optional) - its rotate, balance and clear are marks on the table's edge, its keys work there too
+
+[![Easy Magic](https://raw.githubusercontent.com/Pocky-l/handson-vanilla/main/docs/compat/easy-magic.png)](https://www.curseforge.com/minecraft/mc-mods/easy-magic) ✅ **[Easy Magic](https://www.curseforge.com/minecraft/mc-mods/easy-magic)** (optional) - the enchanting table keeps its items, the book's turned-down corner buys new offers
+
+[![Easy Anvils](https://raw.githubusercontent.com/Pocky-l/handson-vanilla/main/docs/compat/easy-anvils.png)](https://www.curseforge.com/minecraft/mc-mods/easy-anvils) ✅ **[Easy Anvils](https://www.curseforge.com/minecraft/mc-mods/easy-anvils)** (optional) - the anvil is worked by hand and keeps its pieces, a block of iron still mends it
+
+[![Inventory Profiles Next](https://raw.githubusercontent.com/Pocky-l/handson-vanilla/main/docs/compat/inventory-profiles-next.png)](https://www.curseforge.com/minecraft/mc-mods/inventory-profiles-next) ✅ **[Inventory Profiles Next](https://www.curseforge.com/minecraft/mc-mods/inventory-profiles-next)** (optional) - its continuous crafting works at the table, turned on and off by a mark on its edge; locked slots stay locked
+
 [![Mouse Tweaks](https://raw.githubusercontent.com/Pocky-l/handson-vanilla/main/docs/compat/mouse-tweaks.png)](https://www.curseforge.com/minecraft/mc-mods/mouse-tweaks) ✅ **[Mouse Tweaks](https://www.curseforge.com/minecraft/mc-mods/mouse-tweaks)** (optional) - its drags work at both stations
 
 Resource packs keep their furnace, smoker and blast furnace textures. The open furnaces stay this mod's, so a pack cannot misplace what lies in them.

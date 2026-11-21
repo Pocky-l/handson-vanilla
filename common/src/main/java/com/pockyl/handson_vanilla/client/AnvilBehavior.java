@@ -177,14 +177,18 @@ final class AnvilBehavior implements StationBehavior {
         }
     }
 
-    /** The cost as the vanilla screen shows it: too expensive, the levels the result costs, or nothing. */
+    /**
+     * The cost as the vanilla screen shows it: too expensive, the levels the result costs, or nothing. Too expensive only while
+     * the server gives no result: vanilla's menu empties it from 40 levels, and mods that lift that limit (Tax Free Levels,
+     * Allurement, Ante...) keep it, so their dear results show their cost here as on their screen.
+     */
     private static Component costLine(AnvilMenu menu) {
         int cost = menu.getCost();
         LocalPlayer player = Minecraft.getInstance().player;
         if (cost <= 0 || player == null) {
             return null;
         }
-        if (cost >= 40 && !player.getAbilities().instabuild) {
+        if (cost >= 40 && !player.getAbilities().instabuild && !menu.getSlot(RESULT_SLOT).hasItem()) {
             return Component.translatable("container.repair.expensive");
         }
         return menu.getSlot(RESULT_SLOT).hasItem() ? Component.translatable("container.repair.cost", cost) : null;
@@ -607,5 +611,29 @@ final class AnvilBehavior implements StationBehavior {
     private static AnvilMenu anvil(StationView view) {
         MenuAccess menu = view.menu();
         return menu != null && menu.handle() instanceof AnvilMenu anvil ? anvil : null;
+    }
+
+    private static Boolean easyAnvils;
+
+    /**
+     * Whether a use of this anvil is Easy Anvils' mending: a block of iron in either hand on a chipped or damaged anvil, which it
+     * turns one step back to whole instead of opening the anvil.
+     */
+    static boolean mendsWithIron(net.minecraft.world.entity.player.Player player, net.minecraft.world.level.block.state.BlockState state) {
+        if (easyAnvils == null) {
+            try {
+                Class.forName("fuzs.easyanvils.EasyAnvils", false, AnvilBehavior.class.getClassLoader());
+                easyAnvils = true;
+            } catch (ClassNotFoundException | LinkageError e) {
+                easyAnvils = false;
+            }
+        }
+        // By name: a mod may register its own anvils under vanilla's names, and Easy Anvils' twins name the anvil they stand for.
+        String name = BlockTwins.original(state).toString();
+        if (!easyAnvils || !(name.equals("minecraft:chipped_anvil") || name.equals("minecraft:damaged_anvil"))) {
+            return false;
+        }
+        return player.getMainHandItem().is(net.minecraft.world.item.Items.IRON_BLOCK)
+                || player.getOffhandItem().is(net.minecraft.world.item.Items.IRON_BLOCK);
     }
 }

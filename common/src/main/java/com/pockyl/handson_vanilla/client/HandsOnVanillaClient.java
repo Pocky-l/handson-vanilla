@@ -22,6 +22,12 @@ public final class HandsOnVanillaClient {
     public static final String RESULT = "result";
     private static final net.minecraft.resources.ResourceLocation VISUAL_WORKBENCH =
             net.minecraft.resources.ResourceLocation.fromNamespaceAndPath("visualworkbench", "crafting");
+    /** Easy Magic's menu for the enchanting table: the vanilla one, the item and lapis kept in the table, new offers for a price. */
+    private static final net.minecraft.resources.ResourceLocation EASY_MAGIC =
+            net.minecraft.resources.ResourceLocation.fromNamespaceAndPath("easymagic", "enchanting");
+    /** Easy Anvils' menu: the vanilla one, the two pieces kept in the anvil. */
+    private static final net.minecraft.resources.ResourceLocation EASY_ANVILS =
+            net.minecraft.resources.ResourceLocation.fromNamespaceAndPath("easyanvils", "repair");
 
     private HandsOnVanillaClient() {
     }
@@ -141,17 +147,27 @@ public final class HandsOnVanillaClient {
         DiegesisClient.registerBehavior(HandsOnVanilla.id("brewing_stand"), view -> new BrewingStandBehavior());
         Diegesis.station(HandsOnVanilla.id("anvil"))
                 .blocks(Blocks.ANVIL, Blocks.CHIPPED_ANVIL, Blocks.DAMAGED_ANVIL)
+                // Also by the tag: Apotheosis registers its own anvils under vanilla's names, with vanilla's menu.
+                .tag(net.minecraft.tags.BlockTags.ANVIL)
+                // Easy Anvils' twins of the three, which hold the pieces.
+                .block(BlockTwins.twin(BlockTwins.EASY_ANVILS, Blocks.ANVIL))
+                .block(BlockTwins.twin(BlockTwins.EASY_ANVILS, Blocks.CHIPPED_ANVIL))
+                .block(BlockTwins.twin(BlockTwins.EASY_ANVILS, Blocks.DAMAGED_ANVIL))
                 // From whichever side the player comes: the pieces lie across the face either way.
                 .orientation(StationType.Orientation.PLAYER)
                 .reach(4.5)
                 // The two pieces are slots; the result is taken at the hammer's blow (the behaviour's click on slot 2).
                 .schema(StationSchema.builder().slots(AnvilBehavior.INPUTS, 2).build())
-                .menu(MenuBinding.of(MenuType.ANVIL).slots(AnvilBehavior.INPUTS, 0, 2).build())
-                .openWhen((player, pos, state) -> VanillaConfig.anvil())
+                .menu(MenuBinding.of(MenuType.ANVIL).alsoAccepts(EASY_ANVILS).slots(AnvilBehavior.INPUTS, 0, 2).build())
+                // Easy Anvils mends a worn anvil with a block of iron used on it: that use stays the game's.
+                .openWhen((player, pos, state) -> VanillaConfig.anvil() && !AnvilBehavior.mendsWithIron(player, state)
+                        && !BlockTwins.refused(state))
                 .register();
         DiegesisClient.registerBehavior(HandsOnVanilla.id("anvil"), view -> new AnvilBehavior());
         Diegesis.station(HandsOnVanilla.id("enchanting_table"))
                 .blocks(Blocks.ENCHANTING_TABLE)
+                // Easy Magic's twin, which keeps the item and the lapis.
+                .block(BlockTwins.twin(BlockTwins.EASY_MAGIC, Blocks.ENCHANTING_TABLE))
                 // Alike from every side: the camera comes from where the player stands, not from the nearest side.
                 .orientation(StationType.Orientation.PLAYER_FREE)
                 .reach(4.5)
@@ -159,9 +175,9 @@ public final class HandsOnVanillaClient {
                 .hidesBlock()
                 // The item and the lapis are slots; an offer is taken by the menu's button, a click on its row of the book.
                 .schema(StationSchema.builder().slots(EnchantingTableBehavior.ITEM, 1).slots(EnchantingTableBehavior.LAPIS, 1).build())
-                .menu(MenuBinding.of(MenuType.ENCHANTMENT).slots(EnchantingTableBehavior.ITEM, 0, 1)
+                .menu(MenuBinding.of(MenuType.ENCHANTMENT).alsoAccepts(EASY_MAGIC).slots(EnchantingTableBehavior.ITEM, 0, 1)
                         .slots(EnchantingTableBehavior.LAPIS, 1, 1).build())
-                .openWhen((player, pos, state) -> VanillaConfig.enchantingTable())
+                .openWhen((player, pos, state) -> VanillaConfig.enchantingTable() && !BlockTwins.refused(state))
                 .register();
         DiegesisClient.registerBehavior(HandsOnVanilla.id("enchanting_table"), view -> new EnchantingTableBehavior());
         Diegesis.station(HandsOnVanilla.id("lectern"))

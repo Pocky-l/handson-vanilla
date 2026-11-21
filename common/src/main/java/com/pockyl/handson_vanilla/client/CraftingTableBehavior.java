@@ -33,6 +33,8 @@ final class CraftingTableBehavior implements StationBehavior {
     private final RecipeBook book = new RecipeBook(new CraftingBook());
     private final GhostRecipe ghost = new GhostRecipe();
     private final RecipeChoice choice = new RecipeChoice();
+    private final GridTweaks tweaks = new GridTweaks();
+    private final ContinuousCrafting continuous = new ContinuousCrafting();
     /** The last laying of a recipe this table has seen: a new one takes the ghost away. */
     private long laidSeen;
     /** How long after a recipe was laid (book, recipe viewer) what lands in the grid flies in from the hotbar. */
@@ -63,6 +65,8 @@ final class CraftingTableBehavior implements StationBehavior {
         view.node("grid").ifPresent(node -> node.setPainter(ghost.grid()));
         view.node(HandsOnVanillaClient.RESULT).ifPresent(node -> node.setPainter(ghost.result()));
         choice.onSceneReady(view);
+        tweaks.onSceneReady(view);
+        continuous.onSceneReady(view);
     }
 
     @Override
@@ -73,6 +77,8 @@ final class CraftingTableBehavior implements StationBehavior {
             ghost.clear();
         }
         ghost.frame(view, dt);
+        tweaks.frame(view);
+        continuous.frame(view);
         flightClock += dt;
         boolean laying = net.minecraft.Util.getMillis() - laidAt < LAID_FOR_MS;
         float next = Math.max(flightClock, flights.isEmpty() ? flightClock : flights.peekLast().at() + FLIGHT_GAP);
@@ -111,6 +117,8 @@ final class CraftingTableBehavior implements StationBehavior {
             book.click(view, click.button());
         } else if (event instanceof SceneEvent.Click click && RecipeChoice.place(click.node()) >= 0) {
             choice.click(view, RecipeChoice.place(click.node()));
+        } else if (event instanceof SceneEvent.Click click && !continuous.click(view, click.node())) {
+            tweaks.click(view, click.node());
         }
     }
 
@@ -120,10 +128,10 @@ final class CraftingTableBehavior implements StationBehavior {
         return "book_open".equals(node) && book.scroll(amount);
     }
 
-    /** Keys go to the book first: its search while it is typed, its page keys. */
+    /** Keys go to the book first: its search while it is typed, its page keys; then to Crafting Tweaks' keys. */
     @Override
     public boolean onKey(StationView view, int keyCode, int scanCode, int modifiers) {
-        return book.key(view, keyCode, modifiers);
+        return book.key(view, keyCode, modifiers) || tweaks.key(view, keyCode, scanCode, modifiers);
     }
 
     @Override
@@ -143,13 +151,15 @@ final class CraftingTableBehavior implements StationBehavior {
             choice.click(view, RecipeChoice.place(node));
             return true;
         }
-        return false;
+        // Crafting Tweaks' marks with the hand full too, as its buttons take a click with a stack on the cursor.
+        return continuous.click(view, node) || tweaks.click(view, node);
     }
 
     @Override
     public void onOpen(StationView view) {
         CraftingUse.refresh();
         book.opened(view);
+        continuous.opened();
     }
 
     @Override
@@ -162,6 +172,8 @@ final class CraftingTableBehavior implements StationBehavior {
         book.shut(view);
         ghost.reset();
         choice.clear(view);
+        tweaks.clear(view);
+        continuous.clear(view);
         known = false;
         craftSounds = 0;
     }

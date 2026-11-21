@@ -1,5 +1,21 @@
 # Changelog
 
+## [1.2.1+1.21.1] - Unreleased
+- With [Crafting Tweaks](https://www.curseforge.com/minecraft/mc-mods/crafting-tweaks), its rotate, balance and clear buttons lie
+  as charcoal marks on the far edge of the crafting table (Shift: rotate back, spread, force clear), and its keys work there.
+- With [Easy Magic](https://www.curseforge.com/minecraft/mc-mods/easy-magic) the enchanting table is worked by hand too (it used to
+  open Easy Magic's screen): the item and lapis stay in the table, and the book's turned-down corner buys new offers.
+- With [Easy Anvils](https://www.curseforge.com/minecraft/mc-mods/easy-anvils) the anvil is worked by hand too (it used to open Easy
+  Anvils' screen): the pieces stay on the anvil, and a block of iron used on a worn anvil mends it as before.
+- With [Inventory Profiles Next](https://www.curseforge.com/minecraft/mc-mods/inventory-profiles-next) its continuous crafting
+  refills the crafting table's grid after a craft; a loop drawn on the table's near edge turns it on and off like its checkbox.
+- With [Supplementaries](https://www.curseforge.com/minecraft/mc-mods/supplementaries) its flags are woven on the loom, and its
+  antique ink and the enchanted golden apple show at the cartography table and the grindstone.
+- With [Quark](https://www.curseforge.com/minecraft/mc-mods/quark) or
+  [More Banner Features](https://modrinth.com/mod/more-banner-features), the loom weaves as many layers as they allow.
+- The anvil shows the cost of repairs that mods such as [Tax Free Levels](https://modrinth.com/mod/tax-free-levels) allow over
+  40 levels, instead of "Too Expensive".
+
 ## [1.2.0+1.21.1] - 2026-11-20
 - The enchanting table is worked by hand: its book opens over the table with the three offers written in it.
 - The enchanting book is drawn anew, with living runes in the glint's colours and drawings on its pages, also in the world.

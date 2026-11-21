@@ -97,6 +97,16 @@ final class EnchantingTableBehavior implements StationBehavior {
     /** The player's level at the foot of the spread, in the enchanting screen's dark green. */
     private static final int LEVEL_GREEN = 0x407F10;
     private static final float UNPAID_ALPHA = 0.45F;
+    /**
+     * Easy Magic's corner: its side in units (under the foot line, clear of the rows), how much further it turns up under the
+     * cursor, how far around it a click still takes it; the fold's back and lit back, and the shade on the page under it.
+     */
+    private static final float CORNER = 13.0F;
+    private static final float CORNER_LIFT = 4.0F;
+    private static final float CORNER_REACH = 3.0F;
+    private static final int FOLD = 0xE6C68A;
+    private static final int FOLD_LIT = 0xF8DEA8;
+    private static final int FOLD_SHADOW = 0x4A2E0E;
     /** Seconds: the book's glide in and back, how long it takes to open, the rows fading in one after the other. */
     private static final float ARRIVE = 0.35F;
     private static final float LEAVE = 0.3F;
@@ -173,6 +183,9 @@ final class EnchantingTableBehavior implements StationBehavior {
     private int offersKey;
     private boolean hasOffers;
     private int hoveredRow = -1;
+    /** With Easy Magic: whether its new offers can be bought now (the right page's corner shows), and whether it is under the cursor. */
+    private boolean rerollShown;
+    private boolean cornerHovered;
     /** Where each offer's row starts on both pages, and where the last one ends, as laid out this frame; the lines of each. */
     private final float[] rowTops = {ROW_TOP, ROW_TOP + 45.0F, ROW_TOP + 90.0F, ROW_TOP + 135.0F};
     private final List<List<Line>> rowLines = new ArrayList<>(List.of(List.of(), List.of(), List.of()));
@@ -479,12 +492,49 @@ final class EnchantingTableBehavior implements StationBehavior {
         }
         magic(view, dt);
         hoveredRow = -1;
+        boolean wasOnCorner = cornerHovered;
+        cornerHovered = false;
+        rerollShown = menu != null && offersShown() && EasyMagicReroll.offered(menu);
         if (menu != null && offersShown() && glide >= 1.0F && opened >= 1.0F) {
             int row = rowUnder(view);
             if (row >= 0 && canPay(menu, row)) {
                 hoveredRow = row;
             }
+            cornerHovered = rerollShown && onCorner(view);
         }
+        if (cornerHovered != wasOnCorner) {
+            // Easy Magic's own words over its corner, as over its button.
+            boolean on = cornerHovered;
+            view.node(BOOK).ifPresent(node -> node.setTooltip(on ? Component.translatable("container.enchant.reroll") : null));
+        }
+    }
+
+    /** Whether the cursor is on the right page's lower outer corner, Easy Magic's new offers. */
+    private boolean onCorner(StationView view) {
+        Pose pose = pose(view);
+        float from = CORNER + CORNER_REACH;
+        return book.hit(view, BOOK, pose.toNode(view), pose.open, pose.right, pose.left)
+                .filter(hit -> hit.right() && hit.x() >= UNITS_WIDE - from && hit.y() >= UNITS_HIGH - from)
+                .isPresent();
+    }
+
+    /** Easy Magic's new offers: its menu button, paid in lapis and experience points; the page turns when they come. */
+    private void reroll(StationView view, EnchantmentMenu menu, MenuAccess access) {
+        LocalPlayer player = Minecraft.getInstance().player;
+        if (player == null) {
+            return;
+        }
+        if (!EasyMagicReroll.canPay(menu, player)) {
+            view.node(BOOK).ifPresent(node -> node.shake(0.3F, 0.2F));
+            if (EasyMagicReroll.lapisHeld(menu) < EasyMagicReroll.lapisCost(menu)) {
+                view.node(LAPIS).ifPresent(node -> node.shake(0.3F, 0.2F));
+            }
+            StationHands.play(view, SoundEvents.BOOK_PUT, BOOK, 0.25F, 0.8F);
+            return;
+        }
+        access.pressButton(EasyMagicReroll.BUTTON);
+        StationHands.swing();
+        StationHands.play(view, SoundEvents.BOOK_PAGE_TURN, BOOK, 0.5F, 1.1F);
     }
 
     /**
@@ -716,6 +766,10 @@ final class EnchantingTableBehavior implements StationBehavior {
         if (menu == null || access == null || !offersShown() || opened < 0.5F) {
             return;
         }
+        if (rerollShown && onCorner(view)) {
+            reroll(view, menu, access);
+            return;
+        }
         int row = rowUnder(view);
         if (row < 0) {
             return;
@@ -939,6 +993,9 @@ final class EnchantingTableBehavior implements StationBehavior {
                 }
                 String number = String.valueOf(costs[n]);
                 canvas.text(Component.literal(number), RIGHT_END - font.width(number), top + 18.0F, paid ? GREEN : RED, shown);
+                if (n == lastOffer() && rerollShown) {
+                    paintCorner(canvas, menu, player, resting);
+                }
             } else {
                 float y = top + 2.0F;
                 for (Line line : rowLines.get(n)) {
@@ -950,6 +1007,52 @@ final class EnchantingTableBehavior implements StationBehavior {
                     y += line.height();
                 }
             }
+        }
+    }
+
+    /**
+     * Easy Magic's new offers on the right page's lower outer corner: the corner turned down as a dog-ear, ready to be turned over,
+     * and what turning it costs beside it (lapis and experience points, in the offers' inks). Under the cursor the corner turns
+     * further up.
+     */
+    private void paintCorner(OpenBook.Canvas canvas, EnchantmentMenu menu, LocalPlayer player, boolean resting) {
+        boolean lifted = resting && cornerHovered;
+        int size = Math.round(CORNER + (lifted ? CORNER_LIFT : 0.0F));
+        float right = UNITS_WIDE;
+        float bottom = UNITS_HIGH;
+        for (int i = 0; i < size; i++) {
+            // Row by row from the fold's top: the fold's back left of the diagonal, a shade on the page under it right of it,
+            // the diagonal itself in faded ink; one step a unit.
+            float y = bottom - size + i;
+            float edge = right - i - 1.0F;
+            canvas.rect(right - size, y, edge - (right - size), 1.0F, OpenBook.MARK_LIFT, 0xFF000000 | (lifted ? FOLD_LIT : FOLD));
+            canvas.rect(edge, y, 1.0F, 1.0F, OpenBook.MARK_LIFT * 1.2F, 0x90000000 | INK);
+            if (i > 0) {
+                canvas.rect(edge + 1.0F, y, i, 1.0F, OpenBook.MARK_LIFT * 0.5F, 0x80000000 | FOLD_SHADOW);
+            }
+        }
+        Font font = Minecraft.getInstance().font;
+        boolean creative = player.getAbilities().instabuild;
+        int lapis = EasyMagicReroll.lapisCost(menu);
+        int points = EasyMagicReroll.pointsCost(menu);
+        float x = right - size - 4.0F;
+        float y = bottom - LAPIS_SIZE - 3.0F;
+        if (!creative && points > 0) {
+            String text = String.valueOf(points);
+            x -= font.width(text);
+            canvas.text(Component.literal(text), x, y + 1.0F, EasyMagicReroll.pointsHeld(player) >= points ? GREEN : RED, 1.0F);
+            x -= ORB_SIZE + 1.0F;
+            float u0 = ORB_ICON % 4 * 16 / 64.0F;
+            float v0 = ORB_ICON / 4 * 16 / 64.0F;
+            canvas.image(ORB, x, y, ORB_SIZE, ORB_SIZE, u0, v0, u0 + 0.25F, v0 + 0.25F, 0xFFFF00);
+            x -= 4.0F;
+        }
+        if (!creative && lapis > 0) {
+            String text = String.valueOf(lapis);
+            x -= font.width(text);
+            canvas.text(Component.literal(text), x, y + 1.0F, EasyMagicReroll.lapisHeld(menu) >= lapis ? GREEN : RED, 1.0F);
+            x -= LAPIS_SIZE + 1.0F;
+            canvas.item(station.level(), LAPIS_ICON, x, y, LAPIS_SIZE, 1.0F);
         }
     }
 
@@ -989,6 +1092,17 @@ final class EnchantingTableBehavior implements StationBehavior {
             return;
         }
         RunePages.paint(canvas, page, WorldBooks.RUNES_ALPHA, RunePages.now());
+    }
+
+    /** The last offer written, after which the right page's corner is drawn. */
+    private int lastOffer() {
+        int last = -1;
+        for (int n = 0; n < 3; n++) {
+            if (costs[n] > 0) {
+                last = n;
+            }
+        }
+        return last;
     }
 
     /** Whether the offers are written on page {@code page}. */
@@ -1078,12 +1192,23 @@ final class EnchantingTableBehavior implements StationBehavior {
                 ? level.registryAccess().registryOrThrow(net.minecraft.core.registries.Registries.ENCHANTMENT).getHolder(clues[n])
                 : Optional.empty();
         Component clue = null;
-        if (enchantment.isPresent() && clueLevels[n] >= 0) {
-            // The name without vanilla's tooltip grey, which does not read on paper; a curse keeps its red, in ink.
-            boolean curse = enchantment.get().is(net.minecraft.tags.EnchantmentTags.CURSE);
-            Component name = Enchantment.getFullname(enchantment.get(), clueLevels[n]).copy()
-                    .withStyle(style -> style.withColor(curse ? TextColor.fromRgb(RED) : null));
-            clue = clue(name);
+        List<net.minecraft.world.item.enchantment.EnchantmentInstance> easyMagic = EasyMagicReroll.clues(menu, n);
+        if (easyMagic != null) {
+            // Easy Magic's own clues: none, one ("Name . . . ?" as vanilla's), or every enchantment of the offer, named in a row.
+            if (easyMagic.size() == 1) {
+                clue = clue(inked(easyMagic.get(0).enchantment, easyMagic.get(0).level));
+            } else if (!easyMagic.isEmpty()) {
+                net.minecraft.network.chat.MutableComponent all = Component.empty();
+                for (int i = 0; i < easyMagic.size(); i++) {
+                    if (i > 0) {
+                        all.append(", ");
+                    }
+                    all.append(inked(easyMagic.get(i).enchantment, easyMagic.get(i).level));
+                }
+                clue = all;
+            }
+        } else if (enchantment.isPresent() && clueLevels[n] >= 0) {
+            clue = clue(inked(enchantment.get(), clueLevels[n]));
         } else if (I18n.exists("neoforge.container.enchant.limitedEnchantability")) {
             clue = Component.translatable("neoforge.container.enchant.limitedEnchantability");
         }
@@ -1105,6 +1230,12 @@ final class EnchantingTableBehavior implements StationBehavior {
             fit(lines, levels, COST_INK, false, COST_SCALE, COST_LINE, 2);
         }
         return lines;
+    }
+
+    /** An enchantment's name without vanilla's tooltip grey, which does not read on paper; a curse keeps its red, in ink. */
+    private static Component inked(net.minecraft.core.Holder<Enchantment> enchantment, int level) {
+        boolean curse = enchantment.is(net.minecraft.tags.EnchantmentTags.CURSE);
+        return Enchantment.getFullname(enchantment, level).copy().withStyle(style -> style.withColor(curse ? TextColor.fromRgb(RED) : null));
     }
 
     @SuppressWarnings("removal")
