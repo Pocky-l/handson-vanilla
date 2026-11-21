@@ -49,7 +49,7 @@ public final class GhostRecipe {
     private StationView view;
     private float time;
 
-    /** The server answered a recipe the player lacks items for; on the render thread. */
+    /** The server answered a recipe the player lacks items for, or the book found it so laying one by clicks; on the render thread. */
     public static void arrived(int containerId, ResourceLocation recipe) {
         if (Minecraft.getInstance().screen instanceof RecipeUpdateListener) {
             // The vanilla screen is open and showed it itself.

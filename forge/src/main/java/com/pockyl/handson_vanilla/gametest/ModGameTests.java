@@ -9,7 +9,7 @@ import com.pockyl.handson_vanilla.HandsOnVanilla;
 
 /**
  * The mod is client-side only: this checks that it loads on a server and stays out of the way there, and runs the book's
- * arithmetic ({@link BookTests}) and the smoker's and blast furnace's pack files and
+ * arithmetic ({@link BookTests}), the book's laying by clicks ({@link CraftingLayTests}) and the smoker's and blast furnace's pack files and
  * shift-clicks ({@link FurnaceTests}), the stonecutter's clicks ({@link StonecutterTests}),
  * the smithing table's ({@link SmithingTests}), the grindstone's ({@link GrindstoneTests}),
  * the brewing stand's ({@link BrewingTests}), the anvil's ({@link AnvilTests}), the enchanting table's
@@ -40,6 +40,16 @@ public final class ModGameTests {
     @GameTest(template = "empty")
     public static void bookSearch(GameTestHelper helper) {
         BookTests.bookSearch(helper);
+    }
+
+    @GameTest(template = "empty")
+    public static void craftingLaysByClicks(GameTestHelper helper) {
+        CraftingLayTests.craftingLaysByClicks(helper);
+    }
+
+    @GameTest(template = "empty")
+    public static void craftingLayMissing(GameTestHelper helper) {
+        CraftingLayTests.craftingLayMissing(helper);
     }
 
     @GameTest(template = "empty")
