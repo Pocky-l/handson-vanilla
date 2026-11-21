@@ -627,8 +627,9 @@ final class AnvilBehavior implements StationBehavior {
                 easyAnvils = false;
             }
         }
-        if (!easyAnvils || !(state.is(net.minecraft.world.level.block.Blocks.CHIPPED_ANVIL)
-                || state.is(net.minecraft.world.level.block.Blocks.DAMAGED_ANVIL))) {
+        // By name: a mod may register its own anvils under vanilla's names.
+        String name = net.minecraft.core.registries.BuiltInRegistries.BLOCK.getKey(state.getBlock()).toString();
+        if (!easyAnvils || !(name.equals("minecraft:chipped_anvil") || name.equals("minecraft:damaged_anvil"))) {
             return false;
         }
         return player.getMainHandItem().is(net.minecraft.world.item.Items.IRON_BLOCK)

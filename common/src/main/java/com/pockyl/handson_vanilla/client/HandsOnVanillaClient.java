@@ -148,6 +148,8 @@ public final class HandsOnVanillaClient {
         DiegesisClient.registerBehavior(HandsOnVanilla.id("brewing_stand"), view -> new BrewingStandBehavior());
         Diegesis.station(HandsOnVanilla.id("anvil"))
                 .blocks(Blocks.ANVIL, Blocks.CHIPPED_ANVIL, Blocks.DAMAGED_ANVIL)
+                // Also by the tag: Apotheosis registers its own anvils under vanilla's names, with vanilla's menu.
+                .tag(net.minecraft.tags.BlockTags.ANVIL)
                 // From whichever side the player comes: the pieces lie across the face either way.
                 .orientation(StationType.Orientation.PLAYER)
                 .reach(4.5)
