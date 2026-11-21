@@ -1,6 +1,6 @@
 # Changelog
 
-## [1.2.1+1.21.1] - Unreleased
+## [1.2.1+1.21.1] - 2026-11-21
 - With [Crafting Tweaks](https://www.curseforge.com/minecraft/mc-mods/crafting-tweaks), its rotate, balance and clear buttons lie
   as charcoal marks on the far edge of the crafting table (Shift: rotate back, spread, force clear), and its keys work there.
 - With [Easy Magic](https://www.curseforge.com/minecraft/mc-mods/easy-magic) the enchanting table is worked by hand too (it used to
