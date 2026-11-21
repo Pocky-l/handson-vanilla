@@ -11,7 +11,6 @@ import net.minecraft.resources.ResourceLocation;
 import net.minecraft.tags.BannerPatternTags;
 import net.minecraft.tags.ItemTags;
 import net.minecraft.world.inventory.LoomMenu;
-import net.minecraft.world.item.BannerItem;
 import net.minecraft.world.item.BannerPatternItem;
 import net.minecraft.world.item.BlockItem;
 import net.minecraft.world.item.DyeColor;
@@ -57,7 +56,7 @@ final class LoomBook implements RecipeBook.Source {
                 && patterns.equals(madeFrom)) {
             return made;
         }
-        boolean real = banner.getItem() instanceof BannerItem && dye.getItem() instanceof DyeItem;
+        boolean real = LoomBehavior.clothColour(banner) != null && dye.getItem() instanceof DyeItem;
         DyeColor colour = real ? ((DyeItem) dye.getItem()).getDyeColor() : DyeColor.WHITE;
         List<Ingredient> needs = new ArrayList<>();
         needs.add(Ingredient.of(ItemTags.BANNERS));

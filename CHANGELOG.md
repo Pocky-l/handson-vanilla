@@ -9,6 +9,8 @@
   Anvils' screen): the pieces stay on the anvil, and a block of iron used on a worn anvil mends it as before.
 - With [Inventory Profiles Next](https://www.curseforge.com/minecraft/mc-mods/inventory-profiles-next) its continuous crafting
   refills the crafting table's grid after a craft; a loop drawn on the table's near edge turns it on and off like its checkbox.
+- With [Supplementaries](https://www.curseforge.com/minecraft/mc-mods/supplementaries) its flags are woven on the loom, and its
+  antique ink and the enchanted golden apple show at the cartography table and the grindstone.
 - Fixed: with [Apotheosis](https://www.curseforge.com/minecraft/mc-mods/apotheosis) installed the anvil opened its vanilla screen
   (Apotheosis replaces the anvils); it is worked by hand again.
 - With [Quark](https://www.curseforge.com/minecraft/mc-mods/quark) or

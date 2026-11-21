@@ -85,7 +85,11 @@ final class CartographyTableBehavior implements StationBehavior {
     private static final int INK = 0xFF2E2418;
     private static final int GLINT = 0xFFE8F4FF;
 
-    private enum Kind { NONE, ZOOM, COPY, LOCK, OTHER }
+    /**
+     * What the table makes: a wider map, copies, a locked map, a map another mod's ink changed (Supplementaries' antique ink), else
+     * another mod's result.
+     */
+    private enum Kind { NONE, ZOOM, COPY, LOCK, INKED, OTHER }
 
     private final HoveringResult other = new HoveringResult(OTHER_SIZE);
     private final StationHands.SlotWatch watch = new StationHands.SlotWatch(MAP, "map", EXTRA, "extra");
@@ -117,6 +121,10 @@ final class CartographyTableBehavior implements StationBehavior {
 
     /** What the table takes: filled maps, paper, empty maps and glass panes. */
     private static boolean usable(ItemStack stack) {
+        // The open menu's own rule, so what other mods let in counts too (Supplementaries' antique ink).
+        if (StationHover.menu() instanceof net.minecraft.world.inventory.CartographyTableMenu table) {
+            return table.getSlot(0).mayPlace(stack) || table.getSlot(1).mayPlace(stack);
+        }
         return stack.is(Items.FILLED_MAP) || stack.is(Items.PAPER) || stack.is(Items.MAP) || stack.is(Items.GLASS_PANE);
     }
 
@@ -283,7 +291,10 @@ final class CartographyTableBehavior implements StationBehavior {
         if (extra.is(Items.MAP)) {
             return Kind.COPY;
         }
-        return extra.is(Items.GLASS_PANE) ? Kind.LOCK : Kind.OTHER;
+        if (extra.is(Items.GLASS_PANE)) {
+            return Kind.LOCK;
+        }
+        return extra.isEmpty() ? Kind.OTHER : Kind.INKED;
     }
 
     /**
@@ -487,6 +498,9 @@ final class CartographyTableBehavior implements StationBehavior {
                 sheet(view.level(), made, SHEET, 1.0F, poseStack, buffers, lit);
             }
             case LOCK -> sheet(view.level(), made, SHEET, 1.0F, poseStack, buffers, lit, true);
+            // The map as the other mod made it (its own look, as its screen shows it); the map on the table until its data is here.
+            case INKED -> sheet(view.level(), MapItem.getSavedData(made, view.level()) != null ? made : stack(view, MAP_SLOT), SHEET,
+                    1.0F, poseStack, buffers, lit);
             default -> {
             }
         }

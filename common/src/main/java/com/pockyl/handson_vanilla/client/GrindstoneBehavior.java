@@ -112,7 +112,14 @@ final class GrindstoneBehavior implements StationBehavior {
 
     /** What the grindstone takes: what can be worn down or repaired, and anything enchanted (vanilla's slot rule). */
     static boolean usable(ItemStack stack) {
-        return !stack.isEmpty() && (stack.isDamageableItem() || stack.is(Items.ENCHANTED_BOOK) || stack.isEnchanted());
+        if (stack.isEmpty()) {
+            return false;
+        }
+        // The open menu's own rule, so what other mods let in counts too (Supplementaries' enchanted golden apple).
+        if (StationHover.menu() instanceof net.minecraft.world.inventory.GrindstoneMenu grindstone) {
+            return grindstone.getSlot(0).mayPlace(stack) || grindstone.getSlot(1).mayPlace(stack);
+        }
+        return stack.isDamageableItem() || stack.is(Items.ENCHANTED_BOOK) || stack.isEnchanted();
     }
 
     @Override

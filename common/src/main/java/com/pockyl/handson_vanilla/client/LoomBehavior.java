@@ -149,9 +149,46 @@ final class LoomBehavior implements StationBehavior {
                 light)));
     }
 
-    /** What the loom takes from the inventory: banners, dyes and banner patterns. */
+    /**
+     * What the loom takes from the inventory: what one of its three places takes, by the open menu's own rule (other mods' cloths
+     * too, as Supplementaries' flags); before the menu is open, banners, dyes and banner patterns.
+     */
     private static boolean usable(ItemStack stack) {
+        if (StationHover.menu() instanceof LoomMenu loom) {
+            return loom.getSlot(BANNER_SLOT).mayPlace(stack) || loom.getSlot(DYE_SLOT).mayPlace(stack) || loom.getSlot(2).mayPlace(stack);
+        }
         return stack.getItem() instanceof BannerItem || stack.getItem() instanceof DyeItem || stack.getItem() instanceof BannerPatternItem;
+    }
+
+    private static final java.util.Map<Class<?>, java.util.Optional<java.lang.reflect.Method>> CLOTH_COLOUR =
+            new java.util.concurrent.ConcurrentHashMap<>();
+
+    /**
+     * The base colour of what lies in the banner's place, or null when it is no cloth: a banner's, or that of another mod's
+     * cloth the loom takes there, whose item tells its colour by a {@code getColor()} of its own (Supplementaries' flags, woven
+     * here as banners are, their layers kept in the same data).
+     */
+    static DyeColor clothColour(ItemStack stack) {
+        if (stack.getItem() instanceof BannerItem banner) {
+            return banner.getColor();
+        }
+        if (stack.isEmpty()) {
+            return null;
+        }
+        java.util.Optional<java.lang.reflect.Method> method = CLOTH_COLOUR.computeIfAbsent(stack.getItem().getClass(), type -> {
+            try {
+                java.lang.reflect.Method found = type.getMethod("getColor");
+                return found.getReturnType() == DyeColor.class && found.getParameterCount() == 0
+                        ? java.util.Optional.of(found) : java.util.Optional.empty();
+            } catch (NoSuchMethodException | SecurityException e) {
+                return java.util.Optional.empty();
+            }
+        });
+        try {
+            return method.isPresent() ? (DyeColor) method.get().invoke(stack.getItem()) : null;
+        } catch (ReflectiveOperationException | RuntimeException e) {
+            return null;
+        }
     }
 
     @Override
@@ -182,7 +219,7 @@ final class LoomBehavior implements StationBehavior {
             ItemStack held = player.getInventory().getItem(heldSlot);
             menu.quickMoveFromInventory(heldSlot);
             flyFrom = heldSlot;
-            flyNode = held.getItem() instanceof BannerItem ? BANNER : held.getItem() instanceof DyeItem ? DYE : PATTERN;
+            flyNode = clothColour(held) != null ? BANNER : held.getItem() instanceof DyeItem ? DYE : PATTERN;
         }
         heldSlot = -1;
     }
@@ -631,7 +668,8 @@ final class LoomBehavior implements StationBehavior {
         poseStack.translate(0.0F, -32.0F * CLOTH, 0.0F);
         poseStack.mulPose(Axis.YP.rotationDegrees(180.0F));
         poseStack.scale(size, -size, -size);
-        if (shown.getItem() instanceof BannerItem item) {
+        DyeColor base = clothColour(shown);
+        if (base != null) {
             Pair<Holder<BannerPattern>, DyeColor> layer = null;
             if (!standing && previewShown > 0.0F && previewShownKey != null
                     && loom.getSlot(DYE_SLOT).getItem().getItem() instanceof DyeItem dye
@@ -648,7 +686,7 @@ final class LoomBehavior implements StationBehavior {
             // Laid on the loom, it unrolls from its upper edge towards the camera.
             float unrolled = Mth.clamp((clock - unfurlAt) / UNFURL, 0.0F, 1.0F);
             flag.yScale = weaving || standing ? 1.0F : Math.max(0.02F, 1.0F - (1.0F - unrolled) * (1.0F - unrolled) * (1.0F - unrolled));
-            List<Pair<Holder<BannerPattern>, DyeColor>> patterns = BannerBlockEntity.createPatterns(item.getColor(),
+            List<Pair<Holder<BannerPattern>, DyeColor>> patterns = BannerBlockEntity.createPatterns(base,
                     BannerBlockEntity.getItemPatterns(shown));
             BannerRenderer.renderPatterns(poseStack, buffers, lit, OverlayTexture.NO_OVERLAY, flag, ModelBakery.BANNER_BASE, true,
                     patterns);
