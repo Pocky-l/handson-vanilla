@@ -10,6 +10,7 @@ import net.minecraft.resources.ResourceLocation;
 import com.pockyl.diegesis.api.client.DiegesisClient;
 import com.pockyl.handson_vanilla.HandsOnVanilla;
 import com.pockyl.handson_vanilla.client.HandsOnVanillaClient;
+import com.pockyl.handson_vanilla.client.EmiSidebar;
 import com.pockyl.handson_vanilla.client.ViewerSlide;
 
 /** Fabric entry point. The mod works on the client only; on a server it does nothing. */
@@ -48,6 +49,8 @@ public final class HandsOnVanillaFabricClient implements ClientModInitializer {
                 slid = true;
             }
         });
+        // EMI's sidebars at a station: EMI draws them over container screens only (EmiSidebar).
+        afterRender.register(EmiSidebar::render);
         afterRender.register(AFTER_VIEWERS, (shown, graphics, mouseX, mouseY, partialTick) -> {
             if (slid) {
                 slid = false;

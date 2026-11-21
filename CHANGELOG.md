@@ -1,5 +1,11 @@
 # Changelog
 
+## [1.2.2]
+- With [EMI](https://www.curseforge.com/minecraft/mc-mods/emi), its item list stands beside the stations, and its keys, search and
+  "+" work there.
+- With [Not Enough Recipe Book](https://www.curseforge.com/minecraft/mc-mods/notenoughrecipebook), the crafting table's book shows
+  every recipe instead of none, and lays them out on any server.
+
 ## [1.2.1]
 - With [Crafting Tweaks](https://www.curseforge.com/minecraft/mc-mods/crafting-tweaks), its rotate, balance and clear buttons lie
   as charcoal marks on the far edge of the crafting table (Shift: rotate back, spread, force clear), and its keys work there.

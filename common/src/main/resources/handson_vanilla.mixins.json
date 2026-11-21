@@ -9,12 +9,15 @@
     "EnchantTableBookMixin",
     "BlastFurnaceParticlesMixin",
     "ContinuousCraftingMixin",
+    "EmiApiMixin",
     "FastBenchResultMixin",
     "FurnaceParticlesMixin",
     "GhostRecipeMixin",
     "JeiRecipesGuiMixin",
     "LecternBookMixin",
+    "ScreenShownMixin",
     "SmokerParticlesMixin",
+    "StationInputMixin",
     "StationRenderersMixin"
   ],
   "injectors": {

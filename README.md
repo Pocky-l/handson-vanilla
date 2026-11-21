@@ -99,7 +99,9 @@ Built on [Diegesis](https://www.curseforge.com/minecraft/mc-mods/diegesis), from
 
 [![JEI](https://raw.githubusercontent.com/Pocky-l/handson-vanilla/main/docs/compat/jei.png)](https://www.curseforge.com/minecraft/mc-mods/jei) ✅ **[JEI](https://www.curseforge.com/minecraft/mc-mods/jei)** (optional) - its keys work over the stations' items, its + lays a recipe into the table
 
-[![EMI](https://raw.githubusercontent.com/Pocky-l/handson-vanilla/main/docs/compat/emi.png)](https://www.curseforge.com/minecraft/mc-mods/emi) ✅ **[EMI](https://www.curseforge.com/minecraft/mc-mods/emi)** (optional) - its keys work over the stations' items
+[![EMI](https://raw.githubusercontent.com/Pocky-l/handson-vanilla/main/docs/compat/emi.png)](https://www.curseforge.com/minecraft/mc-mods/emi) ✅ **[EMI](https://www.curseforge.com/minecraft/mc-mods/emi)** (optional) - its item list stands beside the stations, its keys, search and + work there
+
+[![Not Enough Recipe Book](https://raw.githubusercontent.com/Pocky-l/handson-vanilla/main/docs/compat/nerb.png)](https://www.curseforge.com/minecraft/mc-mods/notenoughrecipebook) ✅ **[Not Enough Recipe Book](https://www.curseforge.com/minecraft/mc-mods/notenoughrecipebook)** (optional) - the table's book shows every recipe while the vanilla book is off
 
 [![Visual Workbench](https://raw.githubusercontent.com/Pocky-l/handson-vanilla/main/docs/compat/visual-workbench.png)](https://www.curseforge.com/minecraft/mc-mods/visual-workbench) ✅ **[Visual Workbench](https://www.curseforge.com/minecraft/mc-mods/visual-workbench)** (optional) - its tables are worked by hand too
 
@@ -139,6 +141,7 @@ Resource packs keep their furnace, smoker and blast furnace textures. The open f
 | `loom` | `true` | The loom as a station. Off, it opens its vanilla screen |
 | `cartography_table` | `true` | The cartography table as a station. Off, it opens its vanilla screen |
 | `recipe_book` | `true` | The recipe book beside the crafting table |
+| `book_recipes` | `auto` | Which recipes the book shows: `unlocked`, `all`, or `auto` (all with [Not Enough Recipe Book](https://www.curseforge.com/minecraft/mc-mods/notenoughrecipebook), else unlocked) |
 | `sound_volume` | `1.0` | The stations' own sounds, from `0` (silent) to `1` |
 
 ## Installation

@@ -39,9 +39,6 @@ import java.util.Optional;
  */
 @JeiPlugin
 public final class VanillaJeiPlugin implements IModPlugin {
-    /** Room left between the station's right edge on the screen and JEI's list, GUI pixels. */
-    private static final int MIDDLE_GAP = 6;
-
     @Override
     public ResourceLocation getPluginUid() {
         return HandsOnVanilla.id("jei");
@@ -81,7 +78,7 @@ public final class VanillaJeiPlugin implements IModPlugin {
             }
             int width = screen.width;
             int height = screen.height;
-            int middle = Math.min(width, Math.round(StationHover.rightEdge()) + MIDDLE_GAP);
+            int middle = StationHover.viewerMiddle(width);
             // JEI asks once as the screen opens, before it is sized: it rejects zero sizes with an error in the log, and asks
             // again on the next frame.
             if (width <= 1 || height <= 1 || middle <= 1) {

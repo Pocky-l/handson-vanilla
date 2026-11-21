@@ -6,6 +6,7 @@ import net.minecraftforge.eventbus.api.EventPriority;
 import net.minecraftforge.fml.javafmlmod.FMLJavaModLoadingContext;
 import net.minecraftforge.fml.loading.FMLPaths;
 
+import com.pockyl.handson_vanilla.client.EmiSidebar;
 import com.pockyl.handson_vanilla.client.ViewerSlide;
 
 import com.pockyl.handson_vanilla.client.HandsOnVanillaClient;
@@ -28,6 +29,9 @@ final class ForgeClient {
                 slid = true;
             }
         });
+        // EMI's sidebars at a station, between the two: EMI draws them over container screens only (EmiSidebar).
+        MinecraftForge.EVENT_BUS.addListener(EventPriority.NORMAL, (ScreenEvent.Render.Post event) -> EmiSidebar.render(
+                event.getScreen(), event.getGuiGraphics(), event.getMouseX(), event.getMouseY(), event.getPartialTick()));
         MinecraftForge.EVENT_BUS.addListener(EventPriority.LOWEST, (ScreenEvent.Render.Post event) -> {
             if (slid) {
                 slid = false;
