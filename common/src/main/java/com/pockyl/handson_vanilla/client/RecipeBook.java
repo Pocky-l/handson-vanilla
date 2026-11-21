@@ -664,6 +664,12 @@ final class RecipeBook implements NodePainter {
     /** The book of the station worked at, while it is open, for the dish under the cursor. */
     private static RecipeBook worked;
 
+    /** Whether the player is typing into the search of the book of the station worked at: its letters are no viewer's keys. */
+    static boolean typing() {
+        RecipeBook book = worked;
+        return book != null && book.typing && book.wanted && book.station != null && isWorkedAt(book.station);
+    }
+
     /**
      * What is under the cursor in the open book of the station worked at, for the recipe viewers' keys: a dish of the list, the dish
      * at the head of the right page, or one of the things that go in; empty when none.

@@ -7,6 +7,7 @@ import net.neoforged.fml.loading.FMLPaths;
 import net.neoforged.neoforge.client.event.ScreenEvent;
 import net.neoforged.neoforge.common.NeoForge;
 
+import com.pockyl.handson_vanilla.client.EmiSidebar;
 import com.pockyl.handson_vanilla.client.HandsOnVanillaClient;
 import com.pockyl.handson_vanilla.client.ViewerSlide;
 
@@ -28,6 +29,9 @@ final class NeoForgeClient {
                 slid = true;
             }
         });
+        // EMI's sidebars at a station, between the two: EMI draws them over container screens only (EmiSidebar).
+        NeoForge.EVENT_BUS.addListener(EventPriority.NORMAL, (ScreenEvent.Render.Post event) -> EmiSidebar.render(
+                event.getScreen(), event.getGuiGraphics(), event.getMouseX(), event.getMouseY(), event.getPartialTick()));
         NeoForge.EVENT_BUS.addListener(EventPriority.LOWEST, (ScreenEvent.Render.Post event) -> {
             if (slid) {
                 slid = false;

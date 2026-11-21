@@ -2,6 +2,7 @@ package com.pockyl.handson_vanilla.client;
 
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.gui.GuiGraphics;
+import net.minecraft.client.gui.screens.Screen;
 import net.minecraft.client.gui.screens.inventory.AbstractContainerScreen;
 import net.minecraft.network.chat.Component;
 import net.minecraft.resources.ResourceLocation;
@@ -15,7 +16,14 @@ import com.pockyl.diegesis.api.client.StationView;
 
 /** What recipe viewers ask of a station: the item under the cursor, and the vanilla menu it works through. */
 public final class StationHover {
+    /** Room left between the station's right edge on the screen and a viewer's list, GUI pixels. */
+    private static final int VIEWER_GAP = 6;
     private static MenuScreen menuScreen;
+    /**
+     * The station's screen the never-shown container screen was last asked for over: where a viewer going back to it goes. Held
+     * while the station is worked at, as nothing else may hold it while a viewer's page is open.
+     */
+    private static Screen stationScreen;
 
     private StationHover() {
     }
@@ -46,12 +54,36 @@ public final class StationHover {
         AbstractContainerMenu menu = menu();
         if (menu == null || Minecraft.getInstance().player == null) {
             menuScreen = null;
+            stationScreen = null;
             return null;
+        }
+        Screen shown = Minecraft.getInstance().screen;
+        if (DiegesisClient.isStationScreen(shown)) {
+            stationScreen = shown;
         }
         if (menuScreen == null || menuScreen.getMenu() != menu) {
             menuScreen = new MenuScreen(menu, Minecraft.getInstance().player.getInventory());
         }
         return menuScreen;
+    }
+
+    /**
+     * What to show when {@code screen} is asked for: the container screen of {@link #menuScreen()} is never shown, a viewer going back
+     * to it (EMI's recipe page takes it as the screen it was opened over) is back at the station, or out of it once that is left.
+     */
+    public static Screen shownInstead(Screen screen) {
+        if (!(screen instanceof MenuScreen)) {
+            return screen;
+        }
+        Screen station = DiegesisClient.isFocused() ? stationScreen : null;
+        stationScreen = station;
+        return station;
+    }
+
+    /** Whether {@code screen} is the screen of a station of this mod being worked at. */
+    public static boolean isOurs(Screen screen) {
+        return DiegesisClient.isStationScreen(screen) && DiegesisClient.focusedStation()
+                .map(view -> view.type().id().getNamespace().equals(com.pockyl.handson_vanilla.HandsOnVanilla.MOD_ID)).orElse(false);
     }
 
     private static final class MenuScreen extends AbstractContainerScreen<AbstractContainerMenu> {
@@ -91,6 +123,11 @@ public final class StationHover {
         // The hotbar stays at the bottom in the middle (half of it 91 pixels wide): nothing may lie over its end.
         float hotbar = net.minecraft.client.Minecraft.getInstance().getWindow().getGuiScaledWidth() / 2.0F + 92.0F;
         return right == Float.NEGATIVE_INFINITY ? fallback : Math.max(right, hotbar);
+    }
+
+    /** How wide the middle of the screen a viewer leaves to the station is, GUI pixels: up to its right edge and a little room. */
+    public static int viewerMiddle(int screenWidth) {
+        return Math.min(screenWidth, Math.round(rightEdge()) + VIEWER_GAP);
     }
 
     /** Lays a recipe into the station's menu as the vanilla recipe book does. */

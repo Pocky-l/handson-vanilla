@@ -22,14 +22,16 @@ import net.minecraft.world.level.Level;
 import com.pockyl.diegesis.api.client.MenuAccess;
 import com.pockyl.diegesis.api.client.StationView;
 import com.pockyl.diegesis.api.state.SlotRef;
+import com.pockyl.handson_vanilla.RecipeLaying;
 
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Locale;
 
 /**
- * The crafting table's book, in place of the vanilla recipe book: every crafting recipe the player has unlocked, the recipes of
- * one group in one place (right click: all of them), what can be made now first. A shaped recipe shows its grid as it is laid;
+ * The crafting table's book, in place of the vanilla recipe book: every crafting recipe the player has unlocked (or every one at
+ * all, {@link VanillaConfig#allRecipesInBook()}), the recipes of one group in one place (right click: all of them), what can be
+ * made now first. A shaped recipe shows its grid as it is laid;
  * picking a recipe lays it into the table the vanilla book's way (shift: as many as fit), so the server checks and moves the
  * items as it would for the vanilla screen, and answers a recipe the player lacks items for with its ghost in the grid. The
  * "only what can be made now" switch and which recipes are new are the vanilla book's own, shared with it.
@@ -47,10 +49,11 @@ final class CraftingBook implements RecipeBook.Source {
         if (player == null) {
             return List.of();
         }
+        boolean every = VanillaConfig.allRecipesInBook();
         List<RecipeHolder<CraftingRecipe>> unlocked = new ArrayList<>();
         for (RecipeHolder<CraftingRecipe> holder : level.getRecipeManager().getAllRecipesFor(RecipeType.CRAFTING)) {
             CraftingRecipe recipe = holder.value();
-            if (!recipe.isSpecial() && !recipe.getIngredients().isEmpty() && player.getRecipeBook().contains(holder)) {
+            if (!recipe.isSpecial() && !recipe.getIngredients().isEmpty() && (every || player.getRecipeBook().contains(holder))) {
                 unlocked.add(holder);
             }
         }
@@ -118,7 +121,25 @@ final class CraftingBook implements RecipeBook.Source {
             Minecraft.getInstance().getSoundManager().play(net.minecraft.client.resources.sounds.SimpleSoundInstance.forUI(
                     net.minecraft.sounds.SoundEvents.BOOK_PAGE_TURN, 1.4F, 0.35F * VanillaConfig.soundVolume()));
             CraftingTableBehavior.recipeLaid();
-            menu.placeRecipe(recipe, Screen.hasShiftDown());
+            lay(menu, recipe, Screen.hasShiftDown());
+        }
+    }
+
+    /**
+     * Lays a recipe: one in the player's recipe book as the vanilla book does (its packet, the server's placing and ghost); one not in
+     * it (the book shows every recipe, see {@link VanillaConfig#allRecipesInBook()}) with plain clicks, which any server takes, and its
+     * ghost shown here when items are missing.
+     */
+    static void lay(MenuAccess menu, ResourceLocation id, boolean all) {
+        LocalPlayer player = Minecraft.getInstance().player;
+        RecipeHolder<?> recipe = player == null ? null : player.level().getRecipeManager().byKey(id).orElse(null);
+        if (recipe == null || player.getRecipeBook().contains(recipe)
+                || !(menu.handle() instanceof net.minecraft.world.inventory.RecipeBookMenu<?, ?> book)) {
+            menu.placeRecipe(id, all);
+            return;
+        }
+        if (RecipeLaying.lay(book, player.getInventory(), recipe, all, menu::click) == RecipeLaying.Outcome.MISSING) {
+            GhostRecipe.arrived(book.containerId, id);
         }
     }
 
