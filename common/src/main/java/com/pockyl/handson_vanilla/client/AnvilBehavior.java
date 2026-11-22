@@ -628,7 +628,8 @@ final class AnvilBehavior implements StationBehavior {
                 Class.forName("fuzs.easyanvils.EasyAnvils", false, AnvilBehavior.class.getClassLoader());
                 easyAnvils = true;
             } catch (ClassNotFoundException | LinkageError e) {
-                easyAnvils = false;
+                // Easy Anvils for Minecraft 26.x keeps its classes under fuzs.easyanvils.common.
+                easyAnvils = BlockTwins.present("fuzs.easyanvils.common.EasyAnvils");
             }
         }
         // By name: a mod may register its own anvils under vanilla's names, and Easy Anvils' twins name the anvil they stand for.
