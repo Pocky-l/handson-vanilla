@@ -9,7 +9,7 @@ import net.minecraft.sounds.SoundEvents;
 import net.minecraft.world.inventory.ClickType;
 import net.minecraft.world.inventory.SmithingMenu;
 import net.minecraft.world.item.ItemStack;
-import net.minecraft.world.item.armortrim.ArmorTrim;
+import net.minecraft.world.item.equipment.trim.ArmorTrim;
 import org.joml.Vector3f;
 import org.joml.Vector3fc;
 
@@ -135,7 +135,7 @@ final class SmithingTableBehavior implements StationBehavior {
         heldSlot = -1;
         LocalPlayer player = Minecraft.getInstance().player;
         if (player != null && view.openedByUse() && SmithingUse.usable(player.getMainHandItem())) {
-            heldSlot = player.getInventory().selected;
+            heldSlot = player.getInventory().getSelectedSlot();
         }
         flyFrom = -1;
         forged = ItemStack.EMPTY;
@@ -410,7 +410,7 @@ final class SmithingTableBehavior implements StationBehavior {
     @Override
     public void onEvent(StationView view, SceneEvent event) {
         if (event instanceof SceneEvent.Click click && (HAMMER.equals(click.node()) || RESULT.equals(click.node()))) {
-            strike(view, Screen.hasShiftDown());
+            strike(view, Minecraft.getInstance().hasShiftDown());
         }
     }
 

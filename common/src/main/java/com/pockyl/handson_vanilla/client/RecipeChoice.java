@@ -3,17 +3,16 @@ package com.pockyl.handson_vanilla.client;
 import com.mojang.blaze3d.vertex.PoseStack;
 import com.mojang.math.Axis;
 import net.minecraft.client.Minecraft;
-import net.minecraft.client.renderer.MultiBufferSource;
+import com.pockyl.diegesis.api.client.SceneBuffers;
 import net.minecraft.client.renderer.texture.OverlayTexture;
 import net.minecraft.core.NonNullList;
-import net.minecraft.resources.ResourceLocation;
+import net.minecraft.resources.Identifier;
 import net.minecraft.sounds.SoundEvents;
 import net.minecraft.world.item.ItemDisplayContext;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.item.crafting.CraftingInput;
 import net.minecraft.world.item.crafting.CraftingRecipe;
 import net.minecraft.world.item.crafting.RecipeHolder;
-import net.minecraft.world.item.crafting.RecipeType;
 
 import com.pockyl.diegesis.api.client.NodeView;
 import com.pockyl.diegesis.api.client.StationView;
@@ -42,7 +41,7 @@ final class RecipeChoice {
     private static boolean anyShown;
 
     /** Each place's recipe and what it makes; empty places hold nothing. */
-    private final ResourceLocation[] recipes = new ResourceLocation[PLACES];
+    private final Identifier[] recipes = new Identifier[PLACES];
     private final ItemStack[] outputs = new ItemStack[PLACES];
     /** The grid as read last: the matches are read again only when it changes. */
     private ItemStack[] grid = new ItemStack[0];
@@ -108,7 +107,16 @@ final class RecipeChoice {
             items.set(i, now[i].copy());
         }
         CraftingInput container = CraftingInput.of(3, 3, items);
-        List<RecipeHolder<CraftingRecipe>> matches = level.getRecipeManager().getRecipesFor(RecipeType.CRAFTING, container, level);
+        // Since Minecraft 1.21.2 a client knows no recipes: they are read from the game's own server in a world played alone.
+        var server = Minecraft.getInstance().getSingleplayerServer();
+        List<RecipeHolder<CraftingRecipe>> matches = new ArrayList<>();
+        if (server != null) {
+            for (RecipeHolder<?> holder : server.getRecipeManager().getRecipes()) {
+                if (holder.value() instanceof CraftingRecipe recipe && recipe.matches(container, level)) {
+                    matches.add(new RecipeHolder<>(holder.id(), recipe));
+                }
+            }
+        }
         int place = 0;
         List<ItemStack> seen = new ArrayList<>();
         if (!shown.isEmpty()) {
@@ -121,7 +129,7 @@ final class RecipeChoice {
             }
             seen.add(makes);
             if (place < PLACES) {
-                recipes[place] = recipe.id();
+                recipes[place] = recipe.id().identifier();
                 outputs[place] = makes;
                 place++;
             }
@@ -174,7 +182,7 @@ final class RecipeChoice {
     }
 
     /** Standing small and still, turned to the camera as the result is; a little bigger under the cursor. */
-    private void paint(StationView view, NodeView node, int place, PoseStack poseStack, MultiBufferSource buffers, int light) {
+    private void paint(StationView view, NodeView node, int place, PoseStack poseStack, SceneBuffers buffers, int light) {
         ItemStack stack = outputs[place];
         if (stack.isEmpty()) {
             return;
@@ -185,7 +193,7 @@ final class RecipeChoice {
         poseStack.mulPose(Axis.YP.rotationDegrees(180.0F));
         poseStack.mulPose(Axis.XP.rotationDegrees(-35.0F));
         poseStack.scale(size, size, size);
-        Minecraft.getInstance().getItemRenderer().renderStatic(stack, ItemDisplayContext.FIXED, light, OverlayTexture.NO_OVERLAY, poseStack,
+        com.pockyl.diegesis.impl.client.render.SceneDraw.item(stack, ItemDisplayContext.FIXED, light, OverlayTexture.NO_OVERLAY, poseStack,
                 buffers, view.level(), place);
         poseStack.popPose();
     }
@@ -208,7 +216,7 @@ final class RecipeChoice {
             looked = true;
             try {
                 Class<?> network = Class.forName("com.illusivesoulworks.polymorph.api.common.base.IPolymorphNetwork");
-                selection = network.getMethod("sendPlayerRecipeSelectionC2S", ResourceLocation.class);
+                selection = network.getMethod("sendPlayerRecipeSelectionC2S", Identifier.class);
             } catch (ReflectiveOperationException | LinkageError ignored) {
                 selection = null;
             }

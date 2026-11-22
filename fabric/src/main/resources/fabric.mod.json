@@ -14,10 +14,9 @@
   "icon": "logo.png",
   "environment": "*",
   "entrypoints": {
+    "main": ["com.pockyl.handson_vanilla.fabric.FabricGameTests"],
     "client": ["com.pockyl.handson_vanilla.fabric.HandsOnVanillaFabricClient"],
-    "jei_mod_plugin": ["com.pockyl.handson_vanilla.compat.jei.VanillaJeiPlugin"],
-    "emi": ["com.pockyl.handson_vanilla.compat.emi.VanillaEmiPlugin"],
-    "fabric-gametest": ["com.pockyl.handson_vanilla.fabric.FabricGameTests"]
+    "jei_mod_plugin": ["com.pockyl.handson_vanilla.compat.jei.VanillaJeiPlugin"]
   },
   "mixins": ["handson_vanilla.mixins.json"],
   "depends": {

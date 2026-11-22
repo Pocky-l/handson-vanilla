@@ -5,11 +5,12 @@ import com.mojang.blaze3d.vertex.VertexConsumer;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.gui.screens.Screen;
 import net.minecraft.client.renderer.LightTexture;
-import net.minecraft.client.renderer.MultiBufferSource;
-import net.minecraft.client.renderer.RenderType;
+import com.pockyl.diegesis.api.client.SceneBuffers;
+import net.minecraft.client.renderer.rendertype.RenderType;
+import net.minecraft.client.renderer.rendertype.RenderTypes;
 import net.minecraft.client.renderer.texture.OverlayTexture;
 import net.minecraft.network.chat.Component;
-import net.minecraft.resources.ResourceLocation;
+import net.minecraft.resources.Identifier;
 import net.minecraft.sounds.SoundEvent;
 import net.minecraft.sounds.SoundEvents;
 import net.minecraft.world.InteractionHand;
@@ -66,7 +67,7 @@ final class GridTweaks {
         }
     }
 
-    private static final ResourceLocation SHEET = HandsOnVanilla.id("textures/entity/grid_marks.png");
+    private static final Identifier SHEET = HandsOnVanilla.id("textures/entity/grid_marks.png");
     private static final int DRAWINGS = 7;
     /** Inventory Profiles Next's continuous crafting, drawn by {@link ContinuousCrafting}. */
     static final int REPEAT_DRAWING = 6;
@@ -95,7 +96,7 @@ final class GridTweaks {
         Bridge api = bridge();
         boolean show = api != null && view.menu() != null && view.isFocused() && api.grid(view.menu().handle()).isPresent()
                 && api.buttons();
-        boolean shift = Screen.hasShiftDown();
+        boolean shift = Minecraft.getInstance().hasShiftDown();
         for (Mark mark : Mark.values()) {
             view.node(mark.node).ifPresent(node -> {
                 if (show != shown) {
@@ -116,7 +117,7 @@ final class GridTweaks {
         if (mark == null || api == null || view.menu() == null) {
             return mark != null;
         }
-        if (api.tweak(view.menu().handle(), Screen.hasShiftDown() ? mark.shiftTweak : mark.tweak)) {
+        if (api.tweak(view.menu().handle(), Minecraft.getInstance().hasShiftDown() ? mark.shiftTweak : mark.tweak)) {
             float volume = 0.3F * VanillaConfig.soundVolume();
             if (volume > 0.0F) {
                 view.playSound(mark.sound, node, volume, 1.0F);
@@ -157,18 +158,18 @@ final class GridTweaks {
     }
 
     /** Lying flat on the wood, the top of the drawing to the far edge; a little larger and lit under the cursor. */
-    private void paint(NodeView node, Mark mark, PoseStack poseStack, MultiBufferSource buffers, int light) {
-        draw(poseStack, buffers, Screen.hasShiftDown() ? mark.shiftDrawing : mark.drawing, node.isHovered(), light, 1.0F);
+    private void paint(NodeView node, Mark mark, PoseStack poseStack, SceneBuffers buffers, int light) {
+        draw(poseStack, buffers, Minecraft.getInstance().hasShiftDown() ? mark.shiftDrawing : mark.drawing, node.isHovered(), light, 1.0F);
     }
 
     /** One drawing of the sheet lying flat on the wood at a node, {@code alpha} of its charcoal; larger and lit when hovered. */
-    static void draw(PoseStack poseStack, MultiBufferSource buffers, int drawing, boolean hovered, int light, float alpha) {
+    static void draw(PoseStack poseStack, SceneBuffers buffers, int drawing, boolean hovered, int light, float alpha) {
         float half = SIZE * 0.5F * (hovered ? HOVER_GROWTH : 1.0F);
         float u0 = (float) drawing / DRAWINGS;
         float u1 = (float) (drawing + 1) / DRAWINGS;
         int lit = hovered ? LightTexture.FULL_BRIGHT : light;
         int a = Math.round(255.0F * alpha);
-        VertexConsumer consumer = buffers.getBuffer(RenderType.entityTranslucent(SHEET));
+        VertexConsumer consumer = buffers.getBuffer(RenderTypes.entityTranslucent(SHEET));
         PoseStack.Pose pose = poseStack.last();
         // The camera looks along +z from the near edge, so +x is on its left: the drawing's left edge lies at +x.
         vertex(consumer, pose, half, -half, u0, 1.0F, lit, a);

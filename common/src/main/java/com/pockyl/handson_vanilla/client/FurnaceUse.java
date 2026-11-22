@@ -1,34 +1,24 @@
 package com.pockyl.handson_vanilla.client;
 
 import net.minecraft.client.Minecraft;
-import net.minecraft.world.item.Item;
+import net.minecraft.resources.ResourceKey;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.item.crafting.AbstractCookingRecipe;
-import net.minecraft.world.item.crafting.RecipeHolder;
+import net.minecraft.world.item.crafting.RecipePropertySet;
 import net.minecraft.world.item.crafting.RecipeType;
-import net.minecraft.world.item.crafting.SingleRecipeInput;
 import net.minecraft.world.level.Level;
-import net.minecraft.world.level.block.entity.AbstractFurnaceBlockEntity;
-
-import java.util.HashMap;
-import java.util.Map;
-import java.util.Optional;
 
 /**
- * What a furnace can do with a stack, from the client's own recipes of its kind (smelting, smoking) and the fuel list: cook it (and
- * into what) or burn it. Stacks that can do neither stay out of the rows over the hotbar.
+ * What a furnace can do with a stack: cook it, by what the server tells every client its kind of furnace takes (the same list the
+ * vanilla furnace screen asks), or burn it, by the level's fuel list. Stacks that can do neither stay out of the rows over the hotbar.
+ * Since Minecraft 1.21.2 a client knows no recipes of its own, only these lists.
  */
 final class FurnaceUse {
-    private static final Map<RecipeType<?>, Map<Item, ItemStack>> RESULTS = new HashMap<>();
-    private static Level readFor;
-
     private FurnaceUse() {
     }
 
-    /** Forgets what was read, once each time a furnace opens, as a server may send other recipes. */
+    /** Nothing is kept: the lists are the level's own and follow the server. */
     static void refresh() {
-        RESULTS.clear();
-        readFor = Minecraft.getInstance().level;
     }
 
     static boolean usable(RecipeType<? extends AbstractCookingRecipe> type, ItemStack stack) {
@@ -36,26 +26,23 @@ final class FurnaceUse {
     }
 
     static boolean burns(ItemStack stack) {
-        return AbstractFurnaceBlockEntity.isFuel(stack);
+        Level level = Minecraft.getInstance().level;
+        return level != null && level.fuelValues().isFuel(stack);
     }
 
     static boolean cooks(RecipeType<? extends AbstractCookingRecipe> type, ItemStack stack) {
-        return !result(type, stack).isEmpty();
+        Level level = Minecraft.getInstance().level;
+        return level != null && !stack.isEmpty() && level.recipeAccess().propertySet(inputs(type)).test(stack);
     }
 
-    /** What cooking one of {@code stack} gives in a furnace of this recipe type; empty when it does not cook there. */
-    static ItemStack result(RecipeType<? extends AbstractCookingRecipe> type, ItemStack stack) {
-        Level level = Minecraft.getInstance().level;
-        if (stack.isEmpty() || level == null) {
-            return ItemStack.EMPTY;
+    /** The list of what a furnace of this recipe type takes, as its vanilla menu names it. */
+    private static ResourceKey<RecipePropertySet> inputs(RecipeType<? extends AbstractCookingRecipe> type) {
+        if (type == RecipeType.SMOKING) {
+            return RecipePropertySet.SMOKER_INPUT;
         }
-        if (level != readFor) {
-            refresh();
+        if (type == RecipeType.BLASTING) {
+            return RecipePropertySet.BLAST_FURNACE_INPUT;
         }
-        return RESULTS.computeIfAbsent(type, any -> new HashMap<>()).computeIfAbsent(stack.getItem(), item -> {
-            Optional<? extends AbstractCookingRecipe> recipe = level.getRecipeManager()
-                    .getRecipeFor(type, new SingleRecipeInput(new ItemStack(item)), level).map(RecipeHolder::value);
-            return recipe.map(found -> found.getResultItem(level.registryAccess()).copy()).orElse(ItemStack.EMPTY);
-        });
+        return RecipePropertySet.FURNACE_INPUT;
     }
 }

@@ -51,8 +51,8 @@ public final class GrindstoneTests {
         menu.setCarried(ItemStack.EMPTY);
         // An enchanted sword alone is ground clean.
         ItemStack sharp = new ItemStack(Items.DIAMOND_SWORD);
-        sharp.enchant(helper.getLevel().registryAccess().registryOrThrow(Registries.ENCHANTMENT)
-                .getHolderOrThrow(Enchantments.SHARPNESS), 3);
+        sharp.enchant(helper.getLevel().registryAccess().lookupOrThrow(Registries.ENCHANTMENT)
+                .getOrThrow(Enchantments.SHARPNESS), 3);
         inventory.setItem(2, sharp);
         menu.clicked(HOTBAR + 2, 0, ClickType.QUICK_MOVE, player);
         ItemStack clean = menu.getSlot(RESULT).getItem();

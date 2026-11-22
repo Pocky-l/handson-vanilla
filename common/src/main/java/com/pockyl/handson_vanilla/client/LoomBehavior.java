@@ -1,6 +1,7 @@
 package com.pockyl.handson_vanilla.client;
 
 import com.mojang.blaze3d.vertex.PoseStack;
+import com.mojang.blaze3d.vertex.VertexConsumer;
 import com.mojang.datafixers.util.Pair;
 import com.mojang.math.Axis;
 import net.minecraft.client.Minecraft;
@@ -9,21 +10,22 @@ import net.minecraft.client.model.geom.ModelLayers;
 import net.minecraft.client.model.geom.ModelPart;
 import net.minecraft.client.player.LocalPlayer;
 import net.minecraft.client.renderer.LightTexture;
-import net.minecraft.client.renderer.MultiBufferSource;
-import net.minecraft.client.renderer.RenderType;
+import com.pockyl.diegesis.api.client.SceneBuffers;
+import net.minecraft.client.renderer.rendertype.RenderType;
+import net.minecraft.client.renderer.rendertype.RenderTypes;
 import net.minecraft.client.renderer.Sheets;
-import net.minecraft.client.renderer.blockentity.BannerRenderer;
 import net.minecraft.client.renderer.texture.OverlayTexture;
+import net.minecraft.client.resources.model.Material;
+import net.minecraft.client.resources.model.MaterialSet;
 import net.minecraft.client.resources.model.ModelBakery;
 import net.minecraft.core.Holder;
 import net.minecraft.core.component.DataComponents;
-import net.minecraft.resources.ResourceLocation;
+import net.minecraft.resources.Identifier;
 import net.minecraft.sounds.SoundEvents;
 import net.minecraft.util.Mth;
 import net.minecraft.world.inventory.ClickType;
 import net.minecraft.world.inventory.LoomMenu;
 import net.minecraft.world.item.BannerItem;
-import net.minecraft.world.item.BannerPatternItem;
 import net.minecraft.world.item.DyeColor;
 import net.minecraft.world.item.DyeItem;
 import net.minecraft.world.item.ItemDisplayContext;
@@ -103,7 +105,7 @@ final class LoomBehavior implements StationBehavior {
     /** Picks kept during a pass, to be woven after it. */
     private static final int MOST_QUEUED = 4;
 
-    private record Pick(ResourceLocation pattern, boolean all) {
+    private record Pick(Identifier pattern, boolean all) {
     }
 
     /** A woven banner on its way from the loom into the inventory (scene pixels), and when it set off. */
@@ -120,8 +122,8 @@ final class LoomBehavior implements StationBehavior {
     private int flyFrom = -1;
     private String flyNode;
     /** The pattern under the cursor in the book, and how far its layer has come in on the banner. */
-    private ResourceLocation preview;
-    private ResourceLocation previewShownKey;
+    private Identifier preview;
+    private Identifier previewShownKey;
     private float previewShown;
     private float hover;
     /** The pass under way: seconds into it (negative: none), whether its take went, which way it runs, whether it weaves all. */
@@ -159,7 +161,7 @@ final class LoomBehavior implements StationBehavior {
         if (StationHover.menu() instanceof LoomMenu loom) {
             return loom.getSlot(BANNER_SLOT).mayPlace(stack) || loom.getSlot(DYE_SLOT).mayPlace(stack) || loom.getSlot(2).mayPlace(stack);
         }
-        return stack.getItem() instanceof BannerItem || stack.getItem() instanceof DyeItem || stack.getItem() instanceof BannerPatternItem;
+        return stack.getItem() instanceof BannerItem || stack.getItem() instanceof DyeItem || stack.has(DataComponents.PROVIDES_BANNER_PATTERNS);
     }
 
     private static final java.util.Map<Class<?>, java.util.Optional<java.lang.reflect.Method>> CLOTH_COLOUR =
@@ -198,7 +200,7 @@ final class LoomBehavior implements StationBehavior {
         heldSlot = -1;
         LocalPlayer player = Minecraft.getInstance().player;
         if (player != null && view.openedByUse() && usable(player.getMainHandItem())) {
-            heldSlot = player.getInventory().selected;
+            heldSlot = player.getInventory().getSelectedSlot();
         }
         flyFrom = -1;
         queue.clear();
@@ -289,7 +291,7 @@ final class LoomBehavior implements StationBehavior {
     }
 
     /** The pattern under the cursor in the book (null: none). */
-    void preview(ResourceLocation pattern) {
+    void preview(Identifier pattern) {
         preview = pattern;
     }
 
@@ -384,7 +386,7 @@ final class LoomBehavior implements StationBehavior {
     }
 
     /** A page picked in the book: woven now, or after the pass under way. */    /** A page picked in the book: woven now, or after the pass under way. */
-    void weave(StationView view, ResourceLocation pattern, boolean all) {
+    void weave(StationView view, Identifier pattern, boolean all) {
         if (pass >= 0.0F) {
             if (queue.size() < MOST_QUEUED) {
                 queue.add(new Pick(pattern, all));
@@ -399,7 +401,7 @@ final class LoomBehavior implements StationBehavior {
      * be one the loom offers now (looked up at the pick, never kept); then the menu's button and the shuttle's pass, whose middle
      * takes the woven banner.
      */
-    private void start(StationView view, ResourceLocation pattern, boolean all) {
+    private void start(StationView view, Identifier pattern, boolean all) {
         LoomMenu loom = loom(view);
         MenuAccess menu = view.menu();
         if (loom == null || menu == null) {
@@ -501,7 +503,7 @@ final class LoomBehavior implements StationBehavior {
     }
 
     /** The woven banners flying into the inventory, shrinking a little on the way, in an arc. */
-    private void paintFlights(StationView view, PoseStack poseStack, MultiBufferSource buffers, int light) {
+    private void paintFlights(StationView view, PoseStack poseStack, SceneBuffers buffers, int light) {
         Vector3fc base = view.node(WOVEN_OUT).map(node -> node.definition().transform().pos()).orElse(new Vector3f());
         for (Flight flight : flights) {
             float t = (clock - flight.at()) / StationHands.FLIGHT_TIME;
@@ -516,7 +518,7 @@ final class LoomBehavior implements StationBehavior {
             poseStack.translate(at.x, at.y, at.z);
             poseStack.mulPose(Axis.YP.rotationDegrees(180.0F));
             poseStack.scale(size, size, size);
-            Minecraft.getInstance().getItemRenderer().renderStatic(flight.stack(), ItemDisplayContext.FIXED, light,
+            com.pockyl.diegesis.impl.client.render.SceneDraw.item(flight.stack(), ItemDisplayContext.FIXED, light,
                     OverlayTexture.NO_OVERLAY, poseStack, DiegesisClient.items(buffers), view.level(), 0);
             poseStack.popPose();
         }
@@ -540,9 +542,9 @@ final class LoomBehavior implements StationBehavior {
         return -1;
     }
 
-    private static int indexOf(List<Holder<BannerPattern>> list, ResourceLocation pattern) {
+    private static int indexOf(List<Holder<BannerPattern>> list, Identifier pattern) {
         for (int i = 0; i < list.size(); i++) {
-            if (list.get(i).unwrapKey().map(key -> key.location().equals(pattern)).orElse(false)) {
+            if (list.get(i).unwrapKey().map(key -> key.identifier().equals(pattern)).orElse(false)) {
                 return i;
             }
         }
@@ -598,7 +600,7 @@ final class LoomBehavior implements StationBehavior {
             if (BOOK.equals(click.node())) {
                 book.click(view, click.button());
             } else if (RESULT.equals(click.node()) && click.button() == 0) {
-                if (!takeStanding(view, Screen.hasShiftDown())) {
+                if (!takeStanding(view, Minecraft.getInstance().hasShiftDown())) {
                     pokeCloth(view);
                 }
             }
@@ -650,13 +652,13 @@ final class LoomBehavior implements StationBehavior {
      * banner on the loom with the pattern under the cursor as one more layer, faint and breathing, else the banner on the loom as it
      * is; with no banner, nothing.
      */
-    private void paintBanner(StationView view, PoseStack poseStack, MultiBufferSource buffers, int light) {
+    private void paintBanner(StationView view, PoseStack poseStack, SceneBuffers buffers, int light) {
         LoomMenu loom = loom(view);
         if (loom == null) {
             return;
         }
         if (flag == null) {
-            var root = Minecraft.getInstance().getEntityModels().bakeLayer(ModelLayers.BANNER);
+            var root = Minecraft.getInstance().getEntityModels().bakeLayer(ModelLayers.STANDING_BANNER_FLAG);
             flag = root.getChild("flag");
         }
         ItemStack result = loom.getSlot(RESULT_SLOT).getItem();
@@ -692,11 +694,11 @@ final class LoomBehavior implements StationBehavior {
             // Laid on the loom, it unrolls from its upper edge towards the camera.
             float unrolled = Mth.clamp((clock - unfurlAt) / UNFURL, 0.0F, 1.0F);
             flag.yScale = weaving || standing ? 1.0F : Math.max(0.02F, 1.0F - (1.0F - unrolled) * (1.0F - unrolled) * (1.0F - unrolled));
-            BannerRenderer.renderPatterns(poseStack, buffers, lit, OverlayTexture.NO_OVERLAY, flag, ModelBakery.BANNER_BASE, true,
-                    base, shown.getOrDefault(DataComponents.BANNER_PATTERNS, BannerPatternLayers.EMPTY));
+            renderPatterns(poseStack, buffers, lit, OverlayTexture.NO_OVERLAY, flag, base,
+                    shown.getOrDefault(DataComponents.BANNER_PATTERNS, BannerPatternLayers.EMPTY));
             if (weaving && weaveLayer != null && paintedPart() > 0.0F) {
                 // The paint so far, on the flag's own faces (so at its depth), drawn after the banner's layers, in the dye's colour.
-                flag.render(poseStack, buffers.getBuffer(RenderType.entityTranslucent(BannerPaint.texture())), lit,
+                flag.render(poseStack, buffers.getBuffer(RenderTypes.entityTranslucent(BannerPaint.texture())), lit,
                         OverlayTexture.NO_OVERLAY, rgb(weaveLayer.getSecond()));
                 layer = null;
             }
@@ -705,8 +707,7 @@ final class LoomBehavior implements StationBehavior {
                 Pair<Holder<BannerPattern>, DyeColor> faint = layer;
                 float alpha = PREVIEW_ALPHA * previewShown * (0.85F + 0.15F * Mth.sin(clock * 3.0F));
                 int argb = Math.round(alpha * 255.0F) << 24 | rgb(faint.getSecond()) & 0xFFFFFF;
-                flag.render(poseStack, Sheets.getBannerMaterial(faint.getFirst()).buffer(buffers, RenderType::entityNoOutline), lit,
-                        OverlayTexture.NO_OVERLAY, argb);
+                flag.render(poseStack, layerBuffer(buffers, Sheets.getBannerMaterial(faint.getFirst())), lit, OverlayTexture.NO_OVERLAY, argb);
             }
         }
         poseStack.popPose();
@@ -714,10 +715,32 @@ final class LoomBehavior implements StationBehavior {
     }
 
     /**
+     * The banner's cloth and its layers on the flag as it is posed here, as vanilla's banner draws them. Vanilla's own drawing goes
+     * through a model that puts its parts back in their pose first, which would undo the flag's unrolling.
+     */
+    private static void renderPatterns(PoseStack poseStack, SceneBuffers buffers, int light, int overlay, ModelPart flag, DyeColor base,
+            BannerPatternLayers patterns) {
+        MaterialSet materials = Minecraft.getInstance().getAtlasManager();
+        Material cloth = ModelBakery.BANNER_BASE;
+        flag.render(poseStack, materials.get(cloth).wrap(buffers.getBuffer(cloth.renderType(RenderTypes::entitySolid))), light, overlay);
+        flag.render(poseStack, layerBuffer(buffers, Sheets.BANNER_BASE), light, overlay, base.getTextureDiffuseColor());
+        for (int i = 0; i < 16 && i < patterns.layers().size(); i++) {
+            BannerPatternLayers.Layer layer = patterns.layers().get(i);
+            flag.render(poseStack, layerBuffer(buffers, Sheets.getBannerMaterial(layer.pattern())), light, overlay,
+                    layer.color().getTextureDiffuseColor());
+        }
+    }
+
+    /** Where one layer of a banner is drawn: its sprite of the banner sheet, as vanilla draws a layer. */
+    private static VertexConsumer layerBuffer(SceneBuffers buffers, Material material) {
+        return Minecraft.getInstance().getAtlasManager().get(material).wrap(buffers.getBuffer(material.renderType(RenderTypes::entityNoOutline)));
+    }
+
+    /**
      * Vanilla's brush at work, in the frame's feet's space: over the dye, dipping into it; on its way to the cloth; its bristles on
      * the pixel being painted, flicking a little; lifting away once the pattern is painted.
      */
-    private void paintBrush(StationView view, PoseStack poseStack, MultiBufferSource buffers, int light) {
+    private void paintBrush(StationView view, PoseStack poseStack, SceneBuffers buffers, int light) {
         if (pass < 0.0F || weaveBase.isEmpty()) {
             return;
         }
@@ -756,7 +779,7 @@ final class LoomBehavior implements StationBehavior {
         poseStack.mulPose(Axis.ZP.rotationDegrees(180.0F + flick));
         poseStack.translate(-TIP_X * size, -TIP_Y * size, 0.0F);
         poseStack.scale(size, size, size);
-        Minecraft.getInstance().getItemRenderer().renderStatic(BRUSH, ItemDisplayContext.FIXED, light, OverlayTexture.NO_OVERLAY,
+        com.pockyl.diegesis.impl.client.render.SceneDraw.item(BRUSH, ItemDisplayContext.FIXED, light, OverlayTexture.NO_OVERLAY,
                 poseStack, DiegesisClient.items(buffers), view.level(), 0);
         poseStack.popPose();
     }

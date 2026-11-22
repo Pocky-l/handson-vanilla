@@ -1,6 +1,7 @@
 {
   "pack": {
     "description": "Hands-On Vanilla resources",
-    "pack_format": 34
+    "min_format": 75,
+    "max_format": 94
   }
 }

@@ -3,18 +3,16 @@ package com.pockyl.handson_vanilla.client;
 import net.minecraft.client.Minecraft;
 import net.minecraft.world.item.Item;
 import net.minecraft.world.item.ItemStack;
-import net.minecraft.world.item.crafting.RecipeHolder;
-import net.minecraft.world.item.crafting.RecipeType;
-import net.minecraft.world.item.crafting.SmithingRecipe;
+import net.minecraft.world.item.crafting.RecipeAccess;
+import net.minecraft.world.item.crafting.RecipePropertySet;
 import net.minecraft.world.level.Level;
 
 import java.util.HashMap;
-import java.util.List;
 import java.util.Map;
 
 /**
- * Whether the smithing table takes a stack, from the client's own recipes: a template, a gear a template upgrades or trims, or
- * a material it takes. Stacks it takes nothing of stay off the rows.
+ * Whether the smithing table takes a stack, by the lists the server tells every client (the vanilla screen asks the same): a
+ * template, a gear a template upgrades or trims, or a material it takes. Stacks it takes nothing of stay off the rows.
  */
 final class SmithingUse {
     private static final Map<Item, Boolean> TAKES = new HashMap<>();
@@ -39,14 +37,10 @@ final class SmithingUse {
         }
         return TAKES.computeIfAbsent(stack.getItem(), item -> {
             ItemStack one = new ItemStack(item);
-            List<RecipeHolder<SmithingRecipe>> recipes = level.getRecipeManager().getAllRecipesFor(RecipeType.SMITHING);
-            for (RecipeHolder<SmithingRecipe> holder : recipes) {
-                SmithingRecipe recipe = holder.value();
-                if (recipe.isTemplateIngredient(one) || recipe.isBaseIngredient(one) || recipe.isAdditionIngredient(one)) {
-                    return true;
-                }
-            }
-            return false;
+            RecipeAccess recipes = level.recipeAccess();
+            return recipes.propertySet(RecipePropertySet.SMITHING_TEMPLATE).test(one)
+                    || recipes.propertySet(RecipePropertySet.SMITHING_BASE).test(one)
+                    || recipes.propertySet(RecipePropertySet.SMITHING_ADDITION).test(one);
         });
     }
 }

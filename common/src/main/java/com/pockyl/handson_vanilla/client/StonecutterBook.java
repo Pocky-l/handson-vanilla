@@ -4,12 +4,11 @@ import net.minecraft.client.Minecraft;
 import net.minecraft.client.gui.screens.Screen;
 import net.minecraft.client.resources.sounds.SimpleSoundInstance;
 import net.minecraft.network.chat.Component;
-import net.minecraft.resources.ResourceLocation;
+import net.minecraft.core.registries.BuiltInRegistries;
 import net.minecraft.sounds.SoundEvents;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.item.Items;
-import net.minecraft.world.item.crafting.RecipeHolder;
-import net.minecraft.world.item.crafting.RecipeType;
+import net.minecraft.world.item.crafting.SelectableRecipe;
 import net.minecraft.world.item.crafting.StonecutterRecipe;
 import net.minecraft.world.level.Level;
 
@@ -25,9 +24,31 @@ import java.util.List;
  * recipe is listed, as the vanilla stonecutter offers them all without unlocking.
  */
 final class StonecutterBook implements RecipeBook.Source {
+    /**
+     * A cut, as a page knows it: the client's entry of the stonecutter recipes (since Minecraft 1.21.2 a client knows them only as
+     * the server lists them for the stonecutter: what goes in and what comes out), what it makes, and a name that stays from one game
+     * to the next for the pieces cut lately and the search (the stone and the piece).
+     */
+    record Cut(SelectableRecipe.SingleInputEntry<StonecutterRecipe> recipe, ItemStack makes, String name) {
+        @Override
+        public boolean equals(Object other) {
+            return other instanceof Cut cut && cut.recipe.equals(recipe);
+        }
+
+        @Override
+        public int hashCode() {
+            return recipe.hashCode();
+        }
+
+        @Override
+        public String toString() {
+            return name;
+        }
+    }
+
     private final StonecutterBehavior station;
     /** The recipes the pages were last made from, and those pages: the same recipes give the same list, made once. */
-    private List<RecipeHolder<StonecutterRecipe>> madeFrom = List.of();
+    private List<SelectableRecipe.SingleInputEntry<StonecutterRecipe>> madeFrom = List.of();
     private List<RecipeBook.Page> made = List.of();
 
     StonecutterBook(StonecutterBehavior station) {
@@ -37,27 +58,32 @@ final class StonecutterBook implements RecipeBook.Source {
     @Override
     public List<RecipeBook.Page> pages(StationView view) {
         Level level = view.level();
-        List<RecipeHolder<StonecutterRecipe>> recipes = level.getRecipeManager().getAllRecipesFor(RecipeType.STONECUTTING);
+        List<SelectableRecipe.SingleInputEntry<StonecutterRecipe>> recipes = level.recipeAccess().stonecutterRecipes().entries();
         if (same(recipes)) {
             return made;
         }
         List<RecipeBook.Page> pages = new ArrayList<>();
-        for (RecipeHolder<StonecutterRecipe> holder : recipes) {
-            StonecutterRecipe recipe = holder.value();
-            ItemStack result = recipe.getResultItem(level.registryAccess());
-            if (result.isEmpty() || recipe.getIngredients().isEmpty()) {
+        for (SelectableRecipe.SingleInputEntry<StonecutterRecipe> entry : recipes) {
+            Cut cut = cut(entry, level);
+            if (cut.makes().isEmpty() || entry.input().isEmpty()) {
                 continue;
             }
-            pages.add(new RecipeBook.Page(holder.id(), result.copy(), List.of(recipe.getIngredients().get(0)), List.of(), null, false,
-                    null, recipe.getGroup()));
+            pages.add(new RecipeBook.Page(cut, cut.makes().copy(), List.of(entry.input()), List.of(), null, false, null, null));
         }
         madeFrom = recipes;
         made = List.copyOf(pages);
         return made;
     }
 
+    /** A cut of the stonecutter recipes the client knows. */
+    static Cut cut(SelectableRecipe.SingleInputEntry<StonecutterRecipe> entry, Level level) {
+        ItemStack makes = entry.recipe().optionDisplay().resolveForFirstStack(RecipeDisplays.context(level));
+        String stone = entry.input().items().findFirst().map(item -> BuiltInRegistries.ITEM.getKey(item.value()).toString()).orElse("");
+        return new Cut(entry, makes, stone + ">" + BuiltInRegistries.ITEM.getKey(makes.getItem()));
+    }
+
     /** Whether these are the very recipes the pages were made from: the same objects, so a reload is a change too. */
-    private boolean same(List<RecipeHolder<StonecutterRecipe>> recipes) {
+    private boolean same(List<SelectableRecipe.SingleInputEntry<StonecutterRecipe>> recipes) {
         if (recipes.size() != madeFrom.size()) {
             return false;
         }
@@ -76,10 +102,10 @@ final class StonecutterBook implements RecipeBook.Source {
 
     @Override
     public void picked(StationView view, RecipeBook.Page page) {
-        if (page.key() instanceof ResourceLocation recipe) {
+        if (page.key() instanceof Cut recipe) {
             Minecraft.getInstance().getSoundManager().play(SimpleSoundInstance.forUI(SoundEvents.BOOK_PAGE_TURN, 1.4F,
                     0.35F * VanillaConfig.soundVolume()));
-            station.cut(view, recipe, !Screen.hasShiftDown());
+            station.cut(view, recipe, !Minecraft.getInstance().hasShiftDown());
         }
     }
 

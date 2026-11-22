@@ -1,0 +1,7 @@
+{
+  "type": "minecraft:function",
+  "function": "handson_vanilla:crafting_lays_by_clicks",
+  "environment": "minecraft:default",
+  "structure": "fabric-gametest-api-v1:empty",
+  "max_ticks": 100
+}

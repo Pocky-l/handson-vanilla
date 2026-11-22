@@ -1,5 +1,14 @@
 # Changelog
 
+## [1.2.3+1.21.11] - Unreleased
+- Minecraft 1.21.11, on Fabric: the first 1.21.11 version, with every station of 1.2.3+1.21.1 (crafting table, furnace, smoker,
+  blast furnace, stonecutter, smithing table, grindstone, brewing stand, anvil, enchanting table, lectern, loom, cartography table).
+- Needs [Diegesis](https://www.curseforge.com/minecraft/mc-mods/diegesis) 1.0.0-beta.17.1+1.21.11.
+- Since Minecraft 1.21.2 the game tells a player's client only the recipes in their recipe book: the crafting table's book shows
+  every recipe (`book_recipes=all`, or with [Not Enough Recipe Book](https://www.curseforge.com/minecraft/mc-mods/notenoughrecipebook))
+  in single player only, and on a server lists the recipes the player has unlocked.
+- Not on 1.21.11 yet: NeoForge, and [EMI](https://www.curseforge.com/minecraft/mc-mods/emi), which has no 1.21.11 version.
+
 ## [1.2.3+1.21.1] - 2026-11-22
 - The anvil shows the name you type again, so items can be renamed at the station.
 

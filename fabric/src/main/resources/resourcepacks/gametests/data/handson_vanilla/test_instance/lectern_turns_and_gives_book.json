@@ -1,0 +1,7 @@
+{
+  "type": "minecraft:function",
+  "function": "handson_vanilla:lectern_turns_and_gives_book",
+  "environment": "minecraft:default",
+  "structure": "fabric-gametest-api-v1:empty",
+  "max_ticks": 100
+}

@@ -4,7 +4,7 @@ import net.minecraft.client.Minecraft;
 import net.minecraft.client.gui.Font;
 import net.minecraft.network.chat.Component;
 import net.minecraft.network.chat.Style;
-import net.minecraft.resources.ResourceLocation;
+import net.minecraft.resources.Identifier;
 import net.minecraft.util.FormattedCharSequence;
 import net.minecraft.util.Mth;
 import net.minecraft.util.RandomSource;
@@ -54,13 +54,13 @@ final class RunePages {
      * The hand-drawn drawings and the one page each is on (the magic circle on the first spread, seen over the table in the
      * world); every other drawing page has one of its own ({@link PageDrawings}), so no drawing comes twice.
      */
-    private static final List<ResourceLocation> DRAWINGS = List.of(drawing("sigil"), drawing("stars"), drawing("eye"),
+    private static final List<Identifier> DRAWINGS = List.of(drawing("sigil"), drawing("stars"), drawing("eye"),
             drawing("astrolabe"), drawing("binding"));
     private static final int[] DRAWN_PAGES = {1, 5, 8, 13, 18};
     /** The papers: plain, and an older one, yellowed and spotted. */
-    static final ResourceLocation PAPER = OpenBook.PAPER;
-    private static final ResourceLocation AGED = HandsOnVanilla.id("textures/entity/enchanting_book_paper_aged.png");
-    private static final Style RUNES = Style.EMPTY.withFont(Minecraft.ALT_FONT);
+    static final Identifier PAPER = OpenBook.PAPER;
+    private static final Identifier AGED = HandsOnVanilla.id("textures/entity/enchanting_book_paper_aged.png");
+    private static final Style RUNES = Style.EMPTY.withFont(new net.minecraft.network.chat.FontDescription.Resource(Minecraft.ALT_FONT));
     private static final int KEPT = 96;
     private static final Map<Integer, Page> PAGES = new HashMap<>();
 
@@ -119,17 +119,17 @@ final class RunePages {
     private RunePages() {
     }
 
-    private static ResourceLocation drawing(String name) {
+    private static Identifier drawing(String name) {
         return HandsOnVanilla.id("textures/entity/enchanting_" + name + ".png");
     }
 
     /** The clock the writing lives by, seconds: the same for every book, so a book read at the table goes on as it was. */
     static float now() {
-        return (net.minecraft.Util.getMillis() % 3_600_000L) / 1000.0F;
+        return (net.minecraft.util.Util.getMillis() % 3_600_000L) / 1000.0F;
     }
 
     /** The paper page {@code page} is written on. */
-    static ResourceLocation paper(int page) {
+    static Identifier paper(int page) {
         return page(page).aged() ? AGED : PAPER;
     }
 
@@ -141,7 +141,7 @@ final class RunePages {
         Page written = page(page);
         for (int f = 0; f < written.figures().size(); f++) {
             Figure figure = written.figures().get(f);
-            ResourceLocation texture;
+            Identifier texture;
             float u1 = 1.0F;
             float v1 = 1.0F;
             if (figure.hand() >= 0) {

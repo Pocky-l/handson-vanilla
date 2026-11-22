@@ -13,12 +13,23 @@ neoForge {
     }
 }
 
+// Minecraft 1.21.11: EMI has no build for it, so what compiles against EMI is left out of the build (the sources stay, for the
+// lines that have it). The loader project leaves out the same files; the EMI mixins are out of handson_vanilla.mixins.json.
+// FastWorkbench's result is NeoForge's only (its mixin is in neoforge/), and this line is Fabric only.
+ext.compatSources = [
+        'com/pockyl/handson_vanilla/client/FastBenchResult.java',
+        'com/pockyl/handson_vanilla/compat/emi/**',
+        'com/pockyl/handson_vanilla/client/EmiSidebar.java',
+        'com/pockyl/handson_vanilla/mixin/EmiApiMixin.java',
+        'com/pockyl/handson_vanilla/mixin/StationInputMixin.java',
+]
+sourceSets.main.java.exclude(compatSources)
+
 dependencies {
     compileOnly "com.pockyl.diegesis:common:${diegesis_version}"
     compileOnly 'org.spongepowered:mixin:0.8.5'
     // Recipe viewers. JEI: an old API on purpose, so that a call older JEI builds lack fails the build, not the game.
     compileOnly "mezz.jei:jei-${minecraft_version}-common-api:${jei_version}"
-    compileOnly "dev.emi:emi-xplat-mojmap:${emi_version}:api"
 }
 
 configurations {

@@ -1,0 +1,7 @@
+{
+  "type": "minecraft:function",
+  "function": "handson_vanilla:grindstone_mends_and_cleans",
+  "environment": "minecraft:default",
+  "structure": "fabric-gametest-api-v1:empty",
+  "max_ticks": 100
+}

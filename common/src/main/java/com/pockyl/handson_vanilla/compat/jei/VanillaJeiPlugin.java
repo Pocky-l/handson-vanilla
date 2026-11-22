@@ -10,7 +10,7 @@ import net.minecraft.client.gui.screens.Screen;
 import com.pockyl.diegesis.api.client.DiegesisClient;
 import mezz.jei.api.gui.ingredient.IRecipeSlotsView;
 import mezz.jei.api.ingredients.ITypedIngredient;
-import mezz.jei.api.recipe.RecipeType;
+import mezz.jei.api.recipe.types.IRecipeType;
 import mezz.jei.api.recipe.transfer.IRecipeTransferError;
 import mezz.jei.api.recipe.transfer.IRecipeTransferHandler;
 import mezz.jei.api.recipe.transfer.IRecipeTransferHandlerHelper;
@@ -20,15 +20,17 @@ import mezz.jei.api.runtime.IClickableIngredient;
 import mezz.jei.api.runtime.IIngredientManager;
 import net.minecraft.client.player.LocalPlayer;
 import net.minecraft.client.renderer.Rect2i;
-import net.minecraft.resources.ResourceLocation;
+import net.minecraft.resources.Identifier;
 import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.inventory.CraftingMenu;
 import net.minecraft.world.inventory.MenuType;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.item.crafting.CraftingRecipe;
 import net.minecraft.world.item.crafting.RecipeHolder;
+import net.minecraft.world.item.crafting.display.RecipeDisplayEntry;
 
 import com.pockyl.handson_vanilla.HandsOnVanilla;
+import com.pockyl.handson_vanilla.client.CraftingBook;
 import com.pockyl.handson_vanilla.client.StationHover;
 
 import java.util.Optional;
@@ -41,7 +43,7 @@ import java.util.Optional;
 @JeiPlugin
 public final class VanillaJeiPlugin implements IModPlugin {
     @Override
-    public ResourceLocation getPluginUid() {
+    public Identifier getPluginUid() {
         return HandsOnVanilla.id("jei");
     }
 
@@ -145,9 +147,9 @@ public final class VanillaJeiPlugin implements IModPlugin {
     }
 
     /**
-     * At the crafting table station: the vanilla book's packet for a recipe in the player's book, which any server takes; a recipe
-     * not in the book yet goes through JEI's own transfer, as at the vanilla crafting table (the server refuses the book's packet for
-     * it). Anywhere else: JEI's own crafting transfer, unchanged.
+     * At the crafting table station: the vanilla book's packet for a recipe in the player's book, which any server takes (in a
+     * world played alone, where the book's entry of a recipe can be found); any other recipe goes through JEI's own transfer, as at
+     * the vanilla crafting table (the server refuses the book's packet for it). Anywhere else: JEI's own crafting transfer, unchanged.
      */
     private record StationTransfer(IRecipeTransferHandler<CraftingMenu, RecipeHolder<CraftingRecipe>> basic)
             implements IRecipeTransferHandler<CraftingMenu, RecipeHolder<CraftingRecipe>> {
@@ -162,18 +164,22 @@ public final class VanillaJeiPlugin implements IModPlugin {
         }
 
         @Override
-        public RecipeType<RecipeHolder<CraftingRecipe>> getRecipeType() {
+        public IRecipeType<RecipeHolder<CraftingRecipe>> getRecipeType() {
             return RecipeTypes.CRAFTING;
         }
 
         @Override
         public IRecipeTransferError transferRecipe(CraftingMenu container, RecipeHolder<CraftingRecipe> recipe, IRecipeSlotsView slots,
                 Player player, boolean maxTransfer, boolean doTransfer) {
-            if (StationHover.menu() != container || !(player instanceof LocalPlayer local) || !local.getRecipeBook().contains(recipe)) {
+            // The book's packet names the entry the player's book shows the recipe by: known here only in a world played alone.
+            Optional<RecipeDisplayEntry> entry = StationHover.menu() == container && player instanceof LocalPlayer local
+                    ? CraftingBook.display(recipe.id()).filter(found -> CraftingBook.known(local).contains(found.id()))
+                    : Optional.empty();
+            if (entry.isEmpty()) {
                 return basic.transferRecipe(container, recipe, slots, player, maxTransfer, doTransfer);
             }
             if (doTransfer) {
-                StationHover.placeRecipe(recipe.id(), maxTransfer);
+                StationHover.placeRecipe(entry.get().id(), maxTransfer);
             }
             return null;
         }

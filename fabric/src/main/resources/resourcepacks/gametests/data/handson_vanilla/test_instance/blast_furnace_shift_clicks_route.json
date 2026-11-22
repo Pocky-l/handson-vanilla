@@ -1,0 +1,7 @@
+{
+  "type": "minecraft:function",
+  "function": "handson_vanilla:blast_furnace_shift_clicks_route",
+  "environment": "minecraft:default",
+  "structure": "fabric-gametest-api-v1:empty",
+  "max_ticks": 100
+}

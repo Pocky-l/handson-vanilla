@@ -7,11 +7,12 @@ import net.minecraft.client.Minecraft;
 import net.minecraft.client.gui.screens.Screen;
 import net.minecraft.client.player.LocalPlayer;
 import net.minecraft.client.renderer.LightTexture;
-import net.minecraft.client.renderer.MultiBufferSource;
-import net.minecraft.client.renderer.RenderType;
+import com.pockyl.diegesis.api.client.SceneBuffers;
+import net.minecraft.client.renderer.rendertype.RenderType;
+import net.minecraft.client.renderer.rendertype.RenderTypes;
 import net.minecraft.client.renderer.texture.TextureAtlas;
 import net.minecraft.client.renderer.texture.TextureAtlasSprite;
-import net.minecraft.resources.ResourceLocation;
+import net.minecraft.resources.Identifier;
 import net.minecraft.sounds.SoundEvents;
 import net.minecraft.util.Mth;
 import net.minecraft.world.inventory.CartographyTableMenu;
@@ -46,8 +47,8 @@ final class CartographyTableBehavior implements StationBehavior {
     private static final int MAP_SLOT = 0;
     private static final int EXTRA_SLOT = 1;
     private static final int RESULT_SLOT = 2;
-    private static final ResourceLocation PARCHMENT = vanilla("textures/map/map_background.png");
-    private static final ResourceLocation GLASS = vanilla("block/glass");
+    private static final Identifier PARCHMENT = vanilla("textures/map/map_background.png");
+    private static final Identifier GLASS = vanilla("block/glass");
     /** The map lying on the table, pixels; the hovering sheet's: a map, the zoomed out sheet, the two copies apart. */
     private static final float LYING = 6.0F;
     private static final float SHEET = 6.0F;
@@ -133,7 +134,7 @@ final class CartographyTableBehavior implements StationBehavior {
         heldSlot = -1;
         LocalPlayer player = Minecraft.getInstance().player;
         if (player != null && view.openedByUse() && usable(player.getMainHandItem())) {
-            heldSlot = player.getInventory().selected;
+            heldSlot = player.getInventory().getSelectedSlot();
         }
         flyFrom = -1;
         taking = ItemStack.EMPTY;
@@ -367,7 +368,7 @@ final class CartographyTableBehavior implements StationBehavior {
     @Override
     public void onEvent(StationView view, SceneEvent event) {
         if (event instanceof SceneEvent.Click click && RESULT.equals(click.node()) && click.button() == 0) {
-            take(view, Screen.hasShiftDown());
+            take(view, Minecraft.getInstance().hasShiftDown());
         }
     }
 
@@ -396,7 +397,7 @@ final class CartographyTableBehavior implements StationBehavior {
     // Drawing.
 
     /** The map lying on the table as a map: its parchment, its picture (or the parchment alone, unknown), glass over a locked one. */
-    private void paintLying(StationView view, PoseStack poseStack, MultiBufferSource buffers, int light) {
+    private void paintLying(StationView view, PoseStack poseStack, SceneBuffers buffers, int light) {
         ItemStack map = stack(view, MAP_SLOT);
         if (!map.is(Items.FILLED_MAP)) {
             return;
@@ -422,7 +423,7 @@ final class CartographyTableBehavior implements StationBehavior {
      * The copy being drawn on the empty map, line by line from its far edge: the map's picture on a parchment the size of the empty
      * map, its part not yet drawn covered by blank parchment.
      */
-    private void paintCopying(StationView view, PoseStack poseStack, MultiBufferSource buffers, int light) {
+    private void paintCopying(StationView view, PoseStack poseStack, SceneBuffers buffers, int light) {
         float t = worked();
         if (working != Kind.COPY || t < 0.0F) {
             return;
@@ -443,7 +444,7 @@ final class CartographyTableBehavior implements StationBehavior {
             poseStack.mulPose(new Matrix4f(-unit, 0.0F, 0.0F, 0.0F, 0.0F, 0.0F, -unit, 0.0F, 0.0F, -unit, 0.0F, 0.0F,
                     COPY_SIZE / 2.0F, 0.0F, COPY_SIZE / 2.0F, 1.0F));
             float from = 142.0F * drawn;
-            quad(buffers.getBuffer(RenderType.text(PARCHMENT)), poseStack.last().pose(), 0.0F, from, 142.0F, 142.0F, 0.0F, drawn, 1.0F,
+            quad(buffers.getBuffer(RenderTypes.text(PARCHMENT)), poseStack.last().pose(), 0.0F, from, 142.0F, 142.0F, 0.0F, drawn, 1.0F,
                     1.0F, 0xFFFFFFFF, light, -1.2F);
             poseStack.popPose();
         }
@@ -454,7 +455,7 @@ final class CartographyTableBehavior implements StationBehavior {
      * What the two make, hovering over the table and leaning back towards the camera: grown in when it appears, bobbing, swaying a
      * little, lit and swelling under the cursor; dipping away when taken.
      */
-    private void paintResult(StationView view, PoseStack poseStack, MultiBufferSource buffers, int light) {
+    private void paintResult(StationView view, PoseStack poseStack, SceneBuffers buffers, int light) {
         ItemStack made = stack(view, RESULT_SLOT);
         Kind kind = kind(view, made);
         float since = clock - takenAt;
@@ -507,7 +508,7 @@ final class CartographyTableBehavior implements StationBehavior {
         poseStack.popPose();
     }
 
-    private static void sheet(Level level, ItemStack map, float size, float picture, PoseStack poseStack, MultiBufferSource buffers,
+    private static void sheet(Level level, ItemStack map, float size, float picture, PoseStack poseStack, SceneBuffers buffers,
             int light) {
         sheet(level, map, size, picture, poseStack, buffers, light, false);
     }
@@ -517,7 +518,7 @@ final class CartographyTableBehavior implements StationBehavior {
      * vanilla's parchment (142 units, the picture's 128 within it, as a map in the hand) and the picture at {@code picture} of
      * that; under glass when {@code glass} or when the map is locked.
      */
-    private static void sheet(Level level, ItemStack map, float size, float picture, PoseStack poseStack, MultiBufferSource buffers,
+    private static void sheet(Level level, ItemStack map, float size, float picture, PoseStack poseStack, SceneBuffers buffers,
             int light, boolean glass) {
         net.minecraft.world.level.saveddata.maps.MapId id = map.get(net.minecraft.core.component.DataComponents.MAP_ID);
         MapItemSavedData data = id != null ? MapItem.getSavedData(id, level) : null;
@@ -527,7 +528,7 @@ final class CartographyTableBehavior implements StationBehavior {
         poseStack.mulPose(new Matrix4f(-unit, 0.0F, 0.0F, 0.0F, 0.0F, 0.0F, -unit, 0.0F, 0.0F, -unit, 0.0F, 0.0F,
                 size / 2.0F, 0.0F, size / 2.0F, 1.0F));
         if (picture >= 1.0F) {
-            quad(buffers.getBuffer(RenderType.text(PARCHMENT)), poseStack.last().pose(), 0.0F, 0.0F, 142.0F, 142.0F, 0.0F, 0.0F, 1.0F, 1.0F,
+            quad(buffers.getBuffer(RenderTypes.text(PARCHMENT)), poseStack.last().pose(), 0.0F, 0.0F, 142.0F, 142.0F, 0.0F, 0.0F, 1.0F, 1.0F,
                     0xFFFFFFFF, light, 0.0F);
         }
         if (data != null && id != null) {
@@ -536,24 +537,27 @@ final class CartographyTableBehavior implements StationBehavior {
             poseStack.translate(inset, inset, -0.1F);
             poseStack.scale(picture, picture, 1.0F);
             // As a map held in the hand, with the player's marker; a frame's map hides it.
-            Minecraft.getInstance().gameRenderer.getMapRenderer().render(poseStack, buffers, id, data, false, light);
+            net.minecraft.client.renderer.MapRenderer maps = Minecraft.getInstance().getMapRenderer();
+            net.minecraft.client.renderer.state.MapRenderState state = new net.minecraft.client.renderer.state.MapRenderState();
+            maps.extractRenderState(id, data, state);
+            maps.render(state, poseStack, buffers.submits(), false, light);
             poseStack.popPose();
         }
         if (glass || data != null && data.locked) {
-            TextureAtlasSprite pane = Minecraft.getInstance().getTextureAtlas(TextureAtlas.LOCATION_BLOCKS).apply(GLASS);
-            quad(buffers.getBuffer(RenderType.text(TextureAtlas.LOCATION_BLOCKS)), poseStack.last().pose(), 0.0F, 0.0F, 142.0F, 142.0F,
+            TextureAtlasSprite pane = com.pockyl.diegesis.impl.client.render.SceneDraw.blockSprite(GLASS);
+            quad(buffers.getBuffer(RenderTypes.text(TextureAtlas.LOCATION_BLOCKS)), poseStack.last().pose(), 0.0F, 0.0F, 142.0F, 142.0F,
                     pane.getU0(), pane.getV0(), pane.getU1(), pane.getV1(), 0xFFFFFFFF, light, -0.6F);
         }
         poseStack.popPose();
     }
 
     /** A blank parchment, {@code size} pixels square, lying face up as {@link #sheet} lays a map. */
-    private static void blankSheet(float size, PoseStack poseStack, MultiBufferSource buffers, int light) {
+    private static void blankSheet(float size, PoseStack poseStack, SceneBuffers buffers, int light) {
         float unit = size / 142.0F;
         poseStack.pushPose();
         poseStack.mulPose(new Matrix4f(-unit, 0.0F, 0.0F, 0.0F, 0.0F, 0.0F, -unit, 0.0F, 0.0F, -unit, 0.0F, 0.0F,
                 size / 2.0F, 0.0F, size / 2.0F, 1.0F));
-        quad(buffers.getBuffer(RenderType.text(PARCHMENT)), poseStack.last().pose(), 0.0F, 0.0F, 142.0F, 142.0F, 0.0F, 0.0F, 1.0F, 1.0F,
+        quad(buffers.getBuffer(RenderTypes.text(PARCHMENT)), poseStack.last().pose(), 0.0F, 0.0F, 142.0F, 142.0F, 0.0F, 0.0F, 1.0F, 1.0F,
                 0xFFFFFFFF, light, 0.0F);
         poseStack.popPose();
     }
@@ -571,8 +575,8 @@ final class CartographyTableBehavior implements StationBehavior {
     }
 
     @SuppressWarnings("removal")
-    private static ResourceLocation vanilla(String path) {
-        return ResourceLocation.withDefaultNamespace( path);
+    private static Identifier vanilla(String path) {
+        return Identifier.withDefaultNamespace( path);
     }
 
     static CartographyTableMenu cartography(StationView view) {

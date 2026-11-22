@@ -5,7 +5,7 @@ import net.minecraft.client.gui.GuiGraphics;
 import net.minecraft.client.gui.screens.Screen;
 import net.minecraft.client.gui.screens.inventory.AbstractContainerScreen;
 import net.minecraft.network.chat.Component;
-import net.minecraft.resources.ResourceLocation;
+import net.minecraft.resources.Identifier;
 import net.minecraft.world.entity.player.Inventory;
 import net.minecraft.world.inventory.AbstractContainerMenu;
 import net.minecraft.world.item.ItemStack;
@@ -130,8 +130,8 @@ public final class StationHover {
         return Math.min(screenWidth, Math.round(rightEdge()) + VIEWER_GAP);
     }
 
-    /** Lays a recipe into the station's menu as the vanilla recipe book does. */
-    public static void placeRecipe(ResourceLocation recipe, boolean all) {
+    /** Lays a recipe into the station's menu as the vanilla recipe book does: {@code recipe} is an entry of the player's book. */
+    public static void placeRecipe(net.minecraft.world.item.crafting.display.RecipeDisplayId recipe, boolean all) {
         CraftingTableBehavior.recipeLaid();
         DiegesisClient.focusedStation().map(StationView::menu).ifPresent(menu -> menu.placeRecipe(recipe, all));
     }

@@ -1,0 +1,7 @@
+{
+  "type": "minecraft:function",
+  "function": "handson_vanilla:anvil_renames_and_keeps_names",
+  "environment": "minecraft:default",
+  "structure": "fabric-gametest-api-v1:empty",
+  "max_ticks": 100
+}

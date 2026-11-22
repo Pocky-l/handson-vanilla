@@ -3,7 +3,9 @@ package com.pockyl.handson_vanilla.client;
 import com.mojang.blaze3d.vertex.PoseStack;
 import com.mojang.math.Axis;
 import net.minecraft.client.Minecraft;
-import net.minecraft.client.renderer.MultiBufferSource;
+import net.minecraft.client.renderer.SubmitNodeCollector;
+import net.minecraft.core.BlockPos;
+import com.pockyl.diegesis.api.client.SceneBuffers;
 import net.minecraft.util.Mth;
 import net.minecraft.world.level.block.LecternBlock;
 import net.minecraft.world.level.block.entity.EnchantingTableBlockEntity;
@@ -42,8 +44,28 @@ public final class WorldBooks {
     private WorldBooks() {
     }
 
+    /**
+     * The table's book as its renderer submits it (Minecraft 1.21.9 on): drawn into buffers of its own and handed to the frame. The
+     * block entity is the level's at that place; nothing when there is none.
+     */
+    public static void submitEnchanting(BlockPos pos, PoseStack poseStack, SubmitNodeCollector collector, int light) {
+        var level = Minecraft.getInstance().level;
+        if (level != null && level.getBlockEntity(pos) instanceof EnchantingTableBlockEntity entity) {
+            SubmittedBuffers buffers = new SubmittedBuffers();
+            drawEnchanting(entity, Minecraft.getInstance().getDeltaTracker().getGameTimeDeltaPartialTick(false), poseStack, buffers, light);
+            buffers.submitTo(collector);
+        }
+    }
+
+    /** The lectern's book as its renderer submits it: drawn into buffers of its own and handed to the frame. */
+    public static void submitLectern(BlockState state, PoseStack poseStack, SubmitNodeCollector collector, int light) {
+        SubmittedBuffers buffers = new SubmittedBuffers();
+        drawLectern(state, poseStack, buffers, light);
+        buffers.submitTo(collector);
+    }
+
     /** As {@code EnchantTableRenderer} draws its book, in block units. */
-    public static void drawEnchanting(EnchantingTableBlockEntity entity, float partial, PoseStack poseStack, MultiBufferSource buffers,
+    public static void drawEnchanting(EnchantingTableBlockEntity entity, float partial, PoseStack poseStack, SceneBuffers buffers,
             int light) {
         poseStack.pushPose();
         poseStack.translate(0.5F, 0.75F, 0.5F);
@@ -60,7 +82,7 @@ public final class WorldBooks {
         poseStack.mulPose(Axis.ZP.rotationDegrees(80.0F));
         float flip = Mth.lerp(partial, entity.oFlip, entity.flip);
         float open = (Mth.sin(time * 0.02F) * 0.1F + 1.25F) * Mth.lerp(partial, entity.oOpen, entity.open);
-        double far = Minecraft.getInstance().gameRenderer.getMainCamera().getPosition()
+        double far = Minecraft.getInstance().gameRenderer.getMainCamera().position()
                 .distanceTo(Vec3.atCenterOf(entity.getBlockPos()));
         runes = RUNES_ALPHA * (float) Mth.clamp((RUNES_FAR - far) / (RUNES_FAR - RUNES_NEAR), 0.0, 1.0);
         // Every page vanilla's flip turns is a page turned: the book shows the spread it has come to, going on or back.
@@ -71,7 +93,7 @@ public final class WorldBooks {
     }
 
     /** As {@code LecternRenderer} draws the book of a lectern that has one, in block units. */
-    public static void drawLectern(BlockState state, PoseStack poseStack, MultiBufferSource buffers, int light) {
+    public static void drawLectern(BlockState state, PoseStack poseStack, SceneBuffers buffers, int light) {
         poseStack.pushPose();
         poseStack.translate(0.5F, 1.0625F, 0.5F);
         poseStack.mulPose(Axis.YP.rotationDegrees(-state.getValue(LecternBlock.FACING).getClockWise().toYRot()));
@@ -83,7 +105,7 @@ public final class WorldBooks {
         poseStack.popPose();
     }
 
-    private static void draw(OpenBook book, PoseStack poseStack, MultiBufferSource buffers, int light, float open, float right,
+    private static void draw(OpenBook book, PoseStack poseStack, SceneBuffers buffers, int light, float open, float right,
             float left) {
         // The book is laid out in pixels; a block entity renderer works in blocks.
         poseStack.scale(SCALE / 16.0F, SCALE / 16.0F, SCALE / 16.0F);

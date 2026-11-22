@@ -127,7 +127,7 @@ final class GrindstoneBehavior implements StationBehavior {
         heldSlot = -1;
         LocalPlayer player = Minecraft.getInstance().player;
         if (player != null && view.openedByUse() && usable(player.getMainHandItem())) {
-            heldSlot = player.getInventory().selected;
+            heldSlot = player.getInventory().getSelectedSlot();
         }
         stand(view);
         phase = Phase.IDLE;
@@ -353,7 +353,7 @@ final class GrindstoneBehavior implements StationBehavior {
     @Override
     public void onEvent(StationView view, SceneEvent event) {
         if (event instanceof SceneEvent.Click click && (WHEEL.equals(click.node()) || RESULT.equals(click.node()))) {
-            grind(view, Screen.hasShiftDown());
+            grind(view, Minecraft.getInstance().hasShiftDown());
         }
     }
 

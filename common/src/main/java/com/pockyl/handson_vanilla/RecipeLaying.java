@@ -1,17 +1,21 @@
 package com.pockyl.handson_vanilla;
 
-import it.unimi.dsi.fastutil.ints.IntArrayList;
-import it.unimi.dsi.fastutil.ints.IntList;
-import net.minecraft.recipebook.PlaceRecipe;
+import net.minecraft.core.Holder;
+import net.minecraft.recipebook.PlaceRecipeHelper;
 import net.minecraft.world.entity.player.Inventory;
-import net.minecraft.world.entity.player.StackedContents;
+import net.minecraft.world.entity.player.StackedItemContents;
+import net.minecraft.world.inventory.AbstractCraftingMenu;
 import net.minecraft.world.inventory.ClickType;
-import net.minecraft.world.inventory.RecipeBookMenu;
 import net.minecraft.world.inventory.Slot;
+import net.minecraft.world.item.Item;
 import net.minecraft.world.item.ItemStack;
-import net.minecraft.world.item.crafting.Recipe;
+import net.minecraft.world.item.crafting.CraftingInput;
+import net.minecraft.world.item.crafting.CraftingRecipe;
 import net.minecraft.world.item.crafting.RecipeHolder;
 
+import java.util.ArrayList;
+import java.util.Collections;
+import java.util.List;
 
 /**
  * Lays a recipe into a crafting grid with plain slot clicks, for recipes the vanilla book's packet cannot lay: the server takes that
@@ -47,120 +51,129 @@ public final class RecipeLaying {
      *
      * @param all as many sets as fit (the vanilla book's shift click), else one set more than lies there now
      */
-    @SuppressWarnings({"rawtypes", "unchecked"})
-    public static Outcome lay(RecipeBookMenu<?, ?> menu, Inventory inventory, RecipeHolder<?> holder, boolean all, Clicker clicker) {
-        Recipe<?> recipe = holder.value();
+    public static Outcome lay(AbstractCraftingMenu menu, Inventory inventory, RecipeHolder<CraftingRecipe> holder, boolean all,
+            Clicker clicker) {
+        CraftingRecipe recipe = holder.value();
         if (!menu.getCarried().isEmpty()) {
             return Outcome.UNCHANGED;
         }
-        StackedContents contents = new StackedContents();
+        StackedItemContents contents = new StackedItemContents();
         inventory.fillStackedContents(contents);
         menu.fillCraftSlotsStackedContents(contents);
         if (!contents.canCraft(recipe, null)) {
-            return clearGrid(menu, inventory, clicker) ? Outcome.MISSING : Outcome.UNCHANGED;
+            return clearGrid(menu, clicker) ? Outcome.MISSING : Outcome.UNCHANGED;
         }
-        boolean matches = ((RecipeBookMenu) menu).recipeMatches(holder);
-        int biggest = contents.getBiggestCraftableStack(holder, null);
+        boolean matches = recipe.matches(input(menu), inventory.player.level());
+        int biggest = contents.getBiggestCraftableStack(recipe, null);
         if (matches) {
-            for (int slot : gridSlots(menu)) {
-                ItemStack there = menu.getSlot(slot).getItem();
+            for (Slot slot : menu.getInputGridSlots()) {
+                ItemStack there = slot.getItem();
                 if (!there.isEmpty() && Math.min(biggest, there.getMaxStackSize()) < there.getCount() + 1) {
                     return Outcome.UNCHANGED;
                 }
             }
         }
         int sets = sets(menu, all, biggest, matches);
-        IntList items = new IntArrayList();
-        if (!contents.canCraft(recipe, items, sets)) {
+        List<Holder<Item>> picks = new ArrayList<>();
+        if (!contents.canCraft(recipe, sets, picks::add)) {
             return Outcome.UNCHANGED;
         }
-        for (int item : items) {
-            // An empty cell of a shaped recipe is item 0: it limits nothing.
-            ItemStack stack = StackedContents.fromStackingIndex(item);
-            if (!stack.isEmpty()) {
-                sets = Math.min(sets, stack.getMaxStackSize());
+        int fitting = sets;
+        for (Holder<Item> item : picks) {
+            fitting = Math.min(fitting, item.value().getDefaultMaxStackSize());
+        }
+        if (fitting != sets) {
+            sets = fitting;
+            picks.clear();
+            if (!contents.canCraft(recipe, sets, picks::add)) {
+                return Outcome.UNCHANGED;
             }
         }
-        IntList picks = new IntArrayList();
-        if (!contents.canCraft(recipe, picks, sets)) {
-            return Outcome.UNCHANGED;
-        }
-        ItemStack[] wanted = new ItemStack[menu.slots.size()];
-        int[] counts = new int[menu.slots.size()];
+        List<Slot> grid = menu.getInputGridSlots();
+        List<Holder<Item>> wanted = new ArrayList<>(Collections.nCopies(grid.size(), null));
         int each = sets;
-        PlaceRecipe<Integer> placing = (Integer picked, int slot, int maxAmount, int x, int y) -> {
-            ItemStack item = StackedContents.fromStackingIndex(picked);
-            if (!item.isEmpty() && slot >= 0 && slot < wanted.length) {
-                wanted[slot] = item;
-                counts[slot] = each;
-            }
-        };
-        placing.placeRecipe(menu.getGridWidth(), menu.getGridHeight(), menu.getResultSlotIndex(), holder, picks.iterator(), sets);
+        PlaceRecipeHelper.placeRecipe(menu.getGridWidth(), menu.getGridHeight(), recipe, recipe.placementInfo().slotsToIngredientIndex(),
+                (Integer picked, int cell, int x, int y) -> {
+                    if (picked != -1 && cell >= 0 && cell < wanted.size()) {
+                        wanted.set(cell, picks.get(picked));
+                    }
+                });
         // What lies in a cell and is wanted there stays; everything else goes back first, as it may be wanted in another cell.
-        for (int slot : gridSlots(menu)) {
-            ItemStack there = menu.getSlot(slot).getItem();
-            if (!there.isEmpty() && !(wanted[slot] != null && same(there, wanted[slot]) && there.getCount() <= counts[slot])) {
-                clicker.click(slot, 0, ClickType.QUICK_MOVE);
-                if (!menu.getSlot(slot).getItem().isEmpty()) {
+        for (int cell = 0; cell < grid.size(); cell++) {
+            Slot slot = grid.get(cell);
+            ItemStack there = slot.getItem();
+            Holder<Item> item = wanted.get(cell);
+            if (!there.isEmpty() && !(item != null && there.is(item) && there.getCount() <= each)) {
+                clicker.click(slot.index, 0, ClickType.QUICK_MOVE);
+                if (!slot.getItem().isEmpty()) {
                     return Outcome.UNCHANGED;
                 }
             }
         }
-        for (int slot : gridSlots(menu)) {
-            if (wanted[slot] != null) {
-                fill(menu, inventory, slot, wanted[slot], counts[slot], clicker);
+        for (int cell = 0; cell < grid.size(); cell++) {
+            if (wanted.get(cell) != null) {
+                fill(menu, inventory, grid.get(cell), wanted.get(cell), each, clicker);
             }
         }
         return Outcome.LAID;
     }
 
+    /** What lies in the grid, as the recipe sees it. */
+    private static CraftingInput input(AbstractCraftingMenu menu) {
+        List<ItemStack> items = new ArrayList<>();
+        for (Slot slot : menu.getInputGridSlots()) {
+            items.add(slot.getItem().copy());
+        }
+        return CraftingInput.of(menu.getGridWidth(), menu.getGridHeight(), items);
+    }
+
     /** How many sets to lay: as the server's placing counts them. */
-    private static int sets(RecipeBookMenu<?, ?> menu, boolean all, int biggest, boolean matches) {
+    private static int sets(AbstractCraftingMenu menu, boolean all, int biggest, boolean matches) {
         if (all) {
             return biggest;
         }
         if (!matches) {
             return 1;
         }
-        int fewest = 64;
-        for (int slot : gridSlots(menu)) {
-            ItemStack there = menu.getSlot(slot).getItem();
+        int fewest = Integer.MAX_VALUE;
+        for (Slot slot : menu.getInputGridSlots()) {
+            ItemStack there = slot.getItem();
             if (!there.isEmpty()) {
                 fewest = Math.min(fewest, there.getCount());
             }
         }
-        return fewest < 64 ? fewest + 1 : fewest;
+        return fewest == Integer.MAX_VALUE ? fewest : fewest + 1;
     }
 
     /**
      * Brings {@code cell} up to {@code count} of {@code item} from the inventory, from the stacks the server's placing takes (not
-     * damaged, enchanted or named): a whole stack when it is not more than is wanted, else the cheaper of putting the wanted ones down
-     * one by one and putting the unwanted ones back one by one.
+     * damaged, enchanted or named, and like what lies there already): a whole stack when it is not more than is wanted, else the
+     * cheaper of putting the wanted ones down one by one and putting the unwanted ones back one by one.
      */
-    private static void fill(RecipeBookMenu<?, ?> menu, Inventory inventory, int cell, ItemStack item, int count, Clicker clicker) {
+    private static void fill(AbstractCraftingMenu menu, Inventory inventory, Slot cell, Holder<Item> item, int count, Clicker clicker) {
         for (int move = 0; move < MOVES_PER_CELL; move++) {
-            ItemStack there = menu.getSlot(cell).getItem();
+            ItemStack there = cell.getItem();
             int need = count - (there.isEmpty() ? 0 : there.getCount());
             if (need <= 0) {
                 return;
             }
-            int source = menuSlotOf(menu, inventory, inventory.findSlotMatchingUnusedItem(item));
+            int source = menuSlotOf(menu, inventory, inventory.findSlotMatchingCraftingIngredient(item, there));
             if (source < 0) {
                 return;
             }
             int held = menu.getSlot(source).getItem().getCount();
             clicker.click(source, 0, ClickType.PICKUP);
             if (held <= need) {
-                clicker.click(cell, 0, ClickType.PICKUP);
+                clicker.click(cell.index, 0, ClickType.PICKUP);
             } else if (need <= held - need) {
                 for (int i = 0; i < need; i++) {
-                    clicker.click(cell, 1, ClickType.PICKUP);
+                    clicker.click(cell.index, 1, ClickType.PICKUP);
                 }
             } else {
                 for (int i = 0; i < held - need; i++) {
                     clicker.click(source, 1, ClickType.PICKUP);
                 }
-                clicker.click(cell, 0, ClickType.PICKUP);
+                clicker.click(cell.index, 0, ClickType.PICKUP);
             }
             if (!menu.getCarried().isEmpty()) {
                 clicker.click(source, 0, ClickType.PICKUP);
@@ -173,33 +186,19 @@ public final class RecipeLaying {
     }
 
     /** Empties the grid into the inventory; false when something stays, the inventory being full. */
-    private static boolean clearGrid(RecipeBookMenu<?, ?> menu, Inventory inventory, Clicker clicker) {
+    private static boolean clearGrid(AbstractCraftingMenu menu, Clicker clicker) {
         boolean clear = true;
-        for (int slot : gridSlots(menu)) {
-            if (!menu.getSlot(slot).getItem().isEmpty()) {
-                clicker.click(slot, 0, ClickType.QUICK_MOVE);
-                clear &= menu.getSlot(slot).getItem().isEmpty();
+        for (Slot slot : menu.getInputGridSlots()) {
+            if (!slot.getItem().isEmpty()) {
+                clicker.click(slot.index, 0, ClickType.QUICK_MOVE);
+                clear &= slot.getItem().isEmpty();
             }
         }
         return clear;
     }
 
-    /** The menu slots of the grid, without the result. */
-    private static int[] gridSlots(RecipeBookMenu<?, ?> menu) {
-        int size = menu.getGridWidth() * menu.getGridHeight();
-        int[] slots = new int[size];
-        int result = menu.getResultSlotIndex();
-        int next = 0;
-        for (int slot = 0; next < size && slot < menu.slots.size(); slot++) {
-            if (slot != result) {
-                slots[next++] = slot;
-            }
-        }
-        return slots;
-    }
-
     /** The menu slot that shows the inventory's slot {@code index}, or -1. */
-    private static int menuSlotOf(RecipeBookMenu<?, ?> menu, Inventory inventory, int index) {
+    private static int menuSlotOf(AbstractCraftingMenu menu, Inventory inventory, int index) {
         if (index < 0) {
             return -1;
         }
@@ -209,9 +208,5 @@ public final class RecipeLaying {
             }
         }
         return -1;
-    }
-
-    private static boolean same(ItemStack there, ItemStack wanted) {
-        return ItemStack.isSameItemSameComponents(there, wanted);
     }
 }

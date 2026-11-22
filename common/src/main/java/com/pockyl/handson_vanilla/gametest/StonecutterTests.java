@@ -43,8 +43,10 @@ public final class StonecutterTests {
         helper.assertTrue(count(inventory, Items.DIRT) == 2, "the dirt is not");
         // A click on the slab piece: the menu's button of that recipe, as the vanilla screen's list sends it.
         int slab = -1;
-        for (int i = 0; i < menu.getRecipes().size(); i++) {
-            if (menu.getRecipes().get(i).value().getResultItem(helper.getLevel().registryAccess()).is(Items.STONE_SLAB)) {
+        var context = net.minecraft.world.item.crafting.display.SlotDisplayContext.fromLevel(helper.getLevel());
+        var recipes = menu.getVisibleRecipes().entries();
+        for (int i = 0; i < recipes.size(); i++) {
+            if (recipes.get(i).recipe().optionDisplay().resolveForFirstStack(context).is(Items.STONE_SLAB)) {
                 slab = i;
             }
         }

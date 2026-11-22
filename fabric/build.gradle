@@ -12,11 +12,17 @@ dependencies {
     modImplementation "net.fabricmc:fabric-loader:${fabric_loader_version}"
     modImplementation "net.fabricmc.fabric-api:fabric-api:${fabric_api_version}"
     // The API is in Diegesis' common jar, in Mojang names like this project; the Fabric jar of the library plays in
-    // the playtest client (playtest-1.21.1-fabric) and in the game tests below.
+    // the playtest client (playtest-1.21.11-fabric) and in the game tests below.
     compileOnly "com.pockyl.diegesis:common:${diegesis_version}"
     compileOnly "mezz.jei:jei-${minecraft_version}-common-api:${jei_version}"
     modCompileOnly "mezz.jei:jei-${minecraft_version}-fabric-api:${jei_version}"
-    modCompileOnly "dev.emi:emi-fabric:${emi_version}:api"
+}
+
+// The EMI sources common leaves out (see common/build.gradle).
+evaluationDependsOn(':common')
+def compatSources = project(':common').compatSources
+tasks.named('compileJava', JavaCompile) {
+    exclude(compatSources)
 }
 
 loom {
@@ -48,7 +54,7 @@ configurations {
 dependencies {
     gameTestMods "net.fabricmc.fabric-api:fabric-api:${fabric_api_version}"
     // Not in the fabric-api jar: the module that runs the tests (the version fabric-api's POM names).
-    gameTestMods 'net.fabricmc.fabric-api:fabric-gametest-api-v1:2.0.5+6fc22b9919'
+    gameTestMods 'net.fabricmc.fabric-api:fabric-gametest-api-v1:3.1.27+4fc5413f3e'
 }
 
 // The game tests on a production Fabric server with the release jars of this mod, Diegesis and Fabric API:
@@ -62,6 +68,8 @@ tasks.register('runGameTest', net.fabricmc.loom.task.prod.ServerProductionRunTas
     mods.from(file("../../diegesis/fabric/build/libs/diegesis-fabric-${minecraft_version}-${diegesis_version}.jar"))
     installerVersion = '1.1.0'
     jvmArgs.add('-Dfabric-api.gametest')
+    // Each test by name and how it went: run-gametest/report.xml.
+    jvmArgs.add("-Dfabric-api.gametest.report-file=${file('run-gametest/report.xml').absolutePath}".toString())
     runDir = file('run-gametest')
     def eula = file('run-gametest/eula.txt')
     doFirst {
