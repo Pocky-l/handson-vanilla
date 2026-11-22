@@ -162,7 +162,10 @@ final class AnvilBehavior implements StationBehavior {
         Matrix4f pose = poseStack.last().pose();
         Vector3f at = pose.getTranslation(new Vector3f());
         float unit = new Vector3f(pose.m00(), pose.m01(), pose.m02()).length();
-        Matrix4f matrix = new Matrix4f().translation(at).scale(TEXT_SCALE * unit, -TEXT_SCALE * unit, TEXT_SCALE * unit);
+        // Since 1.20.5 the level's pose is in the world's axes (the view's turn is in the model-view): turned as the camera looks,
+        // as Diegesis turns its counts, or the tag shows the camera its back and is culled.
+        Matrix4f matrix = new Matrix4f().translation(at).rotate(Minecraft.getInstance().gameRenderer.getMainCamera().rotation())
+                .scale(TEXT_SCALE * unit, -TEXT_SCALE * unit, TEXT_SCALE * unit);
         String shown = typing && !picked ? name + ((int) (clock * 3.0F) % 2 == 0 ? "_" : " ") : name;
         Component line = Component.literal(shown.isEmpty() ? " " : shown)
                 .withStyle(Style.EMPTY.withUnderlined(hovered && !typing).withItalic(!typing && isRenamed(menu)));
