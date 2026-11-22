@@ -128,4 +128,10 @@ public final class StationHover {
     public static void recipeLaid() {
         CraftingTableBehavior.recipeLaid();
     }
+
+    /** Lays a recipe into the station's menu as the vanilla recipe book does: {@code recipe} is an entry of the player's book. */
+    public static void placeRecipe(net.minecraft.world.item.crafting.display.RecipeDisplayId recipe, boolean all) {
+        CraftingTableBehavior.recipeLaid();
+        DiegesisClient.focusedStation().map(StationView::menu).ifPresent(menu -> menu.placeRecipe(recipe, all));
+    }
 }

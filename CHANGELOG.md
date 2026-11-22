@@ -10,7 +10,9 @@ table, lectern, loom and cartography table worked by hand, the recipe books and 
 
 ### Not on 26.3 yet
 - NeoForge: Diegesis has no NeoForge build for 26.3.
-- The crafting table's book lists only the recipes you have unlocked: on 26.3 the server tells the game no others.
+- On a server the crafting table's book lists only the recipes you have unlocked, also with `book_recipes=all` or
+  [Not Enough Recipe Book](https://www.curseforge.com/minecraft/mc-mods/notenoughrecipebook): on 26.3 a server tells the game no
+  others. In single player it shows every recipe as before.
 - [EMI](https://www.curseforge.com/minecraft/mc-mods/emi), Polymorph's choice of recipe at the table and FastWorkbench: these
   mods have no build for 26.3.
 

@@ -7,6 +7,7 @@ import com.pockyl.handson_vanilla.gametest.AnvilTests;
 import com.pockyl.handson_vanilla.gametest.BookTests;
 import com.pockyl.handson_vanilla.gametest.BrewingTests;
 import com.pockyl.handson_vanilla.gametest.CartographyTests;
+import com.pockyl.handson_vanilla.gametest.CraftingLayTests;
 import com.pockyl.handson_vanilla.gametest.EnchantingTests;
 import com.pockyl.handson_vanilla.gametest.FurnaceTests;
 import com.pockyl.handson_vanilla.gametest.GrindstoneTests;
@@ -17,7 +18,7 @@ import com.pockyl.handson_vanilla.gametest.StonecutterTests;
 
 /**
  * The mod is client-side only: this checks that it loads on a Fabric server and stays out of the way there, and runs the book's
- * arithmetic ({@link BookTests}), the smoker's and blast furnace's pack files and
+ * arithmetic ({@link BookTests}), the book's laying by clicks ({@link CraftingLayTests}), the smoker's and blast furnace's pack files and
  * shift-clicks ({@link FurnaceTests}), the stonecutter's clicks ({@link StonecutterTests}), the smithing table's
  * ({@link SmithingTests}), the grindstone's ({@link GrindstoneTests}), the brewing stand's ({@link BrewingTests}), the
  * anvil's ({@link AnvilTests}), the enchanting table's ({@link EnchantingTests}), the lectern's ({@link LecternTests}),
@@ -43,6 +44,16 @@ public final class FabricGameTests {
     @GameTest
     public void bookSearch(GameTestHelper helper) {
         BookTests.bookSearch(helper);
+    }
+
+    @GameTest
+    public void craftingLaysByClicks(GameTestHelper helper) {
+        CraftingLayTests.craftingLaysByClicks(helper);
+    }
+
+    @GameTest
+    public void craftingLayMissing(GameTestHelper helper) {
+        CraftingLayTests.craftingLayMissing(helper);
     }
 
     @GameTest

@@ -5,6 +5,13 @@ import net.minecraft.client.Minecraft;
 import net.minecraft.client.gui.screens.recipebook.RecipeCollection;
 import net.minecraft.client.gui.screens.recipebook.SearchRecipeBookCategory;
 import net.minecraft.client.player.LocalPlayer;
+import net.minecraft.client.server.IntegratedServer;
+import net.minecraft.resources.ResourceKey;
+import net.minecraft.world.inventory.AbstractCraftingMenu;
+import net.minecraft.world.item.crafting.CraftingRecipe;
+import net.minecraft.world.item.crafting.Recipe;
+import net.minecraft.world.item.crafting.RecipeHolder;
+import net.minecraft.world.item.crafting.RecipeManager;
 import net.minecraft.core.registries.BuiltInRegistries;
 import net.minecraft.network.chat.Component;
 import net.minecraft.network.protocol.game.ServerboundRecipeBookChangeSettingsPacket;
@@ -27,26 +34,40 @@ import net.minecraft.world.level.Level;
 import com.pockyl.diegesis.api.client.MenuAccess;
 import com.pockyl.diegesis.api.client.StationView;
 import com.pockyl.diegesis.api.state.SlotRef;
+import com.pockyl.handson_vanilla.RecipeLaying;
 import com.pockyl.handson_vanilla.RecipeParts;
 
 import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.HashSet;
 import java.util.List;
+import java.util.Map;
+import java.util.Optional;
+import java.util.Set;
 
 /**
- * The crafting table's book, in place of the vanilla recipe book: every crafting recipe the player has unlocked, the recipes of one
- * group in one place (right click: all of them), what can be made now first. A shaped recipe shows its grid as it is laid;
+ * The crafting table's book, in place of the vanilla recipe book: every crafting recipe the player has unlocked (or every one at
+ * all, {@link VanillaConfig#allRecipesInBook()}), the recipes of one group in one place (right click: all of them), what can be
+ * made now first. A shaped recipe shows its grid as it is laid;
  * picking a recipe lays it into the table the vanilla book's way (shift: as many as fit), so the server checks and moves the
  * items as it would for the vanilla screen, and answers a recipe the player lacks items for with its ghost in the grid. The
  * "only what can be made now" switch and which recipes are new are the vanilla book's own, shared with it.
  *
- * <p>Since Minecraft 1.21.2 the client knows recipes only as the server shows them in the player's recipe book (displays, by
- * {@link RecipeDisplayId}), so the book shows the unlocked recipes only, whatever {@link VanillaConfig#allRecipesInBook()} says.
+ * <p>Since Minecraft 1.21.2 a client knows recipes only as the server shows them in the player's recipe book (displays, by
+ * {@link RecipeDisplayId}, an id of the session): those are the pages. Every recipe at all is known only to the game's own server,
+ * in a world played alone; there a recipe the player's book lacks is laid by plain clicks ({@link RecipeLaying}), as on 1.21.1.
  */
-final class CraftingBook implements RecipeBook.Source {
+public final class CraftingBook implements RecipeBook.Source {
     private static final int GRID = 3;
     /** The recipes the pages were last made from, and those pages: the same recipes give the same list, made once. */
     private List<RecipeDisplayEntry> madeFrom = List.of();
     private List<RecipeBook.Page> made = List.of();
+    /** The pages' recipes by their entries, for laying one the player's book has not. */
+    private final Map<RecipeDisplayId, Shown> byDisplay = new HashMap<>();
+
+    /** A recipe of the book: what the server shows of it, and, in a world played alone, the recipe itself. */
+    private record Shown(RecipeDisplayEntry entry, RecipeHolder<?> recipe) {
+    }
 
     @Override
     public List<RecipeBook.Page> pages(StationView view) {
@@ -55,19 +76,23 @@ final class CraftingBook implements RecipeBook.Source {
         if (player == null) {
             return List.of();
         }
-        List<RecipeDisplayEntry> unlocked = known(player);
+        List<Shown> shown = shown(player, VanillaConfig.allRecipesInBook());
+        List<RecipeDisplayEntry> unlocked = shown.stream().map(Shown::entry).toList();
         // Read four times a second: a big pack's thousands of pages are made again only when a recipe came, went or was reloaded.
         if (sameRecipes(unlocked)) {
             return made;
         }
         ContextMap context = SlotDisplayContext.fromLevel(level);
         List<RecipeBook.Page> pages = new ArrayList<>();
-        for (RecipeDisplayEntry entry : unlocked) {
+        byDisplay.clear();
+        for (Shown recipe : shown) {
+            RecipeDisplayEntry entry = recipe.entry();
             ItemStack result = entry.display().result().resolveForFirstStack(context);
             List<Ingredient> laid = laid(entry, context);
             if (result.isEmpty() || laid.stream().allMatch(Ingredient::isEmpty)) {
                 continue;
             }
+            byDisplay.put(entry.id(), recipe);
             Identifier category = BuiltInRegistries.RECIPE_BOOK_CATEGORY.getKey(entry.category());
             String group = entry.group().isPresent() ? Integer.toString(entry.group().getAsInt()) : "";
             pages.add(new RecipeBook.Page(new Key(entry.id(), name(result, laid)), result.copy(), laid, List.of(), null, false,
@@ -98,18 +123,61 @@ final class CraftingBook implements RecipeBook.Source {
         return Integer.toHexString(name.toString().hashCode());
     }
 
-    /** The crafting recipes in the player's recipe book, as the server showed them. */
-    private static List<RecipeDisplayEntry> known(LocalPlayer player) {
-        List<RecipeDisplayEntry> known = new ArrayList<>();
+    /**
+     * The crafting recipes of the book: the player's own book's, or, with {@code every}, every crafting recipe of the game's own
+     * server (a world played alone; on another server the client knows no more than the player's book).
+     */
+    private static List<Shown> shown(LocalPlayer player, boolean every) {
+        IntegratedServer server = Minecraft.getInstance().getSingleplayerServer();
+        RecipeManager recipes = server == null ? null : server.getRecipeManager();
+        List<Shown> shown = new ArrayList<>();
+        if (every && recipes != null) {
+            for (RecipeHolder<?> holder : recipes.getRecipes()) {
+                if (holder.value() instanceof CraftingRecipe recipe && !recipe.isSpecial()) {
+                    recipes.listDisplaysForRecipe(holder.id(), entry -> {
+                        if (isCrafting(entry.display())) {
+                            shown.add(new Shown(entry, holder));
+                        }
+                    });
+                }
+            }
+            return shown;
+        }
         for (RecipeCollection collection : player.getRecipeBook().getCollection(SearchRecipeBookCategory.CRAFTING)) {
             for (RecipeDisplayEntry entry : collection.getRecipes()) {
-                RecipeDisplay display = entry.display();
-                if (display instanceof ShapedCraftingRecipeDisplay || display instanceof ShapelessCraftingRecipeDisplay) {
-                    known.add(entry);
+                if (isCrafting(entry.display())) {
+                    RecipeManager.ServerDisplayInfo info = recipes == null ? null : recipes.getRecipeFromDisplay(entry.id());
+                    shown.add(new Shown(entry, info == null ? null : info.parent()));
                 }
             }
         }
+        return shown;
+    }
+
+    private static boolean isCrafting(RecipeDisplay display) {
+        return display instanceof ShapedCraftingRecipeDisplay || display instanceof ShapelessCraftingRecipeDisplay;
+    }
+
+    /** The entries of the player's own recipe book, the recipes the server lays by the vanilla book's packet. */
+    public static Set<RecipeDisplayId> known(LocalPlayer player) {
+        Set<RecipeDisplayId> known = new HashSet<>();
+        for (RecipeCollection collection : player.getRecipeBook().getCollections()) {
+            for (RecipeDisplayEntry entry : collection.getRecipes()) {
+                known.add(entry.id());
+            }
+        }
         return known;
+    }
+
+    /** The entry the game's own server shows a recipe by (a world played alone), for laying a recipe named by its id. */
+    public static Optional<RecipeDisplayEntry> display(ResourceKey<Recipe<?>> recipe) {
+        IntegratedServer server = Minecraft.getInstance().getSingleplayerServer();
+        if (server == null) {
+            return Optional.empty();
+        }
+        List<RecipeDisplayEntry> found = new ArrayList<>();
+        server.getRecipeManager().listDisplaysForRecipe(recipe, found::add);
+        return found.stream().filter(entry -> isCrafting(entry.display())).findFirst();
     }
 
     /** The tab a recipe book category belongs to, by the names the 1.21.1 categories had ({@code building}, {@code redstone}...). */
@@ -189,8 +257,33 @@ final class CraftingBook implements RecipeBook.Source {
             Minecraft.getInstance().getSoundManager().play(net.minecraft.client.resources.sounds.SimpleSoundInstance.forUI(
                     net.minecraft.sounds.SoundEvents.BOOK_PAGE_TURN, 1.4F, 0.35F * VanillaConfig.soundVolume()));
             CraftingTableBehavior.recipeLaid();
-            // Every recipe the book shows is in the player's recipe book: the vanilla book's packet, the server's placing and ghost.
-            menu.placeRecipe(recipe, Minecraft.getInstance().hasShiftDown());
+            Shown shown = byDisplay.get(recipe);
+            lay(menu, recipe, shown == null ? null : shown.recipe(), Minecraft.getInstance().hasShiftDown());
+        }
+    }
+
+    /**
+     * Lays a recipe: one in the player's recipe book as the vanilla book does (its packet, the server's placing and ghost); one not in
+     * it (the book shows every recipe, see {@link VanillaConfig#allRecipesInBook()}) with plain clicks, which any server takes, and its
+     * ghost shown here when items are missing.
+     *
+     * @param recipe the recipe itself, known in a world played alone; null elsewhere
+     */
+    @SuppressWarnings("unchecked")
+    static void lay(MenuAccess menu, RecipeDisplayId display, RecipeHolder<?> recipe, boolean all) {
+        LocalPlayer player = Minecraft.getInstance().player;
+        if (player == null || recipe == null || !(recipe.value() instanceof CraftingRecipe) || known(player).contains(display)
+                || !(menu.handle() instanceof AbstractCraftingMenu crafting)) {
+            menu.placeRecipe(display, all);
+            return;
+        }
+        if (RecipeLaying.lay(crafting, player.getInventory(), (RecipeHolder<CraftingRecipe>) recipe, all, menu::click)
+                == RecipeLaying.Outcome.MISSING) {
+            IntegratedServer server = Minecraft.getInstance().getSingleplayerServer();
+            RecipeManager.ServerDisplayInfo info = server == null ? null : server.getRecipeManager().getRecipeFromDisplay(display);
+            if (info != null) {
+                GhostRecipe.arrived(crafting.containerId, info.display().display());
+            }
         }
     }
 

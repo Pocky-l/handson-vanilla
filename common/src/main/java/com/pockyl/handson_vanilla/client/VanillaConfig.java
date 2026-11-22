@@ -36,7 +36,7 @@ public final class VanillaConfig {
             "recipe_book: the recipe book beside the crafting table. Off, there is none.",
             "book_recipes: which recipes the book shows. unlocked: those the player has unlocked, as the vanilla book. all: every",
             "  recipe. auto: all when Not Enough Recipe Book is installed (it empties the vanilla book), else unlocked.",
-            "  On Minecraft 26.3 the game knows only the unlocked recipes: the book shows those whatever this says.",
+            "  On Minecraft 26.3 a server tells the game only the unlocked recipes: all works in single player only.",
             "sound_volume: the stations' own sounds, from 0 (silent) to 1.");
 
     private static boolean craftingTable = true;
