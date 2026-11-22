@@ -4,13 +4,14 @@ import net.minecraft.client.Minecraft;
 import net.minecraft.client.gui.screens.Screen;
 import net.minecraft.client.resources.sounds.SimpleSoundInstance;
 import net.minecraft.network.chat.Component;
+import net.minecraft.core.Holder;
+import net.minecraft.core.registries.BuiltInRegistries;
 import net.minecraft.sounds.SoundEvents;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.item.Items;
-import net.minecraft.util.context.ContextMap;
 import net.minecraft.world.item.crafting.SelectableRecipe;
-import net.minecraft.world.item.crafting.StonecutterRecipe;
 import net.minecraft.world.item.crafting.display.SlotDisplayContext;
+import net.minecraft.world.item.crafting.StonecutterRecipe;
 import net.minecraft.world.level.Level;
 
 import com.pockyl.diegesis.api.client.StationView;
@@ -34,6 +35,24 @@ final class StonecutterBook implements RecipeBook.Source {
         this.station = station;
     }
 
+    /**
+     * A cut, as the server sends every client its stonecutter recipes since Minecraft 1.21.2: the stone it takes and what it shows it
+     * makes, no id. Two cuts are the same when those are; the name the book remembers it by stays across sessions.
+     */
+    record Cut(SelectableRecipe.SingleInputEntry<StonecutterRecipe> entry) {
+        /** What the cut makes, as the stonecutter shows its button. */
+        ItemStack makes(Level level) {
+            return entry.recipe().optionDisplay().resolveForFirstStack(SlotDisplayContext.fromLevel(level));
+        }
+
+        @Override
+        public String toString() {
+            Level level = Minecraft.getInstance().level;
+            String into = level == null ? "" : BuiltInRegistries.ITEM.getKey(makes(level).getItem()).toString();
+            return entry.input().items().findFirst().map(Holder::getRegisteredName).orElse("") + ">" + into;
+        }
+    }
+
     @Override
     public List<RecipeBook.Page> pages(StationView view) {
         Level level = view.level();
@@ -42,14 +61,14 @@ final class StonecutterBook implements RecipeBook.Source {
         if (same(recipes)) {
             return made;
         }
-        ContextMap context = SlotDisplayContext.fromLevel(level);
         List<RecipeBook.Page> pages = new ArrayList<>();
         for (SelectableRecipe.SingleInputEntry<StonecutterRecipe> entry : recipes) {
-            ItemStack result = entry.recipe().optionDisplay().resolveForFirstStack(context);
-            if (result.isEmpty()) {
+            Cut cut = new Cut(entry);
+            ItemStack result = cut.makes(level);
+            if (result.isEmpty() || entry.input().isEmpty()) {
                 continue;
             }
-            pages.add(new RecipeBook.Page(entry, result.copy(), List.of(entry.input()), List.of(), null, false));
+            pages.add(new RecipeBook.Page(cut, result.copy(), List.of(entry.input()), List.of(), null, false, null, null));
         }
         madeFrom = recipes;
         made = List.copyOf(pages);
@@ -76,12 +95,10 @@ final class StonecutterBook implements RecipeBook.Source {
 
     @Override
     public void picked(StationView view, RecipeBook.Page page) {
-        if (page.key() instanceof SelectableRecipe.SingleInputEntry<?> entry) {
-            @SuppressWarnings("unchecked")
-            SelectableRecipe.SingleInputEntry<StonecutterRecipe> recipe = (SelectableRecipe.SingleInputEntry<StonecutterRecipe>) entry;
+        if (page.key() instanceof Cut recipe) {
             Minecraft.getInstance().getSoundManager().play(SimpleSoundInstance.forUI(SoundEvents.BOOK_PAGE_TURN, 1.4F,
                     0.35F * VanillaConfig.soundVolume()));
-            station.cut(view, recipe, !net.minecraft.client.Minecraft.getInstance().hasShiftDown());
+            station.cut(view, recipe, !Minecraft.getInstance().hasShiftDown());
         }
     }
 

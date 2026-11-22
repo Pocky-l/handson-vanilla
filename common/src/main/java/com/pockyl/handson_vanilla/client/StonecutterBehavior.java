@@ -17,7 +17,6 @@ import net.minecraft.world.item.ItemDisplayContext;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.item.crafting.Ingredient;
 import net.minecraft.world.item.crafting.SelectableRecipe;
-import net.minecraft.world.item.crafting.display.SlotDisplayContext;
 import net.minecraft.world.item.crafting.StonecutterRecipe;
 import net.minecraft.world.level.block.StonecutterBlock;
 import org.joml.Vector3f;
@@ -98,7 +97,7 @@ final class StonecutterBehavior implements StationBehavior {
     private float cut = -1.0F;
     /** Seconds before a cut waits to start: the stone is still flying onto the slab. */
     private float startIn = -1.0F;
-    private SelectableRecipe.SingleInputEntry<StonecutterRecipe> cutId;
+    private StonecutterBook.Cut cutId;
     private boolean cutAll;
     private int bites;
     private int bitten;
@@ -106,7 +105,7 @@ final class StonecutterBehavior implements StationBehavior {
     private float dustIn;
     private int queued;
     /** Another page picked during a cut: cut after it (and after the picks queued of the same piece). */
-    private SelectableRecipe.SingleInputEntry<StonecutterRecipe> nextId;
+    private StonecutterBook.Cut nextId;
     private boolean nextAll;
     /**
      * The pieces springing out of the stone, and seconds since they did (negative: none); it runs on through the next cut's start.
@@ -198,18 +197,15 @@ final class StonecutterBehavior implements StationBehavior {
         return view.state().getItem(SlotRef.of(INPUT, 0));
     }
 
-    /**
-     * The recipe the stonecutter is set to cut, or null. Since Minecraft 1.21.2 a client knows a stonecutter recipe only as an entry of
-     * the list every client is sent (what it takes, what it shows): the entry is the recipe here.
-     */
-    SelectableRecipe.SingleInputEntry<StonecutterRecipe> picked(StationView view) {
+    /** The recipe the stonecutter is set to cut, or null. */
+    StonecutterBook.Cut picked(StationView view) {
         StonecutterMenu cutter = stonecutter(view);
         if (cutter == null) {
             return null;
         }
         int index = cutter.getSelectedRecipeIndex();
         List<SelectableRecipe.SingleInputEntry<StonecutterRecipe>> recipes = cutter.getVisibleRecipes().entries();
-        return index >= 0 && index < recipes.size() ? recipes.get(index) : null;
+        return index >= 0 && index < recipes.size() ? new StonecutterBook.Cut(recipes.get(index)) : null;
     }
 
     /**
@@ -217,7 +213,7 @@ final class StonecutterBehavior implements StationBehavior {
      * stone laid on the slab first when another or none lies there. Without that stone, or without room for the pieces in the
      * inventory, the slab's stone shakes.
      */
-    void cut(StationView view, SelectableRecipe.SingleInputEntry<StonecutterRecipe> id, boolean all) {
+    void cut(StationView view, StonecutterBook.Cut id, boolean all) {
         MenuAccess menu = view.menu();
         StonecutterMenu cutter = stonecutter(view);
         LocalPlayer player = Minecraft.getInstance().player;
@@ -233,8 +229,8 @@ final class StonecutterBehavior implements StationBehavior {
             }
             return;
         }
-        Ingredient stone = id.input();
-        ItemStack makes = id.recipe().optionDisplay().resolveForFirstStack(SlotDisplayContext.fromLevel(view.level()));
+        Ingredient stone = id.entry().input();
+        ItemStack makes = id.makes(view.level());
         if (makes.isEmpty()) {
             return;
         }
@@ -283,7 +279,7 @@ final class StonecutterBehavior implements StationBehavior {
         if (cutter != null) {
             List<SelectableRecipe.SingleInputEntry<StonecutterRecipe>> recipes = cutter.getVisibleRecipes().entries();
             for (int i = 0; i < recipes.size(); i++) {
-                if (recipes.get(i).equals(cutId)) {
+                if (cutId != null && recipes.get(i).equals(cutId.entry())) {
                     index = i;
                 }
             }
@@ -370,7 +366,7 @@ final class StonecutterBehavior implements StationBehavior {
                 queued--;
                 begin(view);
             } else if (nextId != null) {
-                SelectableRecipe.SingleInputEntry<StonecutterRecipe> next = nextId;
+                StonecutterBook.Cut next = nextId;
                 nextId = null;
                 cut(view, next, nextAll);
             }

@@ -1,5 +1,6 @@
 package com.pockyl.handson_vanilla.client;
 
+import com.pockyl.handson_vanilla.RecipeParts;
 import com.mojang.blaze3d.vertex.PoseStack;
 import com.mojang.blaze3d.vertex.VertexConsumer;
 import net.minecraft.util.Util;
@@ -25,7 +26,6 @@ import net.minecraft.world.entity.player.Inventory;
 import net.minecraft.world.item.ItemDisplayContext;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.item.crafting.Ingredient;
-import net.minecraft.core.registries.BuiltInRegistries;
 import net.minecraft.world.phys.Vec3;
 import org.joml.Matrix3f;
 import org.joml.Matrix4f;
@@ -580,22 +580,6 @@ final class RecipeBook implements NodePainter {
             this(key, dish, ingredients, foot, note, stars, null, null);
         }
 
-        /**
-         * The page's name in the book's file (the recipes made lately) and for the search: its key when that is an id; else, since
-         * Minecraft 1.21.2 knows a recipe on the client only by a number the server gives it for the session, what it makes and
-         * what goes in, by item ids.
-         */
-        String name() {
-            if (key instanceof Identifier id) {
-                return id.toString();
-            }
-            StringBuilder name = new StringBuilder(BuiltInRegistries.ITEM.getKey(dish.getItem()).toString());
-            for (Ingredient ingredient : ingredients) {
-                ingredient.items().findFirst().ifPresent(item -> name.append('+').append(item.getRegisteredName()));
-            }
-            return name.toString();
-        }
-
         /** What the page's place on the list is known by: its group, or the page itself when it has none. */
         Object place() {
             return group == null || group.isEmpty() ? key : kind + "/" + group;
@@ -935,7 +919,7 @@ final class RecipeBook implements NodePainter {
             if (page.kind() != null) {
                 kinds.add(page.kind());
             }
-            anyRecent |= recent.contains(page.name());
+            anyRecent |= recent.contains(page.key().toString());
         }
         // A tab with nothing in it is not offered (a new player has no redstone yet), as the vanilla book hides them.
         boolean hasRecent = anyRecent;
@@ -958,8 +942,8 @@ final class RecipeBook implements NodePainter {
                     unseen.add(page.kind());
                 }
             }
-            if (searched ? !BookMath.matches(query, page.dish().getHoverName().getString(), page.name())
-                    : lately ? !recent.contains(page.name()) : tab != null && !tab.equals(page.kind())) {
+            if (searched ? !BookMath.matches(query, page.dish().getHoverName().getString(), page.key().toString())
+                    : lately ? !recent.contains(page.key().toString()) : tab != null && !tab.equals(page.kind())) {
                 continue;
             }
             inTab++;
@@ -987,7 +971,7 @@ final class RecipeBook implements NodePainter {
         }
         if (lately) {
             // Newest first, and they stay where they are: the point of the tab is that sticks are always in the same place.
-            found.sort(Comparator.comparingInt(entry -> recent.indexOf(entry.page().name())));
+            found.sort(Comparator.comparingInt(entry -> recent.indexOf(entry.page().key().toString())));
         } else {
             // New to the player first, then what can be made now, then the rest; by name within each, so a recipe has a place
             // (or in the source's own order, which a stable sort keeps).
@@ -1064,7 +1048,7 @@ final class RecipeBook implements NodePainter {
     /** A recipe was laid from the book: it goes to the head of the recipes made lately. */
     private void made(Page page) {
         List<String> recent = new ArrayList<>(recent());
-        String key = page.name();
+        String key = page.key().toString();
         recent.remove(key);
         recent.add(0, key);
         while (recent.size() > RECENT_MOST) {
@@ -1883,52 +1867,9 @@ final class RecipeBook implements NodePainter {
         }
     }
 
-    /**
-     * A gap in a shaped recipe's grid, where {@code Ingredient.EMPTY} stood before Minecraft 1.21.2: an ingredient can no longer list
-     * no items, but one of a tag that names none can. It takes nothing and needs nothing.
-     */
-    static final Ingredient GAP = emptyTag(net.minecraft.tags.TagKey.create(net.minecraft.core.registries.Registries.ITEM,
-            HandsOnVanilla.id("gap")));
-
-    /** An ingredient of {@code tag} as a tag that names no items reads: it takes nothing (as Hands-On Delight's on 26.x). */
-    private static Ingredient emptyTag(net.minecraft.tags.TagKey<net.minecraft.world.item.Item> tag) {
-        return Ingredient.of(new net.minecraft.core.HolderSet.ListBacked<net.minecraft.world.item.Item>() {
-            @Override
-            protected List<net.minecraft.core.Holder<net.minecraft.world.item.Item>> contents() {
-                return List.of();
-            }
-
-            @Override
-            public boolean isBound() {
-                return true;
-            }
-
-            @Override
-            public com.mojang.datafixers.util.Either<net.minecraft.tags.TagKey<net.minecraft.world.item.Item>,
-                    List<net.minecraft.core.Holder<net.minecraft.world.item.Item>>> unwrap() {
-                return com.mojang.datafixers.util.Either.left(tag);
-            }
-
-            @Override
-            public Optional<net.minecraft.tags.TagKey<net.minecraft.world.item.Item>> unwrapKey() {
-                return Optional.of(tag);
-            }
-
-            @Override
-            public boolean contains(net.minecraft.core.Holder<net.minecraft.world.item.Item> value) {
-                return false;
-            }
-        });
-    }
-
-    /** The stacks an ingredient takes, one of each item, as {@code Ingredient.getItems()} gave them before Minecraft 1.21.2. */
-    static ItemStack[] items(Ingredient ingredient) {
-        return ingredient.items().map(ItemStack::new).toArray(ItemStack[]::new);
-    }
-
     /** The stack a thing that goes in shows now: it goes through its choices, one a second. */
     private static ItemStack choice(Entry entry, int index) {
-        ItemStack[] choices = items(entry.ingredients().get(index));
+        ItemStack[] choices = RecipeParts.items(entry.ingredients().get(index));
         return choices.length == 0 ? ItemStack.EMPTY : choices[(int) (Util.getMillis() / 1000L % choices.length)];
     }
 
@@ -1939,7 +1880,7 @@ final class RecipeBook implements NodePainter {
     private Page target(Entry entry, int index, ItemStack shown) {
         List<Page> making = shown.isEmpty() ? null : makes.get(shown.getItem());
         if (making == null) {
-            for (ItemStack choice : items(entry.ingredients().get(index))) {
+            for (ItemStack choice : RecipeParts.items(entry.ingredients().get(index))) {
                 making = makes.get(choice.getItem());
                 if (making != null) {
                     break;
@@ -1976,7 +1917,7 @@ final class RecipeBook implements NodePainter {
         int count = entry.ingredients().size();
         float top = ingredientsTop(entry);
         for (int i = 0; i < count; i++) {
-            if (entry.ingredients().get(i).isEmpty()) {
+            if (RecipeParts.items(entry.ingredients().get(i)).length == 0) {
                 continue;
             }
             int inRow = Math.min(3, count - i / 3 * 3);

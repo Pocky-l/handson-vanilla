@@ -2,6 +2,7 @@ package com.pockyl.handson_vanilla.client;
 
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.player.LocalPlayer;
+import net.minecraft.core.registries.BuiltInRegistries;
 import net.minecraft.network.chat.Component;
 import net.minecraft.network.protocol.game.ServerboundRecipeBookChangeSettingsPacket;
 import net.minecraft.network.protocol.game.ServerboundRecipeBookSeenRecipePacket;
@@ -28,9 +29,12 @@ import com.pockyl.diegesis.api.client.MenuAccess;
 import com.pockyl.diegesis.api.client.StationView;
 import com.pockyl.diegesis.api.state.SlotRef;
 import com.pockyl.handson_vanilla.RecipeLaying;
+import com.pockyl.handson_vanilla.RecipeParts;
 
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 import java.util.Set;
 
 /**
@@ -63,18 +67,39 @@ final class CraftingBook implements RecipeBook.Source {
         }
         ContextMap context = SlotDisplayContext.fromLevel(level);
         List<RecipeBook.Page> pages = new ArrayList<>();
+        Map<String, Integer> names = new HashMap<>();
         for (RecipeDisplayEntry entry : entries) {
             List<ItemStack> results = entry.resultItems(context);
             List<Ingredient> laid = laid(entry.display(), context);
             if (results.isEmpty() || results.getFirst().isEmpty() || laid.isEmpty()) {
                 continue;
             }
-            pages.add(new RecipeBook.Page(entry.id(), results.getFirst().copy(), laid, List.of(), null, false, kind(entry.category()),
+            pages.add(new RecipeBook.Page(new Key(entry.id(), name(entry.id(), results.getFirst(), names)), results.getFirst().copy(),
+                    laid, List.of(), null, false, kind(entry.category()),
                     entry.group().isPresent() ? Integer.toString(entry.group().getAsInt()) : ""));
         }
         madeFrom = entries;
         made = List.copyOf(pages);
         return made;
+    }
+
+    /**
+     * A page's key: the recipe as the server numbers it for this session, and a name for it that stays across sessions, for the
+     * recipes laid lately and the search (the recipe's id in singleplayer, as on 1.21.1; else what it makes).
+     */
+    record Key(RecipeDisplayId id, String name) {
+        @Override
+        public String toString() {
+            return name;
+        }
+    }
+
+    /** The recipe's id when the game's own server knows it, else the id of what it makes, numbered from the second on. */
+    private static String name(RecipeDisplayId id, ItemStack result, Map<String, Integer> names) {
+        String name = ClientRecipes.recipe(id).map(holder -> holder.id().identifier().toString())
+                .orElseGet(() -> BuiltInRegistries.ITEM.getKey(result.getItem()).toString());
+        int same = names.merge(name, 1, Integer::sum);
+        return same > 1 ? name + "#" + same : name;
     }
 
     /** Whether these are the very entries the pages were made from: the same objects, so a new recipe book is a change too. */
@@ -120,7 +145,7 @@ final class CraftingBook implements RecipeBook.Source {
         for (int row = 0; row < shaped.height(); row++) {
             for (int column = 0; column < GRID; column++) {
                 grid.add(column < shaped.width() ? ingredient(shaped.ingredients().get(row * shaped.width() + column), context)
-                        : RecipeBook.GAP);
+                        : RecipeParts.NOTHING);
             }
         }
         return grid;
@@ -129,7 +154,7 @@ final class CraftingBook implements RecipeBook.Source {
     /** What a place of the recipe takes, as an ingredient of the items it shows; a gap when it shows none. */
     private static Ingredient ingredient(SlotDisplay part, ContextMap context) {
         List<ItemStack> items = part.resolveForStacks(context);
-        return items.isEmpty() ? RecipeBook.GAP : Ingredient.of(items.stream().map(ItemStack::getItem).distinct());
+        return items.isEmpty() ? RecipeParts.NOTHING : Ingredient.of(items.stream().map(ItemStack::getItem).distinct());
     }
 
     @Override
@@ -144,7 +169,7 @@ final class CraftingBook implements RecipeBook.Source {
     @Override
     public void picked(StationView view, RecipeBook.Page page) {
         MenuAccess menu = view.menu();
-        if (menu != null && page.key() instanceof RecipeDisplayId recipe) {
+        if (menu != null && page.key() instanceof Key(RecipeDisplayId recipe, String ignored)) {
             // The page answers the finger at once; the items follow when the server has laid them.
             Minecraft.getInstance().getSoundManager().play(net.minecraft.client.resources.sounds.SimpleSoundInstance.forUI(
                     net.minecraft.sounds.SoundEvents.BOOK_PAGE_TURN, 1.4F, 0.35F * VanillaConfig.soundVolume()));
@@ -217,13 +242,13 @@ final class CraftingBook implements RecipeBook.Source {
     @Override
     public boolean isNew(RecipeBook.Page page) {
         LocalPlayer player = Minecraft.getInstance().player;
-        return player != null && page.key() instanceof RecipeDisplayId id && player.getRecipeBook().willHighlight(id);
+        return player != null && page.key() instanceof Key(RecipeDisplayId id, String ignored) && player.getRecipeBook().willHighlight(id);
     }
 
     @Override
     public void seen(RecipeBook.Page page) {
         LocalPlayer player = Minecraft.getInstance().player;
-        if (player != null && page.key() instanceof RecipeDisplayId id && player.getRecipeBook().willHighlight(id)) {
+        if (player != null && page.key() instanceof Key(RecipeDisplayId id, String ignored) && player.getRecipeBook().willHighlight(id)) {
             player.getRecipeBook().removeHighlight(id);
             player.connection.send(new ServerboundRecipeBookSeenRecipePacket(id));
         }

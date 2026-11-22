@@ -15,10 +15,9 @@ import java.util.HashSet;
 import java.util.Set;
 
 /**
- * Whether a stack can do anything in a crafting grid: an ingredient of a crafting recipe the client knows (those in the player's
- * recipe book since Minecraft 1.21.2; every one in singleplayer), or something the
- * special recipes take (a tool to repair, leather to dye (the items a cauldron washes the dye off), a map or a book to copy, a firework, a banner, a shield, a shulker
- * box, a lingering potion for arrows). Stacks that can do nothing stay out of the rows over the hotbar.
+ * Whether a stack can do anything in a crafting grid: an ingredient of a crafting recipe the client knows ({@link #refresh}), or
+ * something the special recipes take (a tool to repair, leather to dye, a dye, a map or a book to copy, a firework, a banner, a
+ * shield, a shulker box, a lingering potion for arrows). Stacks that can do nothing stay out of the rows over the hotbar.
  */
 final class CraftingUse {
     private static final Set<Item> SPECIAL = Set.of(Items.FILLED_MAP, Items.WRITTEN_BOOK, Items.FIREWORK_STAR, Items.FIREWORK_ROCKET,
@@ -48,7 +47,9 @@ final class CraftingUse {
             refresh();
         }
         Item item = stack.getItem();
-        return INGREDIENTS.contains(item) || SPECIAL.contains(item) || stack.isDamageableItem() || stack.is(ItemTags.CAULDRON_CAN_REMOVE_DYE)
+        // Leather to dye: the items a cauldron washes the dye off (Minecraft 1.21.1's dyeable tag).
+        return INGREDIENTS.contains(item) || SPECIAL.contains(item) || stack.isDamageableItem()
+                || stack.is(ItemTags.CAULDRON_CAN_REMOVE_DYE) || stack.is(ItemTags.DYES)
                 || item instanceof BannerItem || item instanceof BlockItem block && block.getBlock() instanceof ShulkerBoxBlock;
     }
 }
