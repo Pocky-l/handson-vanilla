@@ -1,13 +1,21 @@
 # Changelog
 
 ## [1.2.3+26.2] - Unreleased
-- The first version for Minecraft 26.2, on Fabric, with every station of 1.2.3+1.21.1.
-- The crafting table's book lists the recipes of your recipe book. Since Minecraft 1.21.2 a server tells the game no other
-  recipes, so the book of every recipe (`book_recipes=all`) works in singleplayer only.
-- Not in this version: [EMI](https://www.curseforge.com/minecraft/mc-mods/emi) and
-  [Polymorph](https://modrinth.com/mod/polymorph), which have no build for 26.2, and
-  [FastWorkbench](https://www.curseforge.com/minecraft/mc-mods/fastworkbench), which has none for Fabric.
-- Needs [Diegesis](https://www.curseforge.com/minecraft/mc-mods/diegesis) 1.0.0-beta.17.1 for 26.2 and Fabric API 0.161.0.
+- Minecraft 26.2 on [Fabric](https://fabricmc.net): every station of 1.2.3+1.21.1, the recipe books, and the keys and "+" of
+  [JEI](https://www.curseforge.com/minecraft/mc-mods/jei) at the stations.
+- Needs [Diegesis](https://www.curseforge.com/minecraft/mc-mods/diegesis) 1.0.0-beta.17.1+26.2 and
+  [Fabric API](https://www.curseforge.com/minecraft/mc-mods/fabric-api).
+- Since Minecraft 1.21.2 a server tells the game only the recipes you have unlocked: the crafting table's book shows every recipe
+  (`book_recipes=all`, or with [Not Enough Recipe Book](https://www.curseforge.com/minecraft/mc-mods/notenoughrecipebook)) in
+  singleplayer only.
+- A vanilla enchanting table or anvil that [Easy Magic](https://www.curseforge.com/minecraft/mc-mods/easy-magic) or
+  [Easy Anvils](https://www.curseforge.com/minecraft/mc-mods/easy-anvils) turns into its own when first used opens the station from
+  the next use on.
+
+### Not on 26.2 yet
+- NeoForge.
+- [EMI](https://www.curseforge.com/minecraft/mc-mods/emi), [Polymorph](https://www.curseforge.com/minecraft/mc-mods/polymorph) and
+  [FastWorkbench](https://www.curseforge.com/minecraft/mc-mods/fastworkbench): they have no Fabric build for 26.2.
 
 ## [1.2.3+1.21.1] - 2026-11-22
 - The anvil shows the name you type again, so items can be renamed at the station.
