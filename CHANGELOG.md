@@ -1,6 +1,9 @@
 # Changelog
 
-## [1.2.2+1.21.1]
+## [1.2.3+1.21.1] - Unreleased
+- The anvil shows the name you type again, so items can be renamed at the station.
+
+## [1.2.2+1.21.1] - 2026-11-21
 - With [EMI](https://www.curseforge.com/minecraft/mc-mods/emi), its item list stands beside the stations, and its keys, search and
   "+" work there.
 - With [Not Enough Recipe Book](https://www.curseforge.com/minecraft/mc-mods/notenoughrecipebook), the crafting table's book shows
