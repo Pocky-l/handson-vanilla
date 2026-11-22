@@ -28,9 +28,9 @@ import java.util.function.Consumer;
 
 /**
  * The mod is client-side only: this checks that it loads on a Fabric server and stays out of the way there, and runs the book's
- * arithmetic ({@link BookTests}), the book's laying by clicks ({@link CraftingLayTests}) and the smoker's and blast furnace's pack files and
- * shift-clicks ({@link FurnaceTests}), the stonecutter's clicks ({@link StonecutterTests}), the smithing table's
- * ({@link SmithingTests}), the grindstone's ({@link GrindstoneTests}), the brewing stand's ({@link BrewingTests}), the
+ * arithmetic and its grid gaps ({@link BookTests}), the book's laying by clicks ({@link CraftingLayTests}), the smoker's and blast
+ * furnace's pack files and shift-clicks ({@link FurnaceTests}), the stonecutter's clicks ({@link StonecutterTests}), the smithing
+ * table's ({@link SmithingTests}), the grindstone's ({@link GrindstoneTests}), the brewing stand's ({@link BrewingTests}), the
  * anvil's ({@link AnvilTests}), the enchanting table's ({@link EnchantingTests}), the lectern's ({@link LecternTests}),
  * the loom's ({@link LoomTests}) and the cartography table's ({@link CartographyTests}).
  * <p>
@@ -60,6 +60,7 @@ public final class FabricGameTests implements ModInitializer {
         tests.put("book_turns", BookTests::bookTurns);
         tests.put("book_leafing", BookTests::bookLeafing);
         tests.put("book_search", BookTests::bookSearch);
+        tests.put("book_gap_reads_empty", BookTests::bookGapReadsEmpty);
         tests.put("crafting_lays_by_clicks", CraftingLayTests::craftingLaysByClicks);
         tests.put("crafting_lay_missing", CraftingLayTests::craftingLayMissing);
         tests.put("furnace_files_served", FurnaceTests::furnaceFilesServed);
