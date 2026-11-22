@@ -6,8 +6,8 @@ import net.minecraft.client.gui.Font;
 import net.minecraft.client.gui.screens.inventory.EnchantmentNames;
 import net.minecraft.client.player.LocalPlayer;
 import net.minecraft.client.renderer.LevelRenderer;
-import net.minecraft.client.renderer.LightTexture;
-import net.minecraft.client.renderer.MultiBufferSource;
+import net.minecraft.util.LightCoordsUtil;
+import com.pockyl.diegesis.api.client.SceneBuffers;
 import net.minecraft.client.resources.language.I18n;
 import net.minecraft.locale.Language;
 import net.minecraft.network.chat.Component;
@@ -79,7 +79,7 @@ final class EnchantingTableBehavior implements StationBehavior {
     private static final float RIGHT_X = 4.0F;
     private static final float RIGHT_END = 96.0F;
     /** Vanilla's experience orb before the player's level: a frame of its texture, its size in units, its tint's rate. */
-    private static final net.minecraft.resources.ResourceLocation ORB = vanilla("textures/entity/experience_orb.png");
+    private static final net.minecraft.resources.Identifier ORB = vanilla("textures/entity/experience/experience_orb.png");
     private static final int ORB_ICON = 2;
     private static final float ORB_SIZE = 9.0F;
     private static final float LAPIS_SIZE = 8.0F;
@@ -250,7 +250,7 @@ final class EnchantingTableBehavior implements StationBehavior {
         view.setInventoryFilter(stack -> usable(view, stack));
         view.node(BOOK).ifPresent(node -> node.setPainter(new NodePainter() {
             @Override
-            public void paint(PoseStack poseStack, MultiBufferSource buffers, int light) {
+            public void paint(PoseStack poseStack, SceneBuffers buffers, int light) {
                 drawBook(view, poseStack, buffers, light);
             }
 
@@ -277,7 +277,7 @@ final class EnchantingTableBehavior implements StationBehavior {
         heldSlot = -1;
         LocalPlayer player = Minecraft.getInstance().player;
         if (player != null && view.openedByUse() && player.getMainHandItem().copyWithCount(1).isEnchantable()) {
-            heldSlot = player.getInventory().selected;
+            heldSlot = player.getInventory().getSelectedSlot();
         }
         itemFrom = -1;
         lapisFrom = -1;
@@ -461,7 +461,7 @@ final class EnchantingTableBehavior implements StationBehavior {
         idle = Mth.approach(idle, idleWanted ? 1.0F : 0.0F, dt / (idleWanted ? IDLE_IN : IDLE_OUT));
         if (idleWanted && !book.isFlipping()) {
             // The pages going over by themselves are pages turned: each one that goes over brings the next spread.
-            int turned = OpenBook.flipTurns(Mth.lerp(Minecraft.getInstance().getTimer().getGameTimeDeltaPartialTick(false), idleFlipOld, idleFlip));
+            int turned = OpenBook.flipTurns(Mth.lerp(Minecraft.getInstance().getDeltaTracker().getGameTimeDeltaPartialTick(false), idleFlipOld, idleFlip));
             if (!idleTurning) {
                 idleTurning = true;
                 idleBase = book.spread() - turned;
@@ -649,7 +649,7 @@ final class EnchantingTableBehavior implements StationBehavior {
             return;
         }
         puffCarry += dt * RIFFLE_PUFF_RATE;
-        List<net.minecraft.resources.ResourceLocation> glyphs = HandsOnVanillaClient.DRIFTING_GLYPHS;
+        List<net.minecraft.resources.Identifier> glyphs = HandsOnVanillaClient.DRIFTING_GLYPHS;
         while (puffCarry >= 1.0F) {
             puffCarry -= 1.0F;
             float x = 10.0F + 80.0F * StationHands.random(view);
@@ -664,7 +664,7 @@ final class EnchantingTableBehavior implements StationBehavior {
 
     /** A letter breaking off a page: it flies off as a glyph of its own, in a colour of the glint's. */
     private void crumble(StationView view, Pose pose, boolean rightPage, RunePages.Spot spot) {
-        List<net.minecraft.resources.ResourceLocation> glyphs = HandsOnVanillaClient.DRIFTING_GLYPHS;
+        List<net.minecraft.resources.Identifier> glyphs = HandsOnVanillaClient.DRIFTING_GLYPHS;
         Vector3f at = pose.toScene(book.onPage(rightPage, spot.x(), spot.y(), pose.open, pose.right, pose.left));
         // Off the page towards the reader, and up.
         Vector3f velocity = new Vector3f(facing(view)).sub(at).normalize().mul(2.0F + 1.5F * StationHands.random(view))
@@ -714,7 +714,7 @@ final class EnchantingTableBehavior implements StationBehavior {
         }
         view.node(ITEM).ifPresent(node -> {
             Vector3f to = new Vector3f(node.definition().transform().pos()).add(0.0F, 1.0F, 0.0F);
-            List<net.minecraft.resources.ResourceLocation> glyphs = HandsOnVanillaClient.GLYPHS;
+            List<net.minecraft.resources.Identifier> glyphs = HandsOnVanillaClient.GLYPHS;
             for (int i = 0; i < count; i++) {
                 // From along the row, spread a little, each straight into the item in the same time.
                 Vector3f from = new Vector3f(streamFrom).add((StationHands.random(view) - 0.5F) * 6.0F,
@@ -840,7 +840,7 @@ final class EnchantingTableBehavior implements StationBehavior {
 
     private Pose pose(StationView view) {
         float k = coming ? HoveringResult.outCubic(glide) : 1.0F - HoveringResult.outCubic(1.0F - glide);
-        float partial = Minecraft.getInstance().getTimer().getGameTimeDeltaPartialTick(false);
+        float partial = Minecraft.getInstance().getDeltaTracker().getGameTimeDeltaPartialTick(false);
         // Where it is read: lying back on the air, facing extra.faces, as a book held to be read; shut, turned about its spine so
         // that the cover faces the camera.
         Vector3fc centre = view.node(BOOK).map(n -> n.definition().transform().pos()).orElse(new Vector3f(8.0F, 17.5F, 9.5F));
@@ -867,7 +867,7 @@ final class EnchantingTableBehavior implements StationBehavior {
             readRight = Mth.lerp(ease, rest, sheets[0]);
             readLeft = Mth.lerp(ease, -rest, sheets[1]);
         }
-        int readLight = LightTexture.FULL_BRIGHT;
+        int readLight = LightCoordsUtil.FULL_BRIGHT;
         Matrix4f table = read;
         float tableOpen = readOpen;
         float tableRight = readRight;
@@ -891,11 +891,11 @@ final class EnchantingTableBehavior implements StationBehavior {
             float[] sheets = OpenBook.flipAngles(flip, tableOpen);
             tableRight = sheets[0];
             tableLeft = sheets[1];
-            tableLight = LevelRenderer.getLightColor(view.level(), view.pos());
+            tableLight = net.minecraft.util.LightCoordsUtil.getLightCoords(view.level(), view.pos());
         }
         Vector3f at = table.getTranslation(new Vector3f()).lerp(read.getTranslation(new Vector3f()), k);
         Quaternionf turn = table.getNormalizedRotation(new Quaternionf()).slerp(read.getNormalizedRotation(new Quaternionf()), k);
-        int light = k < 0.5F ? tableLight : LightTexture.pack(Math.max(LightTexture.block(readLight), LIT), LightTexture.sky(readLight));
+        int light = k < 0.5F ? tableLight : LightCoordsUtil.pack(Math.max(LightCoordsUtil.block(readLight), LIT), LightCoordsUtil.sky(readLight));
         float ink = Mth.clamp((k - 0.6F) / 0.4F, 0.0F, 1.0F);
         // Over the linear glide, not the eased one: the eased one leaves the table too quickly for the cross-fade to be seen.
         // The table's book in the world is this one too: nothing to hand over from.
@@ -916,7 +916,7 @@ final class EnchantingTableBehavior implements StationBehavior {
         }).orElse(new Vector3f(8.0F, 29.0F, -6.9F));
     }
 
-    private void drawBook(StationView view, PoseStack poseStack, MultiBufferSource buffers, int light) {
+    private void drawBook(StationView view, PoseStack poseStack, SceneBuffers buffers, int light) {
         Pose pose = pose(view);
         Vector3fc node = view.node(BOOK).map(n -> n.definition().transform().pos()).orElse(new Vector3f());
         poseStack.pushPose();
@@ -1111,7 +1111,7 @@ final class EnchantingTableBehavior implements StationBehavior {
     }
 
     /** The offers are written on plain paper; every other page on its own ({@link RunePages}). */
-    private net.minecraft.resources.ResourceLocation paperOf(int page) {
+    private net.minecraft.resources.Identifier paperOf(int page) {
         return isOffersPage(page) ? OpenBook.PAPER : RunePages.paper(page);
     }
 
@@ -1189,27 +1189,27 @@ final class EnchantingTableBehavior implements StationBehavior {
         // The clue is the enchantment's id in the level's registry, as vanilla's screen reads it.
         net.minecraft.client.multiplayer.ClientLevel level = Minecraft.getInstance().level;
         Optional<net.minecraft.core.Holder.Reference<Enchantment>> enchantment = clues[n] >= 0 && level != null
-                ? level.registryAccess().registryOrThrow(net.minecraft.core.registries.Registries.ENCHANTMENT).getHolder(clues[n])
+                ? level.registryAccess().lookupOrThrow(net.minecraft.core.registries.Registries.ENCHANTMENT).get(clues[n])
                 : Optional.empty();
         Component clue = null;
         List<net.minecraft.world.item.enchantment.EnchantmentInstance> easyMagic = EasyMagicReroll.clues(menu, n);
         if (easyMagic != null) {
             // Easy Magic's own clues: none, one ("Name . . . ?" as vanilla's), or every enchantment of the offer, named in a row.
             if (easyMagic.size() == 1) {
-                clue = clue(inked(easyMagic.get(0).enchantment, easyMagic.get(0).level));
+                clue = clue(inked(easyMagic.get(0).enchantment(), easyMagic.get(0).level()));
             } else if (!easyMagic.isEmpty()) {
                 net.minecraft.network.chat.MutableComponent all = Component.empty();
                 for (int i = 0; i < easyMagic.size(); i++) {
                     if (i > 0) {
                         all.append(", ");
                     }
-                    all.append(inked(easyMagic.get(i).enchantment, easyMagic.get(i).level));
+                    all.append(inked(easyMagic.get(i).enchantment(), easyMagic.get(i).level()));
                 }
                 clue = all;
             }
         } else if (enchantment.isPresent() && clueLevels[n] >= 0) {
             clue = clue(inked(enchantment.get(), clueLevels[n]));
-        } else if (I18n.exists("neoforge.container.enchant.limitedEnchantability")) {
+        } else if (net.minecraft.locale.Language.getInstance().has("neoforge.container.enchant.limitedEnchantability")) {
             clue = Component.translatable("neoforge.container.enchant.limitedEnchantability");
         }
         if (clue != null) {
@@ -1239,8 +1239,8 @@ final class EnchantingTableBehavior implements StationBehavior {
     }
 
     @SuppressWarnings("removal")
-    private static net.minecraft.resources.ResourceLocation vanilla(String path) {
-        return net.minecraft.resources.ResourceLocation.withDefaultNamespace( path);
+    private static net.minecraft.resources.Identifier vanilla(String path) {
+        return net.minecraft.resources.Identifier.withDefaultNamespace( path);
     }
 
     /**

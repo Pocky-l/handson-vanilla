@@ -55,7 +55,7 @@ final class CraftingTableBehavior implements StationBehavior {
 
     /** A recipe was laid into the table; what lands in the grid now comes flying. */
     static void recipeLaid() {
-        laidAt = net.minecraft.Util.getMillis();
+        laidAt = net.minecraft.util.Util.getMillis();
     }
 
     @Override
@@ -80,7 +80,7 @@ final class CraftingTableBehavior implements StationBehavior {
         tweaks.frame(view);
         continuous.frame(view);
         flightClock += dt;
-        boolean laying = net.minecraft.Util.getMillis() - laidAt < LAID_FOR_MS;
+        boolean laying = net.minecraft.util.Util.getMillis() - laidAt < LAID_FOR_MS;
         float next = Math.max(flightClock, flights.isEmpty() ? flightClock : flights.peekLast().at() + FLIGHT_GAP);
         for (int cell = 0; cell < shown.length; cell++) {
             int now = view.state().getItem(SlotRef.of(HandsOnVanillaClient.GRID, cell)).getCount();
@@ -215,7 +215,7 @@ final class CraftingTableBehavior implements StationBehavior {
         }
         if (crafts > 0) {
             crafted(view, crafts);
-        } else if (put > 0 && net.minecraft.Util.getMillis() - laidAt >= LAID_FOR_MS) {
+        } else if (put > 0 && net.minecraft.util.Util.getMillis() - laidAt >= LAID_FOR_MS) {
             // A laid recipe's items sound as they land, one by one.
             play(view, SoundEvents.ITEM_FRAME_ADD_ITEM, "grid", 0.35F, 0.9F + 0.2F * random(view));
         } else if (taken > 0) {

@@ -9,9 +9,10 @@ import net.minecraft.client.gui.screens.Screen;
 import net.minecraft.client.gui.screens.inventory.BookViewScreen;
 import net.minecraft.client.player.LocalPlayer;
 import net.minecraft.client.renderer.LevelRenderer;
-import net.minecraft.client.renderer.LightTexture;
-import net.minecraft.client.renderer.MultiBufferSource;
-import net.minecraft.client.renderer.RenderType;
+import net.minecraft.util.LightCoordsUtil;
+import com.pockyl.diegesis.api.client.SceneBuffers;
+import net.minecraft.client.renderer.rendertype.RenderType;
+import net.minecraft.client.renderer.rendertype.RenderTypes;
 import net.minecraft.client.renderer.texture.OverlayTexture;
 import net.minecraft.client.renderer.texture.TextureAtlas;
 import net.minecraft.client.renderer.texture.TextureAtlasSprite;
@@ -93,7 +94,7 @@ final class LecternBehavior implements StationBehavior {
     private static final float SHUT_TIME = 0.3F;
     /** How far into the camera's flight the lectern's own book has given way to this one. */
     private static final float HAND_OFF = 0.3F;
-    private static final net.minecraft.resources.ResourceLocation WHITE = HandsOnVanilla.id("block/white");
+    private static final net.minecraft.resources.Identifier WHITE = HandsOnVanilla.id("block/white");
 
     private final OpenBook book = new OpenBook(UNITS_WIDE, UNITS_HIGH, this::paintPage);
     private StationView station;
@@ -121,7 +122,7 @@ final class LecternBehavior implements StationBehavior {
         station = view;
         view.node(NODE).ifPresent(node -> node.setPainter(new NodePainter() {
             @Override
-            public void paint(PoseStack poseStack, MultiBufferSource buffers, int light) {
+            public void paint(PoseStack poseStack, SceneBuffers buffers, int light) {
                 drawBook(view, poseStack, buffers);
             }
 
@@ -269,12 +270,29 @@ final class LecternBehavior implements StationBehavior {
         if (x < 0 || y < 0 || x > TEXT_WIDE || line >= Math.min(LINES, lines.size()) || y - line * LINE_PITCH >= 10.0F) {
             return null;
         }
-        return Minecraft.getInstance().font.getSplitter().componentStyleAtWidth(lines.get(line), x);
+        return styleAtWidth(lines.get(line), x);
+    }
+
+    /** The style of the character {@code x} units into a line, as vanilla's splitter found it before Minecraft 26.x; null past its end. */
+    private static Style styleAtWidth(FormattedCharSequence line, int x) {
+        net.minecraft.client.gui.Font font = Minecraft.getInstance().font;
+        float[] at = {0.0F};
+        Style[] found = {null};
+        line.accept((index, style, codepoint) -> {
+            float wide = font.width(FormattedCharSequence.codepoint(codepoint, style));
+            if (x < at[0] + wide) {
+                found[0] = style;
+                return false;
+            }
+            at[0] += wide;
+            return true;
+        });
+        return found[0];
     }
 
     private static Component hoverText(Style style) {
         HoverEvent hover = style == null ? null : style.getHoverEvent();
-        return hover == null ? null : hover.getValue(HoverEvent.Action.SHOW_TEXT);
+        return hover instanceof HoverEvent.ShowText(Component value) ? value : null;
     }
 
     /** Turns to the spread holding {@code target} and tells the lectern, at once or with the next button that may go. */
@@ -333,46 +351,59 @@ final class LecternBehavior implements StationBehavior {
     /** A link of the text, as vanilla's book screen follows it: another page, or what the game does with a chat link. */
     private void link(StationView view, Style style) {
         ClickEvent event = style.getClickEvent();
-        if (event.getAction() == ClickEvent.Action.CHANGE_PAGE) {
-            try {
-                request(Integer.parseInt(event.getValue()) - 1, true);
-            } catch (NumberFormatException exception) {
-                HandsOnVanilla.LOGGER.debug("A book's page link has no number: {}", event.getValue());
-            }
+        if (event instanceof ClickEvent.ChangePage(int page)) {
+            request(page - 1, true);
             return;
         }
         Minecraft minecraft = Minecraft.getInstance();
-        if (event.getAction() == ClickEvent.Action.OPEN_URL) {
+        if (event instanceof ClickEvent.OpenUrl(URI uri)) {
             // The confirm screen ends the station; it closes to the world, not back to a station already left.
             if (!minecraft.options.chatLinks().get()) {
                 return;
             }
-            try {
-                URI uri = new URI(event.getValue());
-                String scheme = uri.getScheme();
-                if (scheme == null || !scheme.equalsIgnoreCase("http") && !scheme.equalsIgnoreCase("https")) {
-                    return;
-                }
-                if (minecraft.options.chatLinksPrompt().get()) {
-                    minecraft.setScreen(new ConfirmLinkScreen(open -> {
-                        if (open) {
-                            net.minecraft.Util.getPlatform().openUri(uri);
-                        }
-                        minecraft.setScreen(null);
-                    }, event.getValue(), false));
-                } else {
-                    net.minecraft.Util.getPlatform().openUri(uri);
-                }
-            } catch (java.net.URISyntaxException exception) {
-                HandsOnVanilla.LOGGER.error("Can't open url for {}", event, exception);
+            String scheme = uri.getScheme();
+            if (scheme == null || !scheme.equalsIgnoreCase("http") && !scheme.equalsIgnoreCase("https")) {
+                return;
+            }
+            if (minecraft.options.chatLinksPrompt().get()) {
+                minecraft.gui.setScreen(new ConfirmLinkScreen(open -> {
+                    if (open) {
+                        net.minecraft.util.Util.getPlatform().openUri(uri);
+                    }
+                    minecraft.gui.setScreen(null);
+                }, uri.toString(), false));
+            } else {
+                net.minecraft.util.Util.getPlatform().openUri(uri);
             }
             return;
         }
-        Screen screen = minecraft.screen;
-        if (screen != null && screen.handleComponentClicked(style) && event.getAction() == ClickEvent.Action.RUN_COMMAND
-                && DiegesisClient.isStationScreen(minecraft.screen)) {
-            // Vanilla's book closes after it ran a command: the camera leaves.
-            minecraft.screen.onClose();
+        Screen screen = minecraft.gui.screen();
+        if (screen == null || minecraft.player == null || event == null) {
+            return;
+        }
+        if (event instanceof ClickEvent.RunCommand(String command)) {
+            Links.command(minecraft.player, command);
+            if (DiegesisClient.isStationScreen(minecraft.gui.screen())) {
+                // Vanilla's book closes after it ran a command: the camera leaves.
+                minecraft.gui.screen().onClose();
+            }
+            return;
+        }
+        Links.other(event, minecraft, screen);
+    }
+
+    /** Vanilla's handling of a text's click, which only screens may call. */
+    private static final class Links extends Screen {
+        private Links() {
+            super(Component.empty());
+        }
+
+        static void command(net.minecraft.client.player.LocalPlayer player, String command) {
+            clickCommandAction(player, command, null);
+        }
+
+        static void other(ClickEvent event, Minecraft minecraft, Screen screen) {
+            defaultHandleGameClickEvent(event, minecraft, screen);
         }
     }
 
@@ -465,14 +496,14 @@ final class LecternBehavior implements StationBehavior {
         return new Matrix4f().translation(at).rotate(scene.getNormalizedRotation(new Quaternionf())).scale(size);
     }
 
-    private void drawBook(StationView view, PoseStack poseStack, MultiBufferSource buffers) {
+    private void drawBook(StationView view, PoseStack poseStack, SceneBuffers buffers) {
         Matrix4f scene = bookToScene(view);
         Vector3f at = scene.getTranslation(new Vector3f()).sub(nodePos(view));
         poseStack.pushPose();
         poseStack.translate(at.x, at.y, at.z);
         poseStack.mulPose(scene.getNormalizedRotation(new Quaternionf()));
         // The block entity's own light, as the lectern's renderer draws the book in it.
-        int light = LevelRenderer.getLightColor(view.level(), view.pos());
+        int light = net.minecraft.util.LightCoordsUtil.getLightCoords(view.level(), view.pos());
         float arrival = view.isFocused() ? DiegesisClient.arrival() : 0.0F;
         // The lectern's book in the world is this one too, at its size: only its sheets settle onto the pages as the reader comes.
         float size = WorldBooks.SCALE;
@@ -518,7 +549,7 @@ final class LecternBehavior implements StationBehavior {
      * The ribbon: a red bookmark from the foot of the spine lying on down the page and hanging over the lectern's lip; under the
      * cursor it lights and sways. Drawn with the book, in its model's pixels (so the book, drawn over everything, never covers it).
      */
-    private void drawRibbon(PoseStack poseStack, MultiBufferSource buffers, int light, Matrix4f scene, float size) {
+    private void drawRibbon(PoseStack poseStack, SceneBuffers buffers, int light, Matrix4f scene, float size) {
         // Out of the spine between the pages, at the foot of the gutter of the book at its size; it bends over the board's edge where
         // it does at full size, so the end hangs in its node's collider whatever the book's size.
         Vector3f full = OpenBook.spineFoot(open()).add(0.1F, 0.3F, 0.0F);
@@ -529,10 +560,10 @@ final class LecternBehavior implements StationBehavior {
         float sway = Mth.sin(clock * 6.0F) * 0.5F * ribbonLit;
         Vector3f end = new Vector3f(down).mul(RIBBON_HANG).add(bend).add(0.0F, 0.0F, sway);
         int rgb = lerpColor(RIBBON_COLOR, RIBBON_LIT, ribbonLit);
-        TextureAtlasSprite white = Minecraft.getInstance().getTextureAtlas(TextureAtlas.LOCATION_BLOCKS).apply(WHITE);
-        VertexConsumer consumer = buffers.getBuffer(RenderType.entityCutoutNoCull(TextureAtlas.LOCATION_BLOCKS));
+        TextureAtlasSprite white = Draw.blockSprite(WHITE);
+        VertexConsumer consumer = buffers.getBuffer(RenderTypes.entityCutout(TextureAtlas.LOCATION_BLOCKS));
         Vector3f half = new Vector3f(0.0F, 0.0F, RIBBON_HALF);
-        int lit = LightTexture.pack(Math.max(LightTexture.block(light), 10), LightTexture.sky(light));
+        int lit = LightCoordsUtil.pack(Math.max(LightCoordsUtil.block(light), 10), LightCoordsUtil.sky(light));
         strip(poseStack, consumer, foot, bend, half, rgb, white, lit);
         strip(poseStack, consumer, bend, end, half, rgb, white, lit);
     }

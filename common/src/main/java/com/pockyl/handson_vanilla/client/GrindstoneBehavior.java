@@ -7,7 +7,7 @@ import net.minecraft.core.Direction;
 import net.minecraft.sounds.SoundEvent;
 import net.minecraft.sounds.SoundEvents;
 import net.minecraft.world.InteractionHand;
-import net.minecraft.world.inventory.ClickType;
+import net.minecraft.world.inventory.ContainerInput;
 import net.minecraft.world.inventory.GrindstoneMenu;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.item.Items;
@@ -127,7 +127,7 @@ final class GrindstoneBehavior implements StationBehavior {
         heldSlot = -1;
         LocalPlayer player = Minecraft.getInstance().player;
         if (player != null && view.openedByUse() && usable(player.getMainHandItem())) {
-            heldSlot = player.getInventory().selected;
+            heldSlot = player.getInventory().getSelectedSlot();
         }
         stand(view);
         phase = Phase.IDLE;
@@ -298,7 +298,7 @@ final class GrindstoneBehavior implements StationBehavior {
     private void take(StationView view) {
         MenuAccess menu = view.menu();
         if (menu != null && canTake(view, grindAll)) {
-            menu.click(RESULT_SLOT, 0, grindAll ? ClickType.QUICK_MOVE : ClickType.PICKUP);
+            menu.click(RESULT_SLOT, 0, grindAll ? ContainerInput.QUICK_MOVE : ContainerInput.PICKUP);
         }
         for (String id : INPUTS) {
             view.node(id).ifPresent(node -> node.shake(0.2F, TURN - TAKE_AT));
@@ -353,7 +353,7 @@ final class GrindstoneBehavior implements StationBehavior {
     @Override
     public void onEvent(StationView view, SceneEvent event) {
         if (event instanceof SceneEvent.Click click && (WHEEL.equals(click.node()) || RESULT.equals(click.node()))) {
-            grind(view, Screen.hasShiftDown());
+            grind(view, net.minecraft.client.Minecraft.getInstance().hasShiftDown());
         }
     }
 

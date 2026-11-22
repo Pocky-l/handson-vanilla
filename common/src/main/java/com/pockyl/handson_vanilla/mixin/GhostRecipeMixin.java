@@ -17,6 +17,6 @@ import com.pockyl.handson_vanilla.client.GhostRecipe;
 abstract class GhostRecipeMixin {
     @Inject(method = "handlePlaceRecipe", at = @At("TAIL"))
     private void handson_vanilla$ghostAtStation(ClientboundPlaceGhostRecipePacket packet, CallbackInfo ci) {
-        GhostRecipe.arrived(packet.getContainerId(), packet.getRecipe());
+        GhostRecipe.arrived(packet.containerId(), packet.recipeDisplay());
     }
 }

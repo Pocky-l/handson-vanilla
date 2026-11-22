@@ -4,7 +4,7 @@ import net.minecraft.client.Minecraft;
 import net.minecraft.client.gui.Font;
 import net.minecraft.client.gui.screens.Screen;
 import net.minecraft.client.player.LocalPlayer;
-import net.minecraft.client.renderer.LightTexture;
+import net.minecraft.util.LightCoordsUtil;
 import net.minecraft.core.component.DataComponents;
 import net.minecraft.network.chat.Component;
 import net.minecraft.network.chat.Style;
@@ -13,7 +13,7 @@ import net.minecraft.sounds.SoundEvents;
 import net.minecraft.util.FormattedCharSequence;
 import net.minecraft.util.StringUtil;
 import net.minecraft.world.inventory.AnvilMenu;
-import net.minecraft.world.inventory.ClickType;
+import net.minecraft.world.inventory.ContainerInput;
 import net.minecraft.world.item.ItemStack;
 import org.joml.Matrix4f;
 import org.joml.Vector3f;
@@ -153,7 +153,7 @@ final class AnvilBehavior implements StationBehavior {
      * words and colours it. Turned to the camera like the counts of a station's stacks: drawn in the camera's axes where the node is.
      */
     private void tag(StationView view, boolean hovered, com.mojang.blaze3d.vertex.PoseStack poseStack,
-            net.minecraft.client.renderer.MultiBufferSource buffers) {
+            com.pockyl.diegesis.api.client.SceneBuffers buffers) {
         AnvilMenu menu = anvil(view);
         if (menu == null || menu.getSlot(LEFT_SLOT).getItem().isEmpty()) {
             return;
@@ -164,19 +164,19 @@ final class AnvilBehavior implements StationBehavior {
         float unit = new Vector3f(pose.m00(), pose.m01(), pose.m02()).length();
         // Since 1.20.5 the level's pose is in the world's axes (the view's turn is in the model-view): turned as the camera looks,
         // as Diegesis turns its counts, or the tag shows the camera its back and is culled.
-        Matrix4f matrix = new Matrix4f().translation(at).rotate(Minecraft.getInstance().gameRenderer.getMainCamera().rotation())
+        Matrix4f matrix = new Matrix4f().translation(at).rotate(Minecraft.getInstance().gameRenderer.mainCamera().rotation())
                 .scale(TEXT_SCALE * unit, -TEXT_SCALE * unit, TEXT_SCALE * unit);
         String shown = typing && !picked ? name + ((int) (clock * 3.0F) % 2 == 0 ? "_" : " ") : name;
         Component line = Component.literal(shown.isEmpty() ? " " : shown)
                 .withStyle(Style.EMPTY.withUnderlined(hovered && !typing).withItalic(!typing && isRenamed(menu)));
         FormattedCharSequence text = line.getVisualOrderText();
-        font.drawInBatch(text, -font.width(text) / 2.0F, -font.lineHeight, NAME_COLOR, false, matrix, buffers, Font.DisplayMode.NORMAL,
-                typing && picked ? PICKED_BACKGROUND : TAG_BACKGROUND, LightTexture.FULL_BRIGHT);
+        Draw.text(buffers, text, -font.width(text) / 2.0F, -font.lineHeight, NAME_COLOR, false, matrix, Font.DisplayMode.NORMAL,
+                typing && picked ? PICKED_BACKGROUND : TAG_BACKGROUND, LightCoordsUtil.FULL_BRIGHT);
         Component cost = costLine(menu);
         if (cost != null) {
             boolean dear = !canPay(menu);
-            font.drawInBatch(cost, -font.width(cost) / 2.0F, 2.0F, dear ? DEAR_COLOR : COST_COLOR, false, matrix, buffers,
-                    Font.DisplayMode.NORMAL, TAG_BACKGROUND, LightTexture.FULL_BRIGHT);
+            Draw.text(buffers, cost, -font.width(cost) / 2.0F, 2.0F, dear ? DEAR_COLOR : COST_COLOR, false, matrix,
+                    Font.DisplayMode.NORMAL, TAG_BACKGROUND, LightCoordsUtil.FULL_BRIGHT);
         }
     }
 
@@ -214,7 +214,7 @@ final class AnvilBehavior implements StationBehavior {
         heldSlot = -1;
         LocalPlayer player = Minecraft.getInstance().player;
         if (player != null && view.openedByUse() && worked(player.getMainHandItem())) {
-            heldSlot = player.getInventory().selected;
+            heldSlot = player.getInventory().getSelectedSlot();
         }
         phase = Phase.IDLE;
         queued = 0;
@@ -346,7 +346,7 @@ final class AnvilBehavior implements StationBehavior {
      * scene event, and the keys after them (E, the number keys) must be the station's again.
      */
     private void endTypingOnClickAway(StationView view) {
-        long window = Minecraft.getInstance().getWindow().getWindow();
+        long window = Minecraft.getInstance().getWindow().handle();
         boolean down = GLFW.glfwGetMouseButton(window, GLFW.GLFW_MOUSE_BUTTON_LEFT) == GLFW.GLFW_PRESS
                 || GLFW.glfwGetMouseButton(window, GLFW.GLFW_MOUSE_BUTTON_RIGHT) == GLFW.GLFW_PRESS;
         if (down && !mouseWasDown && typing && !view.node(NAME).map(node -> node.isHovered()).orElse(false)) {
@@ -436,7 +436,7 @@ final class AnvilBehavior implements StationBehavior {
         if (menu != null && anvil != null && canTake(view, strikeAll)) {
             ItemStack made = anvil.getSlot(RESULT_SLOT).getItem().copy();
             AnvilSound.forget();
-            menu.click(RESULT_SLOT, 0, strikeAll ? ClickType.QUICK_MOVE : ClickType.PICKUP);
+            menu.click(RESULT_SLOT, 0, strikeAll ? ContainerInput.QUICK_MOVE : ContainerInput.PICKUP);
             // The pieces used up are the strike's, not taken by hand.
             watch.forget();
             forged = made;
@@ -509,7 +509,7 @@ final class AnvilBehavior implements StationBehavior {
             return;
         }
         if (RESULT.equals(click.node())) {
-            strike(view, Screen.hasShiftDown());
+            strike(view, net.minecraft.client.Minecraft.getInstance().hasShiftDown());
         } else if (NAME.equals(click.node())) {
             startTyping(view);
         } else {
@@ -566,9 +566,9 @@ final class AnvilBehavior implements StationBehavior {
             }
             case GLFW.GLFW_KEY_LEFT, GLFW.GLFW_KEY_RIGHT, GLFW.GLFW_KEY_END, GLFW.GLFW_KEY_HOME -> picked = false;
             default -> {
-                if (keyCode == GLFW.GLFW_KEY_V && Screen.hasControlDown()) {
+                if (keyCode == GLFW.GLFW_KEY_V && net.minecraft.client.Minecraft.getInstance().hasControlDown()) {
                     type(view, Minecraft.getInstance().keyboardHandler.getClipboard());
-                } else if (keyCode == GLFW.GLFW_KEY_A && Screen.hasControlDown()) {
+                } else if (keyCode == GLFW.GLFW_KEY_A && net.minecraft.client.Minecraft.getInstance().hasControlDown()) {
                     picked = true;
                 }
             }

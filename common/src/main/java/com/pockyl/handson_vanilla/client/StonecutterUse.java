@@ -1,38 +1,23 @@
 package com.pockyl.handson_vanilla.client;
 
 import net.minecraft.client.Minecraft;
-import net.minecraft.world.item.Item;
 import net.minecraft.world.item.ItemStack;
-import net.minecraft.world.item.crafting.RecipeType;
-import net.minecraft.world.item.crafting.SingleRecipeInput;
 import net.minecraft.world.level.Level;
 
-import java.util.HashMap;
-import java.util.Map;
-
-/** Whether the stonecutter cuts a stack into anything, from the client's own recipes; stacks it does not cut stay off the rows. */
+/**
+ * Whether the stonecutter cuts a stack into anything, from the stonecutter recipes the server tells every client of; stacks it does
+ * not cut stay off the rows.
+ */
 final class StonecutterUse {
-    private static final Map<Item, Boolean> CUTS = new HashMap<>();
-    private static Level readFor;
-
     private StonecutterUse() {
     }
 
-    /** Forgets what was read, once each time a stonecutter opens, as a server may send other recipes. */
+    /** Nothing is kept between stonecutters any more: the recipes are the level's own. Kept for the callers' order of things. */
     static void refresh() {
-        CUTS.clear();
-        readFor = Minecraft.getInstance().level;
     }
 
     static boolean usable(ItemStack stack) {
         Level level = Minecraft.getInstance().level;
-        if (stack.isEmpty() || level == null) {
-            return false;
-        }
-        if (level != readFor) {
-            refresh();
-        }
-        return CUTS.computeIfAbsent(stack.getItem(), item -> level.getRecipeManager()
-                .getRecipeFor(RecipeType.STONECUTTING, new SingleRecipeInput(new ItemStack(item)), level).isPresent());
+        return !stack.isEmpty() && level != null && level.recipeAccess().stonecutterRecipes().acceptsInput(stack);
     }
 }

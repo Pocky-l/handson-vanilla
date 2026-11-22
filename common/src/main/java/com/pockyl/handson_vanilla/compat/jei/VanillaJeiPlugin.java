@@ -10,7 +10,7 @@ import net.minecraft.client.gui.screens.Screen;
 import com.pockyl.diegesis.api.client.DiegesisClient;
 import mezz.jei.api.gui.ingredient.IRecipeSlotsView;
 import mezz.jei.api.ingredients.ITypedIngredient;
-import mezz.jei.api.recipe.RecipeType;
+import mezz.jei.api.recipe.types.IRecipeType;
 import mezz.jei.api.recipe.transfer.IRecipeTransferError;
 import mezz.jei.api.recipe.transfer.IRecipeTransferHandler;
 import mezz.jei.api.recipe.transfer.IRecipeTransferHandlerHelper;
@@ -20,13 +20,14 @@ import mezz.jei.api.runtime.IClickableIngredient;
 import mezz.jei.api.runtime.IIngredientManager;
 import net.minecraft.client.player.LocalPlayer;
 import net.minecraft.client.renderer.Rect2i;
-import net.minecraft.resources.ResourceLocation;
+import net.minecraft.resources.Identifier;
 import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.inventory.CraftingMenu;
 import net.minecraft.world.inventory.MenuType;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.item.crafting.CraftingRecipe;
 import net.minecraft.world.item.crafting.RecipeHolder;
+import net.minecraft.world.item.crafting.display.RecipeDisplayId;
 
 import com.pockyl.handson_vanilla.HandsOnVanilla;
 import com.pockyl.handson_vanilla.client.StationHover;
@@ -41,7 +42,7 @@ import java.util.Optional;
 @JeiPlugin
 public final class VanillaJeiPlugin implements IModPlugin {
     @Override
-    public ResourceLocation getPluginUid() {
+    public Identifier getPluginUid() {
         return HandsOnVanilla.id("jei");
     }
 
@@ -162,18 +163,21 @@ public final class VanillaJeiPlugin implements IModPlugin {
         }
 
         @Override
-        public RecipeType<RecipeHolder<CraftingRecipe>> getRecipeType() {
+        public IRecipeType<RecipeHolder<CraftingRecipe>> getRecipeType() {
             return RecipeTypes.CRAFTING;
         }
 
         @Override
         public IRecipeTransferError transferRecipe(CraftingMenu container, RecipeHolder<CraftingRecipe> recipe, IRecipeSlotsView slots,
                 Player player, boolean maxTransfer, boolean doTransfer) {
-            if (StationHover.menu() != container || !(player instanceof LocalPlayer local) || !local.getRecipeBook().contains(recipe)) {
+            // Since Minecraft 1.21.2 the book's packet names the recipe by the player's book's entry for it.
+            Optional<RecipeDisplayId> entry = StationHover.menu() != container || !(player instanceof LocalPlayer) ? Optional.empty()
+                    : StationHover.bookEntry(recipe.id(), recipe.value());
+            if (entry.isEmpty()) {
                 return basic.transferRecipe(container, recipe, slots, player, maxTransfer, doTransfer);
             }
             if (doTransfer) {
-                StationHover.placeRecipe(recipe.id(), maxTransfer);
+                StationHover.placeRecipe(entry.get(), maxTransfer);
             }
             return null;
         }

@@ -1,7 +1,6 @@
 package com.pockyl.handson_vanilla.fabric;
 
-import net.fabricmc.fabric.api.gametest.v1.FabricGameTest;
-import net.minecraft.gametest.framework.GameTest;
+import net.fabricmc.fabric.api.gametest.v1.GameTest;
 import net.minecraft.gametest.framework.GameTestHelper;
 
 import com.pockyl.handson_vanilla.gametest.AnvilTests;
@@ -26,93 +25,93 @@ import com.pockyl.handson_vanilla.gametest.StonecutterTests;
  * the loom's ({@link LoomTests}) and the cartography table's ({@link CartographyTests}).
  * They run when the game starts with {@code -Dfabric-api.gametest} ({@code :fabric:runGameTest}).
  */
-public final class FabricGameTests implements FabricGameTest {
-    @GameTest(template = FabricGameTest.EMPTY_STRUCTURE)
+public final class FabricGameTests {
+    @GameTest
     public void modLoads(GameTestHelper helper) {
         helper.succeed();
     }
 
-    @GameTest(template = FabricGameTest.EMPTY_STRUCTURE)
+    @GameTest
     public void bookTurns(GameTestHelper helper) {
         BookTests.bookTurns(helper);
     }
 
-    @GameTest(template = FabricGameTest.EMPTY_STRUCTURE)
+    @GameTest
     public void bookLeafing(GameTestHelper helper) {
         BookTests.bookLeafing(helper);
     }
 
-    @GameTest(template = FabricGameTest.EMPTY_STRUCTURE)
+    @GameTest
     public void bookSearch(GameTestHelper helper) {
         BookTests.bookSearch(helper);
     }
 
-    @GameTest(template = FabricGameTest.EMPTY_STRUCTURE)
+    @GameTest
     public void craftingLaysByClicks(GameTestHelper helper) {
         CraftingLayTests.craftingLaysByClicks(helper);
     }
 
-    @GameTest(template = FabricGameTest.EMPTY_STRUCTURE)
+    @GameTest
     public void craftingLayMissing(GameTestHelper helper) {
         CraftingLayTests.craftingLayMissing(helper);
     }
 
-    @GameTest(template = FabricGameTest.EMPTY_STRUCTURE)
+    @GameTest
     public void furnaceFilesServed(GameTestHelper helper) {
         FurnaceTests.furnaceFilesServed(helper);
     }
 
-    @GameTest(template = FabricGameTest.EMPTY_STRUCTURE)
+    @GameTest
     public void smokerShiftClicksRoute(GameTestHelper helper) {
         FurnaceTests.smokerShiftClicksRoute(helper);
     }
 
-    @GameTest(template = FabricGameTest.EMPTY_STRUCTURE)
+    @GameTest
     public void blastFurnaceShiftClicksRoute(GameTestHelper helper) {
         FurnaceTests.blastFurnaceShiftClicksRoute(helper);
     }
 
-    @GameTest(template = FabricGameTest.EMPTY_STRUCTURE)
+    @GameTest
     public void stonecutterPicksAndCuts(GameTestHelper helper) {
         StonecutterTests.stonecutterPicksAndCuts(helper);
     }
 
-    @GameTest(template = FabricGameTest.EMPTY_STRUCTURE)
+    @GameTest
     public void smithingTableUpgrades(GameTestHelper helper) {
         SmithingTests.smithingTableUpgrades(helper);
     }
 
-    @GameTest(template = FabricGameTest.EMPTY_STRUCTURE)
+    @GameTest
     public void grindstoneMendsAndCleans(GameTestHelper helper) {
         GrindstoneTests.grindstoneMendsAndCleans(helper);
     }
 
-    @GameTest(template = FabricGameTest.EMPTY_STRUCTURE, timeoutTicks = BrewingTests.TIMEOUT)
+    @GameTest(maxTicks = BrewingTests.TIMEOUT)
     public void brewingStandBrews(GameTestHelper helper) {
         BrewingTests.brewingStandBrews(helper);
     }
 
-    @GameTest(template = FabricGameTest.EMPTY_STRUCTURE)
+    @GameTest
     public void anvilRenamesAndKeepsNames(GameTestHelper helper) {
         AnvilTests.anvilRenamesAndKeepsNames(helper);
     }
 
-    @GameTest(template = FabricGameTest.EMPTY_STRUCTURE)
+    @GameTest
     public void enchantingTableEnchants(GameTestHelper helper) {
         EnchantingTests.enchantingTableEnchants(helper);
     }
 
-    @GameTest(template = FabricGameTest.EMPTY_STRUCTURE)
+    @GameTest
     public void lecternTurnsAndGivesBook(GameTestHelper helper) {
         LecternTests.lecternTurnsAndGivesBook(helper);
     }
 
-    @GameTest(template = FabricGameTest.EMPTY_STRUCTURE)
+    @GameTest
     public void loomWeavesAndLaysBack(GameTestHelper helper) {
         LoomTests.loomWeavesAndLaysBack(helper);
     }
 
-    @GameTest(template = FabricGameTest.EMPTY_STRUCTURE)
+    @GameTest
     public void cartographyCopiesLocksAndZooms(GameTestHelper helper) {
         CartographyTests.cartographyCopiesLocksAndZooms(helper);
     }

@@ -10,7 +10,7 @@ base {
     archivesName = "${mod_id}-${project.name}-${minecraft_version}"
 }
 
-java.toolchain.languageVersion = JavaLanguageVersion.of(21)
+java.toolchain.languageVersion = JavaLanguageVersion.of(25)
 
 repositories {
     mavenCentral()
@@ -23,20 +23,7 @@ repositories {
         }
         filter { includeGroupAndSubgroups('org.spongepowered') }
     }
-    exclusiveContent {
-        forRepositories(
-                maven {
-                    name = 'ParchmentMC'
-                    url = 'https://maven.parchmentmc.org/'
-                },
-                maven {
-                    name = 'NeoForge'
-                    url = 'https://maven.neoforged.net/releases'
-                }
-        )
-        filter { includeGroup('org.parchmentmc.data') }
-    }
-    // Recipe viewers, compile only: JEI and EMI.
+    // Recipe viewer, compile only: JEI (EMI has no build for Minecraft 26.x).
     exclusiveContent {
         forRepository {
             maven {
@@ -45,15 +32,6 @@ repositories {
             }
         }
         filter { includeGroup('mezz.jei') }
-    }
-    exclusiveContent {
-        forRepository {
-            maven {
-                name = 'TerraformersMC (EMI)'
-                url = 'https://maven.terraformersmc.com/releases/'
-            }
-        }
-        filter { includeGroup('dev.emi') }
     }
 }
 

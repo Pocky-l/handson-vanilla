@@ -6,10 +6,10 @@ import net.minecraft.client.player.LocalPlayer;
 import net.minecraft.core.component.DataComponents;
 import net.minecraft.network.chat.TextColor;
 import net.minecraft.sounds.SoundEvents;
-import net.minecraft.world.inventory.ClickType;
+import net.minecraft.world.inventory.ContainerInput;
 import net.minecraft.world.inventory.SmithingMenu;
 import net.minecraft.world.item.ItemStack;
-import net.minecraft.world.item.armortrim.ArmorTrim;
+import net.minecraft.world.item.equipment.trim.ArmorTrim;
 import org.joml.Vector3f;
 import org.joml.Vector3fc;
 
@@ -135,7 +135,7 @@ final class SmithingTableBehavior implements StationBehavior {
         heldSlot = -1;
         LocalPlayer player = Minecraft.getInstance().player;
         if (player != null && view.openedByUse() && SmithingUse.usable(player.getMainHandItem())) {
-            heldSlot = player.getInventory().selected;
+            heldSlot = player.getInventory().getSelectedSlot();
         }
         flyFrom = -1;
         forged = ItemStack.EMPTY;
@@ -310,7 +310,7 @@ final class SmithingTableBehavior implements StationBehavior {
         if (menu != null && smithing != null && canTake(view, strikeAll)) {
             ItemStack made = smithing.getSlot(RESULT_SLOT).getItem().copy();
             int glint = glint(view, made, smithing.getSlot(BASE_SLOT).getItem());
-            menu.click(RESULT_SLOT, 0, strikeAll ? ClickType.QUICK_MOVE : ClickType.PICKUP);
+            menu.click(RESULT_SLOT, 0, strikeAll ? ContainerInput.QUICK_MOVE : ContainerInput.PICKUP);
             // The pieces used up are the strike's, not taken by hand.
             watch.forget();
             forged = made;
@@ -410,7 +410,7 @@ final class SmithingTableBehavior implements StationBehavior {
     @Override
     public void onEvent(StationView view, SceneEvent event) {
         if (event instanceof SceneEvent.Click click && (HAMMER.equals(click.node()) || RESULT.equals(click.node()))) {
-            strike(view, Screen.hasShiftDown());
+            strike(view, net.minecraft.client.Minecraft.getInstance().hasShiftDown());
         }
     }
 

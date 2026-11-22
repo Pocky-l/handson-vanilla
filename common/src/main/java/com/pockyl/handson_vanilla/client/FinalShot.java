@@ -4,7 +4,7 @@ import com.google.gson.JsonArray;
 import com.google.gson.JsonObject;
 import com.google.gson.JsonParser;
 import net.minecraft.client.Minecraft;
-import net.minecraft.resources.ResourceLocation;
+import net.minecraft.resources.Identifier;
 import net.minecraft.world.phys.Vec3;
 import org.joml.Vector2f;
 
@@ -23,7 +23,7 @@ import java.util.Optional;
 final class FinalShot {
     /** The narrowest window shape that sees the whole width of a shot, as Diegesis keeps it by default. */
     private static final double KEEP_WIDTH = 16.0 / 9.0;
-    private static final Map<ResourceLocation, Optional<Shot>> SHOTS = new HashMap<>();
+    private static final Map<Identifier, Optional<Shot>> SHOTS = new HashMap<>();
 
     private record Shot(Vec3 position, Vec3 target, double fov) {
     }
@@ -62,8 +62,8 @@ final class FinalShot {
 
     /** The shot of the scene file, {@code assets/<namespace>/diegesis/scenes/<path>.json}; empty without a field of view of its own. */
     @SuppressWarnings("removal")
-    private static Optional<Shot> read(ResourceLocation scene) {
-        ResourceLocation file = ResourceLocation.fromNamespaceAndPath(scene.getNamespace(), "diegesis/scenes/" + scene.getPath() + ".json");
+    private static Optional<Shot> read(Identifier scene) {
+        Identifier file = Identifier.fromNamespaceAndPath(scene.getNamespace(), "diegesis/scenes/" + scene.getPath() + ".json");
         try (Reader reader = Minecraft.getInstance().getResourceManager().openAsReader(file)) {
             JsonObject camera = JsonParser.parseReader(reader).getAsJsonObject().getAsJsonObject("camera");
             if (camera == null || !camera.has("fov") || camera.get("fov").getAsDouble() <= 0.0) {

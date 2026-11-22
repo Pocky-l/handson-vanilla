@@ -63,7 +63,7 @@ final class StationHands {
 
     /** Whether the key leaves the station: Escape or the inventory key. */
     static boolean leaves(int keyCode, int scanCode) {
-        return keyCode == GLFW.GLFW_KEY_ESCAPE || Minecraft.getInstance().options.keyInventory.matches(keyCode, scanCode);
+        return keyCode == GLFW.GLFW_KEY_ESCAPE || Minecraft.getInstance().options.keyInventory.matches(new net.minecraft.client.input.KeyEvent(keyCode, scanCode, 0));
     }
 
     /** The arm moves as the hand works; only this client sees it, nothing is sent. */

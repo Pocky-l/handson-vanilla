@@ -7,7 +7,7 @@ import net.minecraft.gametest.framework.GameTestHelper;
 import net.minecraft.resources.ResourceKey;
 import net.minecraft.world.entity.player.Inventory;
 import net.minecraft.world.entity.player.Player;
-import net.minecraft.world.inventory.ClickType;
+import net.minecraft.world.inventory.ContainerInput;
 import net.minecraft.world.inventory.ContainerLevelAccess;
 import net.minecraft.world.inventory.LoomMenu;
 import net.minecraft.world.item.ItemStack;
@@ -41,18 +41,18 @@ public final class LoomTests {
         LoomMenu menu = new LoomMenu(9, player.getInventory(), ContainerLevelAccess.create(helper.getLevel(), pos));
         player.containerMenu = menu;
         Inventory inventory = player.getInventory();
-        inventory.setItem(0, new ItemStack(Items.WHITE_BANNER));
-        inventory.setItem(1, new ItemStack(Items.RED_DYE, 2));
-        menu.clicked(HOTBAR, 0, ClickType.QUICK_MOVE, player);
-        menu.clicked(HOTBAR + 1, 0, ClickType.QUICK_MOVE, player);
-        helper.assertTrue(menu.getSlot(BANNER).getItem().is(Items.WHITE_BANNER) && menu.getSlot(DYE).getItem().getCount() == 2,
+        inventory.setItem(0, new ItemStack(Items.BANNER.white()));
+        inventory.setItem(1, new ItemStack(Items.DYE.red(), 2));
+        menu.clicked(HOTBAR, 0, ContainerInput.QUICK_MOVE, player);
+        menu.clicked(HOTBAR + 1, 0, ContainerInput.QUICK_MOVE, player);
+        helper.assertTrue(menu.getSlot(BANNER).getItem().is(Items.BANNER.white()) && menu.getSlot(DYE).getItem().getCount() == 2,
                 "banner and dye lie on the loom");
         int stripe = indexOf(menu.getSelectablePatterns(), BannerPatterns.STRIPE_BOTTOM);
         helper.assertTrue(stripe >= 0, "the loom offers the bottom stripe");
         helper.assertTrue(menu.clickMenuButton(player, stripe), "the pattern is picked");
         helper.assertTrue(layers(menu.getSlot(RESULT).getItem()) == 1, "the result bears one layer");
-        menu.clicked(RESULT, 0, ClickType.PICKUP, player);
-        menu.clicked(BANNER, 0, ClickType.PICKUP, player);
+        menu.clicked(RESULT, 0, ContainerInput.PICKUP, player);
+        menu.clicked(BANNER, 0, ContainerInput.PICKUP, player);
         helper.assertTrue(layers(menu.getSlot(BANNER).getItem()) == 1, "the woven banner lies on the loom");
         helper.assertTrue(menu.getCarried().isEmpty(), "nothing on the cursor");
         helper.assertTrue(menu.getSlot(DYE).getItem().getCount() == 1, "one dye is used");
@@ -64,16 +64,16 @@ public final class LoomTests {
         Player other = helper.makeMockPlayer(GameType.CREATIVE);
         LoomMenu stack = new LoomMenu(10, other.getInventory(), ContainerLevelAccess.create(helper.getLevel(), pos));
         other.containerMenu = stack;
-        other.getInventory().setItem(0, new ItemStack(Items.WHITE_BANNER, 3));
-        other.getInventory().setItem(1, new ItemStack(Items.BLUE_DYE, 3));
-        stack.clicked(HOTBAR, 0, ClickType.QUICK_MOVE, other);
-        stack.clicked(HOTBAR + 1, 0, ClickType.QUICK_MOVE, other);
+        other.getInventory().setItem(0, new ItemStack(Items.BANNER.white(), 3));
+        other.getInventory().setItem(1, new ItemStack(Items.DYE.blue(), 3));
+        stack.clicked(HOTBAR, 0, ContainerInput.QUICK_MOVE, other);
+        stack.clicked(HOTBAR + 1, 0, ContainerInput.QUICK_MOVE, other);
         stack.clickMenuButton(other, indexOf(stack.getSelectablePatterns(), BannerPatterns.STRIPE_BOTTOM));
-        stack.clicked(RESULT, 0, ClickType.QUICK_MOVE, other);
+        stack.clicked(RESULT, 0, ContainerInput.QUICK_MOVE, other);
         int woven = 0;
         for (int i = 0; i < other.getInventory().getContainerSize(); i++) {
             ItemStack there = other.getInventory().getItem(i);
-            if (there.is(Items.WHITE_BANNER) && layers(there) == 1) {
+            if (there.is(Items.BANNER.white()) && layers(there) == 1) {
                 woven += there.getCount();
             }
         }

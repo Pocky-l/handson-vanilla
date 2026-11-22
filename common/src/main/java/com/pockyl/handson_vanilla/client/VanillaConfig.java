@@ -35,7 +35,8 @@ public final class VanillaConfig {
             "cartography_table: the cartography table is worked at with your hands. Off, it opens its vanilla screen.",
             "recipe_book: the recipe book beside the crafting table. Off, there is none.",
             "book_recipes: which recipes the book shows. unlocked: those the player has unlocked, as the vanilla book. all: every",
-            "  recipe. auto: all when Not Enough Recipe Book is installed (it empties the vanilla book), else unlocked.",
+            "  recipe (in singleplayer; a server tells the client only the unlocked ones). auto: all when Not Enough Recipe Book is",
+            "  installed (it empties the vanilla book), else unlocked.",
             "sound_volume: the stations' own sounds, from 0 (silent) to 1.");
 
     private static boolean craftingTable = true;

@@ -4,13 +4,13 @@ import net.minecraft.client.Minecraft;
 import net.minecraft.client.gui.screens.Screen;
 import net.minecraft.client.resources.sounds.SimpleSoundInstance;
 import net.minecraft.network.chat.Component;
-import net.minecraft.resources.ResourceLocation;
 import net.minecraft.sounds.SoundEvents;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.item.Items;
-import net.minecraft.world.item.crafting.RecipeHolder;
-import net.minecraft.world.item.crafting.RecipeType;
+import net.minecraft.util.context.ContextMap;
+import net.minecraft.world.item.crafting.SelectableRecipe;
 import net.minecraft.world.item.crafting.StonecutterRecipe;
+import net.minecraft.world.item.crafting.display.SlotDisplayContext;
 import net.minecraft.world.level.Level;
 
 import com.pockyl.diegesis.api.client.StationView;
@@ -27,7 +27,7 @@ import java.util.List;
 final class StonecutterBook implements RecipeBook.Source {
     private final StonecutterBehavior station;
     /** The recipes the pages were last made from, and those pages: the same recipes give the same list, made once. */
-    private List<RecipeHolder<StonecutterRecipe>> madeFrom = List.of();
+    private List<SelectableRecipe.SingleInputEntry<StonecutterRecipe>> madeFrom = List.of();
     private List<RecipeBook.Page> made = List.of();
 
     StonecutterBook(StonecutterBehavior station) {
@@ -37,19 +37,19 @@ final class StonecutterBook implements RecipeBook.Source {
     @Override
     public List<RecipeBook.Page> pages(StationView view) {
         Level level = view.level();
-        List<RecipeHolder<StonecutterRecipe>> recipes = level.getRecipeManager().getAllRecipesFor(RecipeType.STONECUTTING);
+        // Since Minecraft 1.21.2 every client is sent the stonecutter's recipes as entries (what each takes, what it shows): a page each.
+        List<SelectableRecipe.SingleInputEntry<StonecutterRecipe>> recipes = level.recipeAccess().stonecutterRecipes().entries();
         if (same(recipes)) {
             return made;
         }
+        ContextMap context = SlotDisplayContext.fromLevel(level);
         List<RecipeBook.Page> pages = new ArrayList<>();
-        for (RecipeHolder<StonecutterRecipe> holder : recipes) {
-            StonecutterRecipe recipe = holder.value();
-            ItemStack result = recipe.getResultItem(level.registryAccess());
-            if (result.isEmpty() || recipe.getIngredients().isEmpty()) {
+        for (SelectableRecipe.SingleInputEntry<StonecutterRecipe> entry : recipes) {
+            ItemStack result = entry.recipe().optionDisplay().resolveForFirstStack(context);
+            if (result.isEmpty()) {
                 continue;
             }
-            pages.add(new RecipeBook.Page(holder.id(), result.copy(), List.of(recipe.getIngredients().get(0)), List.of(), null, false,
-                    null, recipe.getGroup()));
+            pages.add(new RecipeBook.Page(entry, result.copy(), List.of(entry.input()), List.of(), null, false));
         }
         madeFrom = recipes;
         made = List.copyOf(pages);
@@ -57,7 +57,7 @@ final class StonecutterBook implements RecipeBook.Source {
     }
 
     /** Whether these are the very recipes the pages were made from: the same objects, so a reload is a change too. */
-    private boolean same(List<RecipeHolder<StonecutterRecipe>> recipes) {
+    private boolean same(List<SelectableRecipe.SingleInputEntry<StonecutterRecipe>> recipes) {
         if (recipes.size() != madeFrom.size()) {
             return false;
         }
@@ -76,10 +76,12 @@ final class StonecutterBook implements RecipeBook.Source {
 
     @Override
     public void picked(StationView view, RecipeBook.Page page) {
-        if (page.key() instanceof ResourceLocation recipe) {
+        if (page.key() instanceof SelectableRecipe.SingleInputEntry<?> entry) {
+            @SuppressWarnings("unchecked")
+            SelectableRecipe.SingleInputEntry<StonecutterRecipe> recipe = (SelectableRecipe.SingleInputEntry<StonecutterRecipe>) entry;
             Minecraft.getInstance().getSoundManager().play(SimpleSoundInstance.forUI(SoundEvents.BOOK_PAGE_TURN, 1.4F,
                     0.35F * VanillaConfig.soundVolume()));
-            station.cut(view, recipe, !Screen.hasShiftDown());
+            station.cut(view, recipe, !net.minecraft.client.Minecraft.getInstance().hasShiftDown());
         }
     }
 

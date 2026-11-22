@@ -1,32 +1,21 @@
 package com.pockyl.handson_vanilla.client;
 
 import net.minecraft.client.Minecraft;
-import net.minecraft.world.item.Item;
 import net.minecraft.world.item.ItemStack;
-import net.minecraft.world.item.crafting.RecipeHolder;
-import net.minecraft.world.item.crafting.RecipeType;
-import net.minecraft.world.item.crafting.SmithingRecipe;
+import net.minecraft.world.item.crafting.RecipeAccess;
+import net.minecraft.world.item.crafting.RecipePropertySet;
 import net.minecraft.world.level.Level;
 
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
-
 /**
- * Whether the smithing table takes a stack, from the client's own recipes: a template, a gear a template upgrades or trims, or
- * a material it takes. Stacks it takes nothing of stay off the rows.
+ * Whether the smithing table takes a stack, from what the server tells every client of its recipes (since Minecraft 1.21.2 the sets
+ * of templates, gear and materials they take, as the vanilla smithing menu reads them). Stacks it takes nothing of stay off the rows.
  */
 final class SmithingUse {
-    private static final Map<Item, Boolean> TAKES = new HashMap<>();
-    private static Level readFor;
-
     private SmithingUse() {
     }
 
-    /** Forgets what was read, once each time a smithing table opens, as a server may send other recipes. */
+    /** Nothing is kept between tables any more: the sets are the level's own. Kept for the callers' order of things. */
     static void refresh() {
-        TAKES.clear();
-        readFor = Minecraft.getInstance().level;
     }
 
     static boolean usable(ItemStack stack) {
@@ -34,19 +23,9 @@ final class SmithingUse {
         if (stack.isEmpty() || level == null) {
             return false;
         }
-        if (level != readFor) {
-            refresh();
-        }
-        return TAKES.computeIfAbsent(stack.getItem(), item -> {
-            ItemStack one = new ItemStack(item);
-            List<RecipeHolder<SmithingRecipe>> recipes = level.getRecipeManager().getAllRecipesFor(RecipeType.SMITHING);
-            for (RecipeHolder<SmithingRecipe> holder : recipes) {
-                SmithingRecipe recipe = holder.value();
-                if (recipe.isTemplateIngredient(one) || recipe.isBaseIngredient(one) || recipe.isAdditionIngredient(one)) {
-                    return true;
-                }
-            }
-            return false;
-        });
+        RecipeAccess recipes = level.recipeAccess();
+        return recipes.propertySet(RecipePropertySet.SMITHING_TEMPLATE).test(stack)
+                || recipes.propertySet(RecipePropertySet.SMITHING_BASE).test(stack)
+                || recipes.propertySet(RecipePropertySet.SMITHING_ADDITION).test(stack);
     }
 }

@@ -7,7 +7,7 @@ import net.minecraft.network.chat.Component;
 import net.minecraft.world.entity.player.Inventory;
 import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.inventory.AnvilMenu;
-import net.minecraft.world.inventory.ClickType;
+import net.minecraft.world.inventory.ContainerInput;
 import net.minecraft.world.inventory.ContainerLevelAccess;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.item.Items;
@@ -37,7 +37,7 @@ public final class AnvilTests {
         ItemStack named = new ItemStack(Items.IRON_SWORD);
         named.set(DataComponents.CUSTOM_NAME, Component.literal("Old Friend"));
         inventory.setItem(0, named);
-        menu.clicked(HOTBAR, 0, ClickType.QUICK_MOVE, player);
+        menu.clicked(HOTBAR, 0, ContainerInput.QUICK_MOVE, player);
         helper.assertTrue(menu.getSlot(LEFT).getItem().is(Items.IRON_SWORD), "the sword is on the anvil");
         // What the station sends when a piece is laid, as the vanilla screen: a custom name is sent as it is, so nothing changes.
         menu.setItemName("Old Friend");
@@ -50,7 +50,7 @@ public final class AnvilTests {
         helper.assertTrue(menu.getCost() > 0, "renaming costs levels");
         helper.assertTrue(!menu.getSlot(RESULT).mayPickup(player), "without levels it cannot be taken");
         player.giveExperienceLevels(5);
-        menu.clicked(RESULT, 0, ClickType.PICKUP, player);
+        menu.clicked(RESULT, 0, ContainerInput.PICKUP, player);
         helper.assertTrue(menu.getCarried().getHoverName().getString().equals("New Friend"), "the renamed sword is on the cursor");
         helper.assertTrue(player.experienceLevel < 5, "the levels are paid");
         helper.assertTrue(menu.getSlot(LEFT).getItem().isEmpty(), "the anvil is empty");

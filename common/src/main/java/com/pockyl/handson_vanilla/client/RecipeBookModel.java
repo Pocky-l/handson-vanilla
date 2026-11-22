@@ -9,7 +9,7 @@ import net.minecraft.client.model.geom.builders.CubeListBuilder;
 import net.minecraft.client.model.geom.builders.LayerDefinition;
 import net.minecraft.client.model.geom.builders.MeshDefinition;
 import net.minecraft.client.model.geom.builders.PartDefinition;
-import net.minecraft.resources.ResourceLocation;
+import net.minecraft.resources.Identifier;
 import net.minecraft.util.Mth;
 import org.joml.Quaternionf;
 
@@ -26,7 +26,7 @@ import com.pockyl.handson_vanilla.HandsOnVanilla;
  * net. The layer is built and baked here, so nothing is registered.
  */
 final class RecipeBookModel {
-    static final ResourceLocation TEXTURE = HandsOnVanilla.id("textures/entity/recipe_book.png");
+    static final Identifier TEXTURE = HandsOnVanilla.id("textures/entity/recipe_book.png");
     /** The export's space is Blockbench's turned half a turn about z, as entity renderers turn it back. */
     private static final Quaternionf FROM_EXPORT = new Quaternionf().rotationZ(Mth.PI);
 

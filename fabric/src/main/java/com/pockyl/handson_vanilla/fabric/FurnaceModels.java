@@ -1,19 +1,17 @@
 package com.pockyl.handson_vanilla.fabric;
 
-import net.fabricmc.fabric.api.blockrenderlayer.v1.BlockRenderLayerMap;
 import net.fabricmc.fabric.api.client.model.loading.v1.ModelLoadingPlugin;
 import net.fabricmc.loader.api.FabricLoader;
-import net.minecraft.client.renderer.RenderType;
-import net.minecraft.client.renderer.block.model.BlockModel;
-import net.minecraft.client.renderer.block.model.BlockModelDefinition;
-import net.minecraft.client.renderer.block.model.MultiVariant;
-import net.minecraft.client.resources.model.ModelBakery;
+import net.minecraft.client.renderer.block.dispatch.BlockStateModel;
+import net.minecraft.client.renderer.block.dispatch.BlockStateModelDispatcher;
 import net.minecraft.client.resources.model.UnbakedModel;
-import net.minecraft.resources.ResourceLocation;
+import net.minecraft.client.resources.model.cuboid.CuboidModel;
+import net.minecraft.resources.Identifier;
 import net.minecraft.world.level.block.Block;
 import net.minecraft.world.level.block.state.BlockState;
-import net.minecraft.world.level.block.state.properties.Property;
 
+import com.google.gson.JsonParser;
+import com.mojang.serialization.JsonOps;
 import com.pockyl.handson_vanilla.HandsOnVanilla;
 import com.pockyl.handson_vanilla.client.RemodelledBlocks;
 
@@ -31,8 +29,9 @@ import java.util.Optional;
  * Their block states and models lie under Minecraft's own names, where a resource pack that remodels them (or only names other
  * models in a block state) would win, and the station would open on a block whose hollows are not where its slots, flames and doors
  * are. So the block states and models are read from this mod's own copies ({@code furnace_pack}, the files Forge serves as a pack
- * above all others); a pack's textures still apply to the models' outside. The cartography table's tray of felt comes the same way
- * ({@link RemodelledBlocks}). Each block only while its station is on: turned off, it is vanilla's, or the resource pack's, again.
+ * above all others); a pack's textures still apply to the models' outside. Each block only while its station is on: turned off, it
+ * is vanilla's, or the resource pack's, again. Since Minecraft 26.x a model's quads are drawn cut out by their texture's alpha, so
+ * the doors' and the grate's holes need nothing more.
  */
 final class FurnaceModels {
     private static final String FOLDER = "furnace_pack/assets/minecraft/";
@@ -45,40 +44,26 @@ final class FurnaceModels {
         if (entries.isEmpty()) {
             return;
         }
-        for (RemodelledBlocks.Entry entry : entries) {
-            if (entry.cutout()) {
-                // The doors and the grate have holes: the model is drawn cut out (Forge reads its render_type).
-                BlockRenderLayerMap.INSTANCE.putBlock(entry.block(), RenderType.cutout());
-            }
-        }
         ModelLoadingPlugin.register(context -> {
-            Map<ResourceLocation, BlockModel> models = new HashMap<>();
+            Map<Identifier, UnbakedModel> models = new HashMap<>();
             for (RemodelledBlocks.Entry entry : entries) {
                 for (String name : entry.models()) {
-                    ResourceLocation id = ResourceLocation.withDefaultNamespace("block/" + name);
-                    readModel(FOLDER + "models/block/" + name + ".json").ifPresent(model -> {
-                        model.name = id.toString();
-                        models.put(id, model);
-                    });
+                    readModel(FOLDER + "models/block/" + name + ".json")
+                            .ifPresent(model -> models.put(Identifier.withDefaultNamespace("block/" + name), model));
                 }
             }
-            context.resolveModel().register(resolver -> models.get(resolver.id()));
+            // The models by Minecraft's names: the item, which names the block's model, follows, as with the pack.
+            context.modifyModelOnLoad().register((model, loading) -> models.getOrDefault(loading.id(), model));
             for (RemodelledBlocks.Entry entry : entries) {
                 Block block = entry.block();
-                Optional<BlockModelDefinition> definition = readBlockState(block, FOLDER + "blockstates/" + entry.id() + ".json");
-                if (definition.isEmpty()) {
+                // Read first: a file that cannot be read leaves the block its usual models instead of the missing one.
+                Optional<Map<BlockState, BlockStateModel.UnbakedRoot>> states = readBlockState(block,
+                        FOLDER + "blockstates/" + entry.id() + ".json");
+                if (states.isEmpty()) {
                     continue;
                 }
                 try {
-                    context.registerBlockStateResolver(block, resolver -> {
-                        Map<String, MultiVariant> variants = definition.get().getVariants();
-                        for (BlockState state : block.getStateDefinition().getPossibleStates()) {
-                            UnbakedModel model = variants.entrySet().stream().filter(variant -> matches(state, variant.getKey()))
-                                    .<UnbakedModel>map(Map.Entry::getValue).findFirst()
-                                    .orElseGet(() -> resolver.getOrLoadModel(ModelBakery.MISSING_MODEL_LOCATION));
-                            resolver.setModel(state, model);
-                        }
-                    });
+                    context.registerBlockStateResolver(block, resolver -> states.get().forEach(resolver::setModel));
                 } catch (IllegalArgumentException e) {
                     // Another mod already decides how the block looks: its choice stands.
                     HandsOnVanilla.LOGGER.warn("The {}'s models are resolved by another mod; this mod's {} is not used", entry.id(),
@@ -88,20 +73,21 @@ final class FurnaceModels {
         });
     }
 
-    private static Optional<BlockModel> readModel(String file) {
+    private static Optional<UnbakedModel> readModel(String file) {
         try (Reader reader = Files.newBufferedReader(find(file))) {
-            return Optional.of(BlockModel.fromStream(reader));
+            return Optional.of(CuboidModel.fromStream(reader));
         } catch (IOException | RuntimeException e) {
             HandsOnVanilla.LOGGER.error("Cannot read {}", file, e);
             return Optional.empty();
         }
     }
 
-    private static Optional<BlockModelDefinition> readBlockState(Block block, String file) {
+    /** The block state file, bound to the block's properties: a model for each of its states. */
+    private static Optional<Map<BlockState, BlockStateModel.UnbakedRoot>> readBlockState(Block block, String file) {
         try (Reader reader = Files.newBufferedReader(find(file))) {
-            BlockModelDefinition.Context context = new BlockModelDefinition.Context();
-            context.setDefinition(block.getStateDefinition());
-            return Optional.of(BlockModelDefinition.fromStream(context, reader));
+            BlockStateModelDispatcher definition = BlockStateModelDispatcher.CODEC.parse(JsonOps.INSTANCE, JsonParser.parseReader(reader))
+                    .getOrThrow();
+            return Optional.of(definition.instantiate(block.getStateDefinition(), () -> file));
         } catch (IOException | RuntimeException e) {
             HandsOnVanilla.LOGGER.error("Cannot read {}", file, e);
             return Optional.empty();
@@ -111,24 +97,5 @@ final class FurnaceModels {
     private static Path find(String file) throws IOException {
         return FabricLoader.getInstance().getModContainer(HandsOnVanilla.MOD_ID).flatMap(mod -> mod.findPath(file))
                 .orElseThrow(() -> new IOException(file + " is missing from the mod"));
-    }
-
-    /** Whether a block state file's variant key ({@code facing=east,lit=false}) names this state. */
-    private static boolean matches(BlockState state, String key) {
-        if (key.isEmpty()) {
-            return true;
-        }
-        for (String pair : key.split(",")) {
-            String[] parts = pair.split("=", 2);
-            Property<?> property = state.getBlock().getStateDefinition().getProperty(parts[0]);
-            if (property == null || parts.length < 2) {
-                return false;
-            }
-            Optional<?> value = property.getValue(parts[1]);
-            if (value.isEmpty() || !value.get().equals(state.getValue(property))) {
-                return false;
-            }
-        }
-        return true;
     }
 }

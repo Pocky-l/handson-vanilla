@@ -4,7 +4,7 @@ import net.minecraft.core.BlockPos;
 import net.minecraft.gametest.framework.GameTestHelper;
 import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.inventory.CartographyTableMenu;
-import net.minecraft.world.inventory.ClickType;
+import net.minecraft.world.inventory.ContainerInput;
 import net.minecraft.world.inventory.ContainerLevelAccess;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.item.Items;
@@ -38,12 +38,12 @@ public final class CartographyTests {
         // Copy: shift-clicked from the hotbar, each to its place.
         player.getInventory().setItem(0, map.copy());
         player.getInventory().setItem(1, new ItemStack(Items.MAP));
-        menu.clicked(HOTBAR, 0, ClickType.QUICK_MOVE, player);
-        menu.clicked(HOTBAR + 1, 0, ClickType.QUICK_MOVE, player);
+        menu.clicked(HOTBAR, 0, ContainerInput.QUICK_MOVE, player);
+        menu.clicked(HOTBAR + 1, 0, ContainerInput.QUICK_MOVE, player);
         helper.assertTrue(menu.getSlot(MAP).getItem().is(Items.FILLED_MAP) && menu.getSlot(EXTRA).getItem().is(Items.MAP),
                 "map and empty map lie on the table");
         helper.assertTrue(menu.getSlot(RESULT).getItem().getCount() == 2, "the copy makes two maps");
-        menu.clicked(RESULT, 0, ClickType.PICKUP, player);
+        menu.clicked(RESULT, 0, ContainerInput.PICKUP, player);
         helper.assertTrue(menu.getCarried().getCount() == 2, "both maps on the cursor");
         helper.assertTrue(!menu.getSlot(MAP).hasItem() && !menu.getSlot(EXTRA).hasItem(), "both pieces used");
         menu.setCarried(ItemStack.EMPTY);
@@ -52,7 +52,7 @@ public final class CartographyTests {
         menu.getSlot(MAP).set(map.copy());
         menu.getSlot(EXTRA).set(new ItemStack(Items.GLASS_PANE));
         helper.assertTrue(menu.getSlot(RESULT).hasItem(), "a map and a glass pane make the locked map");
-        menu.clicked(RESULT, 0, ClickType.PICKUP, player);
+        menu.clicked(RESULT, 0, ContainerInput.PICKUP, player);
         ItemStack locked = menu.getCarried();
         MapItemSavedData lockedData = MapItem.getSavedData(locked, helper.getLevel());
         helper.assertTrue(lockedData != null && lockedData.locked, "the taken map is locked");
@@ -67,7 +67,7 @@ public final class CartographyTests {
         menu.getSlot(MAP).set(map.copy());
         menu.getSlot(EXTRA).set(new ItemStack(Items.PAPER));
         helper.assertTrue(menu.getSlot(RESULT).hasItem(), "a map and paper make the zoomed map");
-        menu.clicked(RESULT, 0, ClickType.PICKUP, player);
+        menu.clicked(RESULT, 0, ContainerInput.PICKUP, player);
         MapItemSavedData zoomed = MapItem.getSavedData(menu.getCarried(), helper.getLevel());
         helper.assertTrue(zoomed != null && zoomed.scale == 1, "the taken map is one scale out");
         helper.succeed();

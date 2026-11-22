@@ -1,22 +1,27 @@
 package com.pockyl.handson_vanilla.client;
 
 import net.minecraft.client.Minecraft;
-import net.minecraft.client.gui.screens.Screen;
 import net.minecraft.client.player.LocalPlayer;
-import net.minecraft.core.NonNullList;
 import net.minecraft.network.chat.Component;
-import net.minecraft.resources.ResourceLocation;
+import net.minecraft.network.protocol.game.ServerboundRecipeBookChangeSettingsPacket;
+import net.minecraft.network.protocol.game.ServerboundRecipeBookSeenRecipePacket;
+import net.minecraft.client.ClientRecipeBook;
+import net.minecraft.util.context.ContextMap;
+import net.minecraft.world.inventory.AbstractCraftingMenu;
+import net.minecraft.world.inventory.RecipeBookType;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.item.Items;
 import net.minecraft.world.item.crafting.CraftingRecipe;
-import net.minecraft.client.ClientRecipeBook;
-import net.minecraft.network.protocol.game.ServerboundRecipeBookChangeSettingsPacket;
-import net.minecraft.network.protocol.game.ServerboundRecipeBookSeenRecipePacket;
-import net.minecraft.world.inventory.RecipeBookType;
 import net.minecraft.world.item.crafting.Ingredient;
-import net.minecraft.world.item.crafting.RecipeHolder;
-import net.minecraft.world.item.crafting.RecipeType;
-import net.minecraft.world.item.crafting.ShapedRecipe;
+import net.minecraft.world.item.crafting.RecipeBookCategories;
+import net.minecraft.world.item.crafting.RecipeBookCategory;
+import net.minecraft.world.item.crafting.display.RecipeDisplay;
+import net.minecraft.world.item.crafting.display.RecipeDisplayEntry;
+import net.minecraft.world.item.crafting.display.RecipeDisplayId;
+import net.minecraft.world.item.crafting.display.ShapedCraftingRecipeDisplay;
+import net.minecraft.world.item.crafting.display.ShapelessCraftingRecipeDisplay;
+import net.minecraft.world.item.crafting.display.SlotDisplay;
+import net.minecraft.world.item.crafting.display.SlotDisplayContext;
 import net.minecraft.world.level.Level;
 
 import com.pockyl.diegesis.api.client.MenuAccess;
@@ -26,82 +31,105 @@ import com.pockyl.handson_vanilla.RecipeLaying;
 
 import java.util.ArrayList;
 import java.util.List;
-import java.util.Locale;
+import java.util.Set;
 
 /**
- * The crafting table's book, in place of the vanilla recipe book: every crafting recipe the player has unlocked (or every one at
- * all, {@link VanillaConfig#allRecipesInBook()}), the recipes of one group in one place (right click: all of them), what can be
- * made now first. A shaped recipe shows its grid as it is laid;
- * picking a recipe lays it into the table the vanilla book's way (shift: as many as fit), so the server checks and moves the
- * items as it would for the vanilla screen, and answers a recipe the player lacks items for with its ghost in the grid. The
- * "only what can be made now" switch and which recipes are new are the vanilla book's own, shared with it.
+ * The crafting table's book, in place of the vanilla recipe book: every crafting recipe in the player's recipe book (or, in
+ * singleplayer, every one at all, {@link VanillaConfig#allRecipesInBook()}), the recipes of one group in one place (right click: all
+ * of them), what can be made now first. A shaped recipe shows its grid as it is laid; picking a recipe lays it into the table the
+ * vanilla book's way (shift: as many as fit), so the server checks and moves the items as it would for the vanilla screen, and answers
+ * a recipe the player lacks items for with its ghost in the grid. The "only what can be made now" switch and which recipes are new
+ * are the vanilla book's own, shared with it.
+ * <p>
+ * Since Minecraft 1.21.2 a client knows recipes only as the recipe book's entries ({@link ClientRecipes}): a page is one entry, known
+ * by its id.
  */
 final class CraftingBook implements RecipeBook.Source {
     private static final int GRID = 3;
-    /** The recipes the pages were last made from, and those pages: the same recipes give the same list, made once. */
-    private List<RecipeHolder<CraftingRecipe>> madeFrom = List.of();
+    /** The entries the pages were last made from, and those pages: the same entries give the same list, made once. */
+    private List<RecipeDisplayEntry> madeFrom = List.of();
     private List<RecipeBook.Page> made = List.of();
 
     @Override
     public List<RecipeBook.Page> pages(StationView view) {
         Level level = view.level();
-        LocalPlayer player = Minecraft.getInstance().player;
-        if (player == null) {
+        if (Minecraft.getInstance().player == null) {
             return List.of();
         }
-        boolean every = VanillaConfig.allRecipesInBook();
-        List<RecipeHolder<CraftingRecipe>> unlocked = new ArrayList<>();
-        for (RecipeHolder<CraftingRecipe> holder : level.getRecipeManager().getAllRecipesFor(RecipeType.CRAFTING)) {
-            CraftingRecipe recipe = holder.value();
-            if (!recipe.isSpecial() && !recipe.getIngredients().isEmpty() && (every || player.getRecipeBook().contains(holder))) {
-                unlocked.add(holder);
-            }
-        }
+        List<RecipeDisplayEntry> entries = VanillaConfig.allRecipesInBook() ? ClientRecipes.every() : ClientRecipes.known();
         // Read four times a second: a big pack's thousands of pages are made again only when a recipe came, went or was reloaded.
-        if (sameRecipes(unlocked)) {
+        if (same(entries)) {
             return made;
         }
+        ContextMap context = SlotDisplayContext.fromLevel(level);
         List<RecipeBook.Page> pages = new ArrayList<>();
-        for (RecipeHolder<CraftingRecipe> holder : unlocked) {
-            CraftingRecipe recipe = holder.value();
-            ItemStack result = recipe.getResultItem(level.registryAccess());
-            if (result.isEmpty()) {
+        for (RecipeDisplayEntry entry : entries) {
+            List<ItemStack> results = entry.resultItems(context);
+            List<Ingredient> laid = laid(entry.display(), context);
+            if (results.isEmpty() || results.getFirst().isEmpty() || laid.isEmpty()) {
                 continue;
             }
-            pages.add(new RecipeBook.Page(holder.id(), result.copy(), laid(recipe), List.of(), null, false,
-                    recipe.category().name().toLowerCase(Locale.ROOT), recipe.getGroup()));
+            pages.add(new RecipeBook.Page(entry.id(), results.getFirst().copy(), laid, List.of(), null, false, kind(entry.category()),
+                    entry.group().isPresent() ? Integer.toString(entry.group().getAsInt()) : ""));
         }
-        madeFrom = unlocked;
+        madeFrom = entries;
         made = List.copyOf(pages);
         return made;
     }
 
-    /** Whether these are the very recipes the pages were made from: the same objects, so a reload is a change too. */
-    private boolean sameRecipes(List<RecipeHolder<CraftingRecipe>> unlocked) {
-        if (unlocked.size() != madeFrom.size()) {
+    /** Whether these are the very entries the pages were made from: the same objects, so a new recipe book is a change too. */
+    private boolean same(List<RecipeDisplayEntry> entries) {
+        if (entries.size() != madeFrom.size()) {
             return false;
         }
-        for (int i = 0; i < unlocked.size(); i++) {
-            if (unlocked.get(i) != madeFrom.get(i)) {
+        for (int i = 0; i < entries.size(); i++) {
+            if (entries.get(i) != madeFrom.get(i)) {
                 return false;
             }
         }
         return true;
     }
 
-    /** What goes in, a shaped recipe's in rows of three as it lies in the grid, its gaps empty. */
-    private static List<Ingredient> laid(CraftingRecipe recipe) {
-        NonNullList<Ingredient> ingredients = recipe.getIngredients();
-        if (!(recipe instanceof ShapedRecipe shaped)) {
-            return List.copyOf(ingredients);
+    /** The tab a recipe goes under, by its recipe book category. */
+    private static String kind(RecipeBookCategory category) {
+        if (category == RecipeBookCategories.CRAFTING_BUILDING_BLOCKS) {
+            return "building";
+        }
+        if (category == RecipeBookCategories.CRAFTING_REDSTONE) {
+            return "redstone";
+        }
+        if (category == RecipeBookCategories.CRAFTING_EQUIPMENT) {
+            return "equipment";
+        }
+        return "misc";
+    }
+
+    /** What goes in, a shaped recipe's in rows of three as it lies in the grid, its gaps empty; nothing for another kind of display. */
+    private static List<Ingredient> laid(RecipeDisplay display, ContextMap context) {
+        if (display instanceof ShapelessCraftingRecipeDisplay shapeless) {
+            List<Ingredient> parts = new ArrayList<>();
+            for (SlotDisplay part : shapeless.ingredients()) {
+                parts.add(ingredient(part, context));
+            }
+            return parts;
+        }
+        if (!(display instanceof ShapedCraftingRecipeDisplay shaped)) {
+            return List.of();
         }
         List<Ingredient> grid = new ArrayList<>();
-        for (int row = 0; row < shaped.getHeight(); row++) {
+        for (int row = 0; row < shaped.height(); row++) {
             for (int column = 0; column < GRID; column++) {
-                grid.add(column < shaped.getWidth() ? ingredients.get(row * shaped.getWidth() + column) : Ingredient.EMPTY);
+                grid.add(column < shaped.width() ? ingredient(shaped.ingredients().get(row * shaped.width() + column), context)
+                        : RecipeBook.GAP);
             }
         }
         return grid;
+    }
+
+    /** What a place of the recipe takes, as an ingredient of the items it shows; a gap when it shows none. */
+    private static Ingredient ingredient(SlotDisplay part, ContextMap context) {
+        List<ItemStack> items = part.resolveForStacks(context);
+        return items.isEmpty() ? RecipeBook.GAP : Ingredient.of(items.stream().map(ItemStack::getItem).distinct());
     }
 
     @Override
@@ -116,31 +144,33 @@ final class CraftingBook implements RecipeBook.Source {
     @Override
     public void picked(StationView view, RecipeBook.Page page) {
         MenuAccess menu = view.menu();
-        if (menu != null && page.key() instanceof ResourceLocation recipe) {
+        if (menu != null && page.key() instanceof RecipeDisplayId recipe) {
             // The page answers the finger at once; the items follow when the server has laid them.
             Minecraft.getInstance().getSoundManager().play(net.minecraft.client.resources.sounds.SimpleSoundInstance.forUI(
                     net.minecraft.sounds.SoundEvents.BOOK_PAGE_TURN, 1.4F, 0.35F * VanillaConfig.soundVolume()));
             CraftingTableBehavior.recipeLaid();
-            lay(menu, recipe, Screen.hasShiftDown());
+            lay(menu, recipe, Minecraft.getInstance().hasShiftDown());
         }
     }
 
     /**
      * Lays a recipe: one in the player's recipe book as the vanilla book does (its packet, the server's placing and ghost); one not in
-     * it (the book shows every recipe, see {@link VanillaConfig#allRecipesInBook()}) with plain clicks, which any server takes, and its
-     * ghost shown here when items are missing.
+     * it (the book shows every recipe in singleplayer, see {@link VanillaConfig#allRecipesInBook()}) with plain clicks, and its ghost
+     * shown here when items are missing.
      */
-    static void lay(MenuAccess menu, ResourceLocation id, boolean all) {
+    static void lay(MenuAccess menu, RecipeDisplayId id, boolean all) {
         LocalPlayer player = Minecraft.getInstance().player;
-        RecipeHolder<?> recipe = player == null ? null : player.level().getRecipeManager().byKey(id).orElse(null);
-        if (recipe == null || player.getRecipeBook().contains(recipe)
-                || !(menu.handle() instanceof net.minecraft.world.inventory.RecipeBookMenu<?, ?> book)) {
+        Set<RecipeDisplayId> known = ClientRecipes.knownIds();
+        if (player == null || known.contains(id) || !(menu.handle() instanceof AbstractCraftingMenu crafting)) {
             menu.placeRecipe(id, all);
             return;
         }
-        if (RecipeLaying.lay(book, player.getInventory(), recipe, all, menu::click) == RecipeLaying.Outcome.MISSING) {
-            GhostRecipe.arrived(book.containerId, id);
-        }
+        ClientRecipes.recipe(id).map(holder -> holder.value() instanceof CraftingRecipe recipe ? recipe : null).ifPresentOrElse(recipe -> {
+            if (RecipeLaying.lay(crafting, player.getInventory(), recipe, all, menu::click) == RecipeLaying.Outcome.MISSING) {
+                ClientRecipes.every().stream().filter(entry -> entry.id().equals(id)).findFirst()
+                        .ifPresent(entry -> GhostRecipe.arrived(crafting.containerId, entry.display()));
+            }
+        }, () -> menu.placeRecipe(id, all));
     }
 
     /** The vanilla book's tabs (all, then building, redstone, equipment, the rest), with the recipes made lately after all. */
@@ -187,22 +217,15 @@ final class CraftingBook implements RecipeBook.Source {
     @Override
     public boolean isNew(RecipeBook.Page page) {
         LocalPlayer player = Minecraft.getInstance().player;
-        RecipeHolder<?> recipe = recipe(page);
-        return player != null && recipe != null && player.getRecipeBook().willHighlight(recipe);
+        return player != null && page.key() instanceof RecipeDisplayId id && player.getRecipeBook().willHighlight(id);
     }
 
     @Override
     public void seen(RecipeBook.Page page) {
         LocalPlayer player = Minecraft.getInstance().player;
-        RecipeHolder<?> recipe = recipe(page);
-        if (player != null && recipe != null) {
-            player.getRecipeBook().removeHighlight(recipe);
-            player.connection.send(new ServerboundRecipeBookSeenRecipePacket(recipe));
+        if (player != null && page.key() instanceof RecipeDisplayId id && player.getRecipeBook().willHighlight(id)) {
+            player.getRecipeBook().removeHighlight(id);
+            player.connection.send(new ServerboundRecipeBookSeenRecipePacket(id));
         }
-    }
-
-    private static RecipeHolder<?> recipe(RecipeBook.Page page) {
-        var level = Minecraft.getInstance().level;
-        return level == null || !(page.key() instanceof ResourceLocation id) ? null : level.getRecipeManager().byKey(id).orElse(null);
     }
 }

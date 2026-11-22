@@ -1,7 +1,7 @@
 package com.pockyl.handson_vanilla.client;
 
 import net.minecraft.core.registries.BuiltInRegistries;
-import net.minecraft.resources.ResourceLocation;
+import net.minecraft.resources.Identifier;
 import net.minecraft.tags.TagKey;
 import net.minecraft.core.registries.Registries;
 import net.minecraft.world.level.block.Block;
@@ -34,17 +34,17 @@ final class BlockTwins {
 
     /** {@code mod}'s twin of {@code vanilla}, looked up once the station first needs it; vanilla's block when there is none. */
     static Supplier<Block> twin(String mod, Block vanilla) {
-        ResourceLocation key = BuiltInRegistries.BLOCK.getKey(vanilla);
-        ResourceLocation id = ResourceLocation.fromNamespaceAndPath(mod, key.getNamespace() + "/" + key.getPath());
+        Identifier key = BuiltInRegistries.BLOCK.getKey(vanilla);
+        Identifier id = Identifier.fromNamespaceAndPath(mod, key.getNamespace() + "/" + key.getPath());
         return () -> BuiltInRegistries.BLOCK.getOptional(id).orElse(vanilla);
     }
 
     /** The vanilla block {@code state} stands for: itself, or the one an Easy Magic / Easy Anvils twin was made from. */
-    static ResourceLocation original(BlockState state) {
-        ResourceLocation key = BuiltInRegistries.BLOCK.getKey(state.getBlock());
+    static Identifier original(BlockState state) {
+        Identifier key = BuiltInRegistries.BLOCK.getKey(state.getBlock());
         if ((key.getNamespace().equals(EASY_MAGIC) || key.getNamespace().equals(EASY_ANVILS)) && key.getPath().contains("/")) {
             int slash = key.getPath().indexOf('/');
-            return ResourceLocation.fromNamespaceAndPath(key.getPath().substring(0, slash), key.getPath().substring(slash + 1));
+            return Identifier.fromNamespaceAndPath(key.getPath().substring(0, slash), key.getPath().substring(slash + 1));
         }
         return key;
     }
@@ -67,7 +67,7 @@ final class BlockTwins {
         if (twin(mod, vanilla).get() == vanilla) {
             return false;
         }
-        if (state.is(TagKey.create(Registries.BLOCK, ResourceLocation.fromNamespaceAndPath(mod, unaltered)))) {
+        if (state.is(TagKey.create(Registries.BLOCK, Identifier.fromNamespaceAndPath(mod, unaltered)))) {
             return false;
         }
         return DISABLED.computeIfAbsent(mod + ":" + flag, key -> {

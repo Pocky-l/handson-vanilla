@@ -1,5 +1,14 @@
 # Changelog
 
+## [1.2.3+26.2] - Unreleased
+- The first version for Minecraft 26.2, on Fabric, with every station of 1.2.3+1.21.1.
+- The crafting table's book lists the recipes of your recipe book. Since Minecraft 1.21.2 a server tells the game no other
+  recipes, so the book of every recipe (`book_recipes=all`) works in singleplayer only.
+- Not in this version: [EMI](https://www.curseforge.com/minecraft/mc-mods/emi) and
+  [Polymorph](https://modrinth.com/mod/polymorph), which have no build for 26.2, and
+  [FastWorkbench](https://www.curseforge.com/minecraft/mc-mods/fastworkbench), which has none for Fabric.
+- Needs [Diegesis](https://www.curseforge.com/minecraft/mc-mods/diegesis) 1.0.0-beta.17.1 for 26.2 and Fabric API 0.161.0.
+
 ## [1.2.3+1.21.1] - 2026-11-22
 - The anvil shows the name you type again, so items can be renamed at the station.
 

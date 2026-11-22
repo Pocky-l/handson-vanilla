@@ -1,11 +1,10 @@
 package com.pockyl.handson_vanilla.client;
 
 import net.minecraft.client.Minecraft;
-import net.minecraft.client.gui.GuiGraphics;
 import net.minecraft.client.gui.screens.Screen;
 import net.minecraft.client.gui.screens.inventory.AbstractContainerScreen;
 import net.minecraft.network.chat.Component;
-import net.minecraft.resources.ResourceLocation;
+import net.minecraft.resources.Identifier;
 import net.minecraft.world.entity.player.Inventory;
 import net.minecraft.world.inventory.AbstractContainerMenu;
 import net.minecraft.world.item.ItemStack;
@@ -57,7 +56,7 @@ public final class StationHover {
             stationScreen = null;
             return null;
         }
-        Screen shown = Minecraft.getInstance().screen;
+        Screen shown = Minecraft.getInstance().gui.screen();
         if (DiegesisClient.isStationScreen(shown)) {
             stationScreen = shown;
         }
@@ -89,10 +88,6 @@ public final class StationHover {
     private static final class MenuScreen extends AbstractContainerScreen<AbstractContainerMenu> {
         MenuScreen(AbstractContainerMenu menu, Inventory inventory) {
             super(menu, inventory, Component.empty());
-        }
-
-        @Override
-        protected void renderBg(GuiGraphics graphics, float partialTick, int mouseX, int mouseY) {
         }
     }
 
@@ -130,8 +125,14 @@ public final class StationHover {
         return Math.min(screenWidth, Math.round(rightEdge()) + VIEWER_GAP);
     }
 
+    /** The player's recipe book's entry for a recipe a recipe viewer names, which the book's packet lays; empty when it has none. */
+    public static java.util.Optional<net.minecraft.world.item.crafting.display.RecipeDisplayId> bookEntry(
+            net.minecraft.resources.ResourceKey<net.minecraft.world.item.crafting.Recipe<?>> key, net.minecraft.world.item.crafting.Recipe<?> recipe) {
+        return ClientRecipes.knownEntry(key, recipe);
+    }
+
     /** Lays a recipe into the station's menu as the vanilla recipe book does. */
-    public static void placeRecipe(ResourceLocation recipe, boolean all) {
+    public static void placeRecipe(net.minecraft.world.item.crafting.display.RecipeDisplayId recipe, boolean all) {
         CraftingTableBehavior.recipeLaid();
         DiegesisClient.focusedStation().map(StationView::menu).ifPresent(menu -> menu.placeRecipe(recipe, all));
     }

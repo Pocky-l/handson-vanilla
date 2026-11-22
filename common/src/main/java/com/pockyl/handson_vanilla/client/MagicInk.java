@@ -3,7 +3,7 @@ package com.pockyl.handson_vanilla.client;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.gui.Font;
 import net.minecraft.network.chat.Style;
-import net.minecraft.resources.ResourceLocation;
+import net.minecraft.resources.Identifier;
 import net.minecraft.util.FormattedCharSequence;
 import net.minecraft.util.Mth;
 
@@ -27,7 +27,7 @@ final class MagicInk {
     private static final float SWAY = 6.0F;
     /** A drawing wakes in tiles, each tile's colour by its angle round the middle. */
     private static final int TILES = 4;
-    private static final Style RUNES = Style.EMPTY.withFont(Minecraft.ALT_FONT);
+    private static final Style RUNES = Style.EMPTY.withFont(new net.minecraft.network.chat.FontDescription.Resource(Identifier.withDefaultNamespace("alt")));
 
     /** What a letter is like now: {@code out[0]} its ink (0: gone), {@code out[1]} how awake (0 to 1), {@code out[2]} how white-hot. */
     @FunctionalInterface
@@ -143,7 +143,7 @@ final class MagicInk {
      * {@code x, y}: in ink while it sleeps; awake ({@code awake} 0 to 1) its lines turn to light, the glint's colours going round
      * its middle, sparks over it.
      */
-    static void drawing(OpenBook.Canvas canvas, ResourceLocation texture, float x, float y, float wide, float high, float u1, float v1,
+    static void drawing(OpenBook.Canvas canvas, Identifier texture, float x, float y, float wide, float high, float u1, float v1,
             int ink, float alpha, float awake, float time, long seed) {
         canvas.sprite(texture, x, y, wide, high, u1, v1, ink, alpha * (1.0F - 0.8F * awake), false);
         if (awake <= 0.02F) {

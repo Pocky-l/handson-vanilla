@@ -4,18 +4,20 @@ import com.mojang.blaze3d.vertex.PoseStack;
 import com.mojang.math.Axis;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.gui.screens.recipebook.RecipeUpdateListener;
-import net.minecraft.client.renderer.MultiBufferSource;
+import com.pockyl.diegesis.api.client.SceneBuffers;
 import net.minecraft.client.renderer.texture.OverlayTexture;
-import net.minecraft.recipebook.PlaceRecipe;
-import net.minecraft.resources.ResourceLocation;
+import net.minecraft.recipebook.PlaceRecipeHelper;
 import net.minecraft.util.Mth;
+import net.minecraft.util.context.ContextMap;
 import net.minecraft.world.inventory.AbstractContainerMenu;
-import net.minecraft.world.inventory.RecipeBookMenu;
+import net.minecraft.world.inventory.AbstractCraftingMenu;
 import net.minecraft.world.item.ItemDisplayContext;
 import net.minecraft.world.item.ItemStack;
-import net.minecraft.world.item.crafting.Ingredient;
-import net.minecraft.world.item.crafting.Recipe;
-import net.minecraft.world.item.crafting.RecipeHolder;
+import net.minecraft.world.item.crafting.display.RecipeDisplay;
+import net.minecraft.world.item.crafting.display.ShapedCraftingRecipeDisplay;
+import net.minecraft.world.item.crafting.display.ShapelessCraftingRecipeDisplay;
+import net.minecraft.world.item.crafting.display.SlotDisplay;
+import net.minecraft.world.item.crafting.display.SlotDisplayContext;
 import org.joml.Vector3f;
 import org.joml.Vector3fc;
 
@@ -24,6 +26,8 @@ import com.pockyl.diegesis.api.client.MenuAccess;
 import com.pockyl.diegesis.api.client.NodePainter;
 import com.pockyl.diegesis.api.client.StationView;
 import com.pockyl.diegesis.api.state.SlotRef;
+
+import java.util.List;
 
 /**
  * The vanilla book's ghost recipe at the table: a recipe picked without its items comes back from the server as a ghost, and what it
@@ -40,17 +44,19 @@ public final class GhostRecipe {
 
     /** A ghost the server sent for a menu, not taken by a station yet. */
     private static int arrivedFor = -1;
-    private static ResourceLocation arrived;
+    private static RecipeDisplay arrived;
 
-    private final Ingredient[] cells = new Ingredient[CELLS];
+    /** What each cell takes, as the stacks it goes through; null: nothing. */
+    @SuppressWarnings("unchecked")
+    private final List<ItemStack>[] cells = new List[CELLS];
     private ItemStack result = ItemStack.EMPTY;
     private boolean shown;
     private StationView view;
     private float time;
 
     /** The server answered a recipe the player lacks items for, or the book found it so laying one by clicks; on the render thread. */
-    public static void arrived(int containerId, ResourceLocation recipe) {
-        if (Minecraft.getInstance().screen instanceof RecipeUpdateListener) {
+    public static void arrived(int containerId, RecipeDisplay recipe) {
+        if (Minecraft.getInstance().gui.screen() instanceof RecipeUpdateListener) {
             // The vanilla screen is open and showed it itself.
             return;
         }
@@ -67,34 +73,39 @@ public final class GhostRecipe {
         }
         AbstractContainerMenu handle = menu.handle();
         if (handle != null && handle.containerId == arrivedFor) {
-            ResourceLocation id = arrived;
+            RecipeDisplay recipe = arrived;
             arrived = null;
-            view.level().getRecipeManager().byKey(id).ifPresent(recipe -> show(recipe, handle));
+            show(recipe, handle);
         }
     }
 
-    /** Lays the ghost out as the vanilla book does, by the same placing as the server's, so it lies where the items would go. */
-    private void show(RecipeHolder<?> holder, AbstractContainerMenu menu) {
-        Recipe<?> recipe = holder.value();
+    /** Lays the ghost out as the vanilla book does, by the same placing as its own, so it lies where the items would go. */
+    private void show(RecipeDisplay recipe, AbstractContainerMenu menu) {
         clear();
         int width = 3;
         int height = 3;
-        int resultSlot = 0;
-        if (menu instanceof RecipeBookMenu<?, ?> book) {
-            width = book.getGridWidth();
-            height = book.getGridHeight();
-            resultSlot = book.getResultSlotIndex();
+        if (menu instanceof AbstractCraftingMenu crafting) {
+            width = crafting.getGridWidth();
+            height = crafting.getGridHeight();
         }
-        int first = resultSlot == 0 ? 1 : 0;
-        PlaceRecipe<Ingredient> placing = (Ingredient ingredient, int slot, int maxAmount, int x, int y) -> {
-            int cell = slot - first;
-            if (!ingredient.isEmpty() && cell >= 0 && cell < CELLS) {
-                cells[cell] = ingredient;
+        ContextMap context = SlotDisplayContext.fromLevel(view.level());
+        if (recipe instanceof ShapedCraftingRecipeDisplay shaped) {
+            PlaceRecipeHelper.placeRecipe(width, height, shaped.width(), shaped.height(), shaped.ingredients(),
+                    (SlotDisplay ingredient, int cell, int x, int y) -> put(cell, ingredient, context));
+        } else if (recipe instanceof ShapelessCraftingRecipeDisplay shapeless) {
+            for (int cell = 0; cell < shapeless.ingredients().size(); cell++) {
+                put(cell, shapeless.ingredients().get(cell), context);
             }
-        };
-        placing.placeRecipe(width, height, resultSlot, holder, recipe.getIngredients().iterator(), 0);
-        result = recipe.getResultItem(view.level().registryAccess()).copy();
+        }
+        result = recipe.result().resolveForFirstStack(context);
         shown = true;
+    }
+
+    private void put(int cell, SlotDisplay ingredient, ContextMap context) {
+        List<ItemStack> choices = ingredient.resolveForStacks(context);
+        if (!choices.isEmpty() && cell >= 0 && cell < CELLS) {
+            cells[cell] = choices;
+        }
     }
 
     void clear() {
@@ -152,17 +163,16 @@ public final class GhostRecipe {
     }
 
     /** One of what an ingredient takes, a new one each second, as the vanilla ghost goes through them. */
-    private ItemStack choice(Ingredient ingredient) {
-        ItemStack[] items = ingredient.getItems();
-        return items.length == 0 ? ItemStack.EMPTY : items[(int) (time % items.length)];
+    private ItemStack choice(List<ItemStack> items) {
+        return items.isEmpty() ? ItemStack.EMPTY : items.get((int) (time % items.size()));
     }
 
     /** Lying in its cell as the table's own items lie (a block standing, a flat item flat). */
-    private void lying(ItemStack stack, int cell, PoseStack poseStack, MultiBufferSource buffers, int light) {
+    private void lying(ItemStack stack, int cell, PoseStack poseStack, SceneBuffers buffers, int light) {
         if (stack.isEmpty()) {
             return;
         }
-        boolean block = Minecraft.getInstance().getItemRenderer().getModel(stack, view.level(), null, 0).isGui3d();
+        boolean block = Draw.isBlock(stack, view.level());
         float jitter = ((cell * 7919) % 25 - 12) * 0.7F;
         if (block) {
             poseStack.translate(0.0F, CELL_SIZE * 0.25F, 0.0F);
@@ -176,8 +186,8 @@ public final class GhostRecipe {
         render(stack, cell, poseStack, buffers, light);
     }
 
-    private void render(ItemStack stack, int seed, PoseStack poseStack, MultiBufferSource buffers, int light) {
-        Minecraft.getInstance().getItemRenderer().renderStatic(stack, ItemDisplayContext.FIXED, light, OverlayTexture.NO_OVERLAY, poseStack,
-                DiegesisClient.tinted(buffers, FADED), view.level(), seed);
+    private void render(ItemStack stack, int seed, PoseStack poseStack, SceneBuffers buffers, int light) {
+        Draw.item(stack, ItemDisplayContext.FIXED, light, OverlayTexture.NO_OVERLAY, poseStack, DiegesisClient.tinted(buffers, FADED),
+                view.level(), seed);
     }
 }

@@ -1,7 +1,7 @@
 package com.pockyl.handson_vanilla;
 
 import com.mojang.logging.LogUtils;
-import net.minecraft.resources.ResourceLocation;
+import net.minecraft.resources.Identifier;
 import org.slf4j.Logger;
 
 /** Constants of the mod. The mod is client-side only: everything else starts in {@code client.HandsOnVanillaClient}. */
@@ -12,7 +12,7 @@ public final class HandsOnVanilla {
     private HandsOnVanilla() {
     }
 
-    public static ResourceLocation id(String path) {
-        return ResourceLocation.fromNamespaceAndPath(MOD_ID, path);
+    public static Identifier id(String path) {
+        return Identifier.fromNamespaceAndPath(MOD_ID, path);
     }
 }

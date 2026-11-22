@@ -3,10 +3,10 @@ package com.pockyl.handson_vanilla.client;
 import com.mojang.blaze3d.vertex.PoseStack;
 import com.mojang.math.Axis;
 import net.minecraft.client.Minecraft;
-import net.minecraft.client.renderer.MultiBufferSource;
+import com.pockyl.diegesis.api.client.SceneBuffers;
 import net.minecraft.client.renderer.texture.OverlayTexture;
 import net.minecraft.core.NonNullList;
-import net.minecraft.resources.ResourceLocation;
+import net.minecraft.resources.Identifier;
 import net.minecraft.sounds.SoundEvents;
 import net.minecraft.world.item.ItemDisplayContext;
 import net.minecraft.world.item.ItemStack;
@@ -29,6 +29,7 @@ import java.util.List;
  * lists them. At the table the others lie small beside the result, each as what it makes: a click on one makes it the result.
  * The choice goes to the server through Polymorph's own selection packet, which picks the recipe and remakes the result, as its
  * button does. Without Polymorph the server always makes its first match, so there is nothing to choose and nothing is shown.
+ * Since Minecraft 1.21.2 a client knows no recipes: the matches are read in singleplayer only ({@link ClientRecipes}).
  */
 final class RecipeChoice {
     /** As many others as the scene has places for, beside the result. */
@@ -42,7 +43,7 @@ final class RecipeChoice {
     private static boolean anyShown;
 
     /** Each place's recipe and what it makes; empty places hold nothing. */
-    private final ResourceLocation[] recipes = new ResourceLocation[PLACES];
+    private final Identifier[] recipes = new Identifier[PLACES];
     private final ItemStack[] outputs = new ItemStack[PLACES];
     /** The grid as read last: the matches are read again only when it changes. */
     private ItemStack[] grid = new ItemStack[0];
@@ -108,20 +109,20 @@ final class RecipeChoice {
             items.set(i, now[i].copy());
         }
         CraftingInput container = CraftingInput.of(3, 3, items);
-        List<RecipeHolder<CraftingRecipe>> matches = level.getRecipeManager().getRecipesFor(RecipeType.CRAFTING, container, level);
+        List<RecipeHolder<CraftingRecipe>> matches = ClientRecipes.craftingMatches(container, level);
         int place = 0;
         List<ItemStack> seen = new ArrayList<>();
         if (!shown.isEmpty()) {
             seen.add(shown);
         }
         for (RecipeHolder<CraftingRecipe> recipe : matches) {
-            ItemStack makes = recipe.value().assemble(container, level.registryAccess());
+            ItemStack makes = recipe.value().assemble(container);
             if (makes.isEmpty() || seen.stream().anyMatch(other -> ItemStack.isSameItemSameComponents(other, makes))) {
                 continue;
             }
             seen.add(makes);
             if (place < PLACES) {
-                recipes[place] = recipe.id();
+                recipes[place] = recipe.id().identifier();
                 outputs[place] = makes;
                 place++;
             }
@@ -174,7 +175,7 @@ final class RecipeChoice {
     }
 
     /** Standing small and still, turned to the camera as the result is; a little bigger under the cursor. */
-    private void paint(StationView view, NodeView node, int place, PoseStack poseStack, MultiBufferSource buffers, int light) {
+    private void paint(StationView view, NodeView node, int place, PoseStack poseStack, SceneBuffers buffers, int light) {
         ItemStack stack = outputs[place];
         if (stack.isEmpty()) {
             return;
@@ -185,8 +186,7 @@ final class RecipeChoice {
         poseStack.mulPose(Axis.YP.rotationDegrees(180.0F));
         poseStack.mulPose(Axis.XP.rotationDegrees(-35.0F));
         poseStack.scale(size, size, size);
-        Minecraft.getInstance().getItemRenderer().renderStatic(stack, ItemDisplayContext.FIXED, light, OverlayTexture.NO_OVERLAY, poseStack,
-                buffers, view.level(), place);
+        Draw.item(stack, ItemDisplayContext.FIXED, light, OverlayTexture.NO_OVERLAY, poseStack, buffers, view.level(), place);
         poseStack.popPose();
     }
 
@@ -208,7 +208,7 @@ final class RecipeChoice {
             looked = true;
             try {
                 Class<?> network = Class.forName("com.illusivesoulworks.polymorph.api.common.base.IPolymorphNetwork");
-                selection = network.getMethod("sendPlayerRecipeSelectionC2S", ResourceLocation.class);
+                selection = network.getMethod("sendPlayerRecipeSelectionC2S", Identifier.class);
             } catch (ReflectiveOperationException | LinkageError ignored) {
                 selection = null;
             }

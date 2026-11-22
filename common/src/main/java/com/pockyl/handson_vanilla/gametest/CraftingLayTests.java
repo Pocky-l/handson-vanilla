@@ -1,7 +1,7 @@
 package com.pockyl.handson_vanilla.gametest;
 
 import net.minecraft.gametest.framework.GameTestHelper;
-import net.minecraft.resources.ResourceLocation;
+import net.minecraft.resources.Identifier;
 import net.minecraft.world.entity.player.Inventory;
 import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.inventory.ContainerLevelAccess;
@@ -9,6 +9,9 @@ import net.minecraft.world.inventory.CraftingMenu;
 import net.minecraft.world.item.Item;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.item.Items;
+import net.minecraft.core.registries.Registries;
+import net.minecraft.resources.ResourceKey;
+import net.minecraft.world.item.crafting.CraftingRecipe;
 import net.minecraft.world.item.crafting.RecipeHolder;
 import net.minecraft.world.level.GameType;
 
@@ -32,7 +35,7 @@ public final class CraftingLayTests {
         Player player = helper.makeMockPlayer(GameType.SURVIVAL);
         CraftingMenu menu = menu(player);
         Inventory inventory = player.getInventory();
-        RecipeHolder<?> torch = recipe(helper, "torch");
+        CraftingRecipe torch = recipe(helper, "torch");
         inventory.setItem(0, new ItemStack(Items.COAL, 40));
         inventory.setItem(1, new ItemStack(Items.STICK, 64));
         // Something else lies in the grid already: it goes back to the inventory.
@@ -40,7 +43,7 @@ public final class CraftingLayTests {
         RecipeLaying.Clicker clicker = (slot, button, type) -> menu.clicked(slot, button, type, player);
 
         helper.assertTrue(RecipeLaying.lay(menu, inventory, torch, false, clicker) == RecipeLaying.Outcome.LAID, "one set laid");
-        helper.assertTrue(menu.recipeMatches(cast(torch)), "the grid makes torches");
+        helper.assertTrue(makes(menu, torch, helper), "the grid makes torches");
         helper.assertTrue(inGrid(menu, Items.COAL) == 1 && inGrid(menu, Items.STICK) == 1, "one coal, one stick");
         helper.assertTrue(inGrid(menu, Items.OAK_PLANKS) == 0 && count(inventory, Items.OAK_PLANKS) == 3, "the planks went back");
 
@@ -52,7 +55,7 @@ public final class CraftingLayTests {
                 "as many as the coal gives: " + inGrid(menu, Items.COAL) + " coal, " + inGrid(menu, Items.STICK) + " sticks");
         helper.assertTrue(count(inventory, Items.COAL) == 0 && count(inventory, Items.STICK) == 24, "the rest of the sticks stayed");
         helper.assertTrue(menu.getCarried().isEmpty(), "nothing left on the cursor");
-        helper.assertTrue(menu.recipeMatches(cast(torch)), "the grid still makes torches");
+        helper.assertTrue(makes(menu, torch, helper), "the grid still makes torches");
 
         helper.assertTrue(RecipeLaying.lay(menu, inventory, torch, true, clicker) == RecipeLaying.Outcome.UNCHANGED, "no more fit");
         helper.succeed();
@@ -63,13 +66,13 @@ public final class CraftingLayTests {
         Player player = helper.makeMockPlayer(GameType.SURVIVAL);
         CraftingMenu menu = menu(player);
         Inventory inventory = player.getInventory();
-        RecipeHolder<?> chest = recipe(helper, "chest");
+        CraftingRecipe chest = recipe(helper, "chest");
         RecipeLaying.Clicker clicker = (slot, button, type) -> menu.clicked(slot, button, type, player);
         inventory.setItem(0, new ItemStack(Items.OAK_PLANKS, 12));
         inventory.setItem(5, new ItemStack(Items.OAK_PLANKS, 8));
 
         helper.assertTrue(RecipeLaying.lay(menu, inventory, chest, true, clicker) == RecipeLaying.Outcome.LAID, "chests laid");
-        helper.assertTrue(menu.recipeMatches(cast(chest)) && inGrid(menu, Items.OAK_PLANKS) == 16, "two sets: " + inGrid(menu,
+        helper.assertTrue(makes(menu, chest, helper) && inGrid(menu, Items.OAK_PLANKS) == 16, "two sets: " + inGrid(menu,
                 Items.OAK_PLANKS));
         helper.assertTrue(count(inventory, Items.OAK_PLANKS) == 4, "four planks left");
 
@@ -96,17 +99,24 @@ public final class CraftingLayTests {
         return menu;
     }
 
-    private static RecipeHolder<?> recipe(GameTestHelper helper, String name) {
-        RecipeHolder<?> recipe = helper.getLevel().getRecipeManager().byKey(ResourceLocation.withDefaultNamespace(name)).orElse(null);
+    private static CraftingRecipe recipe(GameTestHelper helper, String name) {
+        var key = ResourceKey.create(Registries.RECIPE, Identifier.withDefaultNamespace(name));
+        // The holder's recipe, never the holder itself (RecipeHolder is no recipe).
+        CraftingRecipe recipe = helper.getLevel().recipeAccess().byKey(key).map(RecipeHolder::value)
+                .filter(CraftingRecipe.class::isInstance).map(CraftingRecipe.class::cast).orElse(null);
         if (recipe == null) {
             throw new IllegalStateException("no recipe minecraft:" + name);
         }
         return recipe;
     }
 
-    @SuppressWarnings({"unchecked", "rawtypes"})
-    private static RecipeHolder cast(RecipeHolder<?> recipe) {
-        return recipe;
+    /** Whether the grid makes the recipe, as the server's placing asks the menu. */
+    private static boolean makes(CraftingMenu menu, CraftingRecipe recipe, GameTestHelper helper) {
+        java.util.List<ItemStack> items = new java.util.ArrayList<>();
+        for (int cell = 0; cell < CELLS; cell++) {
+            items.add(menu.getSlot(FIRST_CELL + cell).getItem());
+        }
+        return recipe.matches(net.minecraft.world.item.crafting.CraftingInput.of(3, 3, items), helper.getLevel());
     }
 
     private static int inGrid(CraftingMenu menu, Item item) {
