@@ -7,18 +7,25 @@ plugins {
 
 neoForge {
     neoFormVersion = neo_form_version
-    parchment {
-        mappingsVersion = parchment_mappings_version
-        minecraftVersion = parchment_minecraft_version
-    }
 }
+
+// Minecraft 26.3: EMI has no build above 1.21.1, so its plugin, its mixin and the sidebar that draws EMI at a station are
+// left out of the build (the sources stay, and the fabric project leaves out the same files). They are also left out of
+// handson_vanilla.mixins.json. FastWorkbench has neither a 26.3 nor a Fabric build: its result handler goes too.
+ext.compatSources = [
+        'com/pockyl/handson_vanilla/client/FastBenchResult.java',
+        'com/pockyl/handson_vanilla/compat/emi/**',
+        'com/pockyl/handson_vanilla/client/EmiSidebar.java',
+        'com/pockyl/handson_vanilla/mixin/EmiApiMixin.java',
+        'com/pockyl/handson_vanilla/mixin/StationInputMixin.java',
+]
+sourceSets.main.java.exclude(compatSources)
 
 dependencies {
     compileOnly "com.pockyl.diegesis:common:${diegesis_version}"
     compileOnly 'org.spongepowered:mixin:0.8.5'
-    // Recipe viewers. JEI: an old API on purpose, so that a call older JEI builds lack fails the build, not the game.
+    // JEI: an old API on purpose, so that a call older JEI builds lack fails the build, not the game.
     compileOnly "mezz.jei:jei-${minecraft_version}-common-api:${jei_version}"
-    compileOnly "dev.emi:emi-xplat-mojmap:${emi_version}:api"
 }
 
 configurations {

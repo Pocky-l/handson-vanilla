@@ -1,8 +1,11 @@
 package com.pockyl.handson_vanilla.client;
 
+import com.pockyl.diegesis.impl.client.render.SceneDraw;
+import net.minecraft.world.item.ItemDisplayContext;
+import net.minecraft.world.item.component.SwingAnimation;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.player.LocalPlayer;
-import net.minecraft.resources.ResourceLocation;
+import net.minecraft.resources.Identifier;
 import net.minecraft.sounds.SoundEvent;
 import net.minecraft.sounds.SoundEvents;
 import net.minecraft.world.InteractionHand;
@@ -37,7 +40,7 @@ final class FurnaceBehavior implements StationBehavior {
     static final String FUEL = "fuel";
     static final String RESULT = "result";
 
-    private static final ResourceLocation EMBERS = HandsOnVanilla.id("block/furnace_embers");
+    private static final Identifier EMBERS = HandsOnVanilla.id("block/furnace_embers");
     /** Seconds the doors take to swing open or shut. */
     private static final float DOOR_SECONDS = 0.35F;
 
@@ -122,12 +125,12 @@ final class FurnaceBehavior implements StationBehavior {
                 }
                 // Upright, as the scene stands its slot items.
                 Minecraft minecraft = Minecraft.getInstance();
-                boolean block = minecraft.getItemRenderer().getModel(stack, view.level(), null, 0).isGui3d();
+                boolean block = SceneDraw.itemState(stack, ItemDisplayContext.FIXED, view.level(), 0).usesBlockLight();
                 poseStack.pushPose();
                 poseStack.translate(0.0F, block ? size * 0.25F : size * 0.5F, 0.0F);
-                poseStack.mulPose(com.mojang.math.Axis.YP.rotationDegrees(180.0F));
+                poseStack.rotate(com.mojang.math.Axis.YP.rotationDegrees(180.0F));
                 poseStack.scale(size, size, size);
-                minecraft.getItemRenderer().renderStatic(stack, net.minecraft.world.item.ItemDisplayContext.FIXED, light,
+                SceneDraw.item(stack, net.minecraft.world.item.ItemDisplayContext.FIXED, light,
                         net.minecraft.client.renderer.texture.OverlayTexture.NO_OVERLAY, poseStack, buffers, view.level(), slot);
                 poseStack.popPose();
             });
@@ -140,7 +143,7 @@ final class FurnaceBehavior implements StationBehavior {
         heldSlot = -1;
         LocalPlayer player = Minecraft.getInstance().player;
         if (player != null && view.openedByUse() && usable(player.getMainHandItem())) {
-            heldSlot = player.getInventory().selected;
+            heldSlot = player.getInventory().getSelectedSlot();
         }
         shownFill = -2;
         known = false;
@@ -155,7 +158,7 @@ final class FurnaceBehavior implements StationBehavior {
         if (heldSlot >= 0 && player != null && menu != null && usable(player.getInventory().getItem(heldSlot))) {
             // One vanilla shift-click of the held stack: the furnace's own rule sends it to the top or into the fire.
             menu.quickMoveFromInventory(heldSlot);
-            autoAt = net.minecraft.Util.getMillis();
+            autoAt = net.minecraft.util.Util.getMillis();
         } else {
             heldSlot = -1;
         }
@@ -287,7 +290,7 @@ final class FurnaceBehavior implements StationBehavior {
         int nowInput = count(view, INPUT);
         int nowFuel = count(view, FUEL);
         int nowResult = count(view, RESULT);
-        boolean flying = heldSlot >= 0 && net.minecraft.Util.getMillis() - autoAt < AUTO_FLIGHT_MS;
+        boolean flying = heldSlot >= 0 && net.minecraft.util.Util.getMillis() - autoAt < AUTO_FLIGHT_MS;
         if (nowInput > input) {
             arrived(view, INPUT, flying);
         }
@@ -372,7 +375,7 @@ final class FurnaceBehavior implements StationBehavior {
     private static void swing() {
         LocalPlayer player = Minecraft.getInstance().player;
         if (player != null) {
-            player.swing(InteractionHand.MAIN_HAND, false);
+            player.swing(InteractionHand.MAIN_HAND, SwingAnimation.DEFAULT, false);
         }
     }
 

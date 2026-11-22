@@ -1,22 +1,22 @@
 package com.pockyl.handson_vanilla.client;
 
+import com.pockyl.diegesis.impl.client.render.SceneDraw;
 import com.mojang.blaze3d.vertex.PoseStack;
 import com.mojang.blaze3d.vertex.VertexConsumer;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.gui.Font;
 import net.minecraft.client.model.geom.ModelLayers;
 import net.minecraft.client.model.geom.ModelPart;
-import net.minecraft.client.renderer.LightTexture;
-import net.minecraft.client.renderer.MultiBufferSource;
-import net.minecraft.client.renderer.RenderType;
+import net.minecraft.util.LightCoordsUtil;
+import com.pockyl.diegesis.api.client.SceneBuffers;
+import net.minecraft.client.renderer.rendertype.RenderType;
+import net.minecraft.client.renderer.rendertype.RenderTypes;
 import net.minecraft.client.renderer.blockentity.EnchantTableRenderer;
-import net.minecraft.client.renderer.entity.ItemRenderer;
 import net.minecraft.client.renderer.texture.OverlayTexture;
 import net.minecraft.client.renderer.texture.TextureAtlas;
 import net.minecraft.client.renderer.texture.TextureAtlasSprite;
-import net.minecraft.client.resources.model.BakedModel;
 import net.minecraft.network.chat.Component;
-import net.minecraft.resources.ResourceLocation;
+import net.minecraft.resources.Identifier;
 import net.minecraft.util.FormattedCharSequence;
 import net.minecraft.util.Mth;
 import net.minecraft.world.item.ItemDisplayContext;
@@ -82,7 +82,7 @@ final class OpenBook {
     /** Glowing writing's rim: how far round each stroke, in the letter's own pixels, and how strong. */
     private static final float RIM = 0.5F;
     private static final float RIM_ALPHA = 0.55F;
-    static final ResourceLocation PAPER = HandsOnVanilla.id("textures/entity/enchanting_book_paper.png");
+    static final Identifier PAPER = HandsOnVanilla.id("textures/entity/enchanting_book_paper.png");
     private static final float PAPER_U1 = 115.0F / 128.0F;
     private static final float PAPER_V1 = 154.0F / 256.0F;
 
@@ -119,7 +119,7 @@ final class OpenBook {
     private Spread spreadPainter;
     private Filler filler;
     /** The paper of each page, by its number ({@link #isRiffleSheet}: a riffle's sheet). */
-    private java.util.function.IntFunction<ResourceLocation> paperOf = page -> PAPER;
+    private java.util.function.IntFunction<Identifier> paperOf = page -> PAPER;
     private EnchantingBookModel model;
     private ModelPart vanillaRoot;
     /** The spread shown: its left page is {@code 2 * spread}, its right one the next. */
@@ -163,7 +163,7 @@ final class OpenBook {
     }
 
     /** The paper each page is drawn on, by its number ({@link #isRiffleSheet}: a riffle's sheet); plain paper by default. */
-    void setPaper(java.util.function.IntFunction<ResourceLocation> paper) {
+    void setPaper(java.util.function.IntFunction<Identifier> paper) {
         paperOf = paper;
     }
 
@@ -288,7 +288,7 @@ final class OpenBook {
      * {@code own}: 0 draws vanilla's book exactly as the table or the lectern draws it (its loose pages at the two angles), 1 this
      * one, between them this one fades in over vanilla's.
      */
-    void draw(PoseStack poseStack, MultiBufferSource buffers, int light, float open, float right, float left, float ink, float own) {
+    void draw(PoseStack poseStack, SceneBuffers buffers, int light, float open, float right, float left, float ink, float own) {
         if (own < 1.0F) {
             // Vanilla's book stays whole under this one while it fades in over it: nothing behind shows through the two. It shrinks
             // a little inside this one as that one comes, so their faces (the same boards and pages at the same place) never fight.
@@ -306,8 +306,8 @@ final class OpenBook {
         }
         model.setupAnim(open);
         boolean fading = own < 1.0F;
-        VertexConsumer cloth = buffers.getBuffer(fading ? RenderType.entityTranslucent(EnchantingBookModel.TEXTURE)
-                : RenderType.entityCutout(EnchantingBookModel.TEXTURE));
+        VertexConsumer cloth = buffers.getBuffer(fading ? RenderTypes.entityTranslucent(EnchantingBookModel.TEXTURE)
+                : RenderTypes.entityCutoutCull(EnchantingBookModel.TEXTURE));
         poseStack.pushPose();
         poseStack.scale(16.0F, 16.0F, 16.0F);
         model.render(poseStack, cloth, light, OverlayTexture.NO_OVERLAY, own);
@@ -360,7 +360,7 @@ final class OpenBook {
      * go, and once the last has gone the page the riffle runs to; the side they land on shows the last one landed. The last sheet
      * carries the page the riffle runs to on its back: what is written there comes with the paper, never fades in.
      */
-    private void drawRiffle(PoseStack poseStack, MultiBufferSource buffers, int light, float open, float right, float left, float ink,
+    private void drawRiffle(PoseStack poseStack, SceneBuffers buffers, int light, float open, float right, float left, float ink,
             float own) {
         float since = time - riffleAt;
         float gap = riffleGap();
@@ -401,7 +401,7 @@ final class OpenBook {
     }
 
     /** Vanilla's book with its texture (a resource pack's), as the table's and the lectern's renderers draw it, faded by {@code alpha}. */
-    private void drawVanilla(PoseStack poseStack, MultiBufferSource buffers, int light, float open, float right, float left,
+    private void drawVanilla(PoseStack poseStack, SceneBuffers buffers, int light, float open, float right, float left,
             float alpha) {
         if (vanillaRoot == null) {
             vanillaRoot = Minecraft.getInstance().getEntityModels().bakeLayer(ModelLayers.BOOK);
@@ -423,8 +423,9 @@ final class OpenBook {
         rightPages.x = rise;
         flip1.x = rise;
         flip2.x = rise;
-        VertexConsumer consumer = alpha >= 1.0F ? EnchantTableRenderer.BOOK_LOCATION.buffer(buffers, RenderType::entitySolid)
-                : EnchantTableRenderer.BOOK_LOCATION.buffer(buffers, RenderType::entityTranslucent);
+        TextureAtlasSprite book = Minecraft.getInstance().getAtlasManager().get(EnchantTableRenderer.BOOK_TEXTURE);
+        VertexConsumer consumer = book.wrap(buffers.getBuffer(alpha >= 1.0F ? RenderTypes.entitySolid(book.atlasLocation())
+                : RenderTypes.entityTranslucent(book.atlasLocation())));
         poseStack.pushPose();
         poseStack.scale(16.0F, 16.0F, 16.0F);
         vanillaRoot.render(poseStack, consumer, light, OverlayTexture.NO_OVERLAY, Math.round(alpha * 255.0F) << 24 | 0xFFFFFF);
@@ -454,7 +455,7 @@ final class OpenBook {
      * the right half (positive angle), else as a left one. Its paper runs over the whole sheet, the gutter's curve included; what is
      * written lies on its flat part.
      */
-    private void sheet(PoseStack poseStack, MultiBufferSource buffers, int light, float open, float angle, float lift, boolean curved,
+    private void sheet(PoseStack poseStack, SceneBuffers buffers, int light, float open, float angle, float lift, boolean curved,
             int page, boolean resting, float ink, float alpha) {
         boolean rightSide = angle > 0.0F;
         paper(poseStack, buffers, light, open, angle, lift, curved, rightSide, alpha, paperOf.apply(page));
@@ -474,9 +475,9 @@ final class OpenBook {
     }
 
     /** The paper of a sheet in strips from the fold to its edge: the gutter's curve, shaded towards the fold, then the flat part. */
-    private void paper(PoseStack poseStack, MultiBufferSource buffers, int light, float open, float angle, float lift, boolean curved,
-            boolean rightSide, float alpha, ResourceLocation texture) {
-        VertexConsumer consumer = buffers.getBuffer(RenderType.text(texture));
+    private void paper(PoseStack poseStack, SceneBuffers buffers, int light, float open, float angle, float lift, boolean curved,
+            boolean rightSide, float alpha, Identifier texture) {
+        VertexConsumer consumer = buffers.getBuffer(RenderTypes.text(texture));
         Matrix4f pose = poseStack.last().pose();
         int steps = curved ? GUTTER_STEPS + 1 : 1;
         float[] stops = new float[steps + 1];
@@ -603,23 +604,23 @@ final class OpenBook {
 
     /** Drawing on a page, in units from its top left. */
     static final class Canvas {
-        private static final net.minecraft.resources.ResourceLocation WHITE = HandsOnVanilla.id("block/white");
+        private static final net.minecraft.resources.Identifier WHITE = HandsOnVanilla.id("block/white");
         private final PoseStack poseStack;
-        private final MultiBufferSource buffers;
+        private final SceneBuffers buffers;
         private final int light;
         private final float ink;
         private final int wide;
         private final int high;
         private final TextureAtlasSprite white;
 
-        Canvas(PoseStack poseStack, MultiBufferSource buffers, int light, float ink, int wide, int high) {
+        Canvas(PoseStack poseStack, SceneBuffers buffers, int light, float ink, int wide, int high) {
             this.poseStack = poseStack;
             this.buffers = buffers;
             this.light = light;
             this.ink = Mth.clamp(ink, 0.0F, 1.0F);
             this.wide = wide;
             this.high = high;
-            white = Minecraft.getInstance().getTextureAtlas(TextureAtlas.LOCATION_BLOCKS).apply(WHITE);
+            white = SceneDraw.blockSprite(WHITE);
         }
 
         int wide() {
@@ -632,7 +633,7 @@ final class OpenBook {
 
         /** A flat colour; its alpha goes with the ink. */
         void rect(float x, float y, float width, float height, float lift, int argb) {
-            quad(buffers.getBuffer(RenderType.text(TextureAtlas.LOCATION_BLOCKS)), x, y, x + width, y + height, lift, argb,
+            quad(buffers.getBuffer(RenderTypes.text(TextureAtlas.LOCATION_BLOCKS)), x, y, x + width, y + height, lift, argb,
                     white.getU0(), white.getU1(), white.getV0(), white.getV1(), true);
         }
 
@@ -642,7 +643,7 @@ final class OpenBook {
                 return;
             }
             Matrix4f matrix = new Matrix4f(poseStack.last().pose()).translate(0.0F, 0.0F, INK_LIFT);
-            Minecraft.getInstance().font.drawInBatch(text, x, y, a << 24 | rgb & 0xFFFFFF, false, matrix, buffers,
+            SceneText.drawInBatch(text, x, y, a << 24 | rgb & 0xFFFFFF, false, matrix, buffers,
                     Font.DisplayMode.NORMAL, 0, light);
         }
 
@@ -687,25 +688,25 @@ final class OpenBook {
                 for (int side = 0; side < 4; side++) {
                     float dx = side == 0 ? RIM : side == 1 ? -RIM : 0.0F;
                     float dy = side == 2 ? RIM : side == 3 ? -RIM : 0.0F;
-                    font.drawInBatch(text, dx, dy, rimA << 24 | rim & 0xFFFFFF, false, under, buffers, Font.DisplayMode.NORMAL, 0,
-                            LightTexture.FULL_BRIGHT);
+                    SceneText.drawInBatch(text, dx, dy, rimA << 24 | rim & 0xFFFFFF, false, under, buffers, Font.DisplayMode.NORMAL, 0,
+                            LightCoordsUtil.FULL_BRIGHT);
                 }
             }
             Matrix4f over = new Matrix4f(base).translate(0.0F, 0.0F, INK_LIFT * 1.25F);
-            font.drawInBatch(text, 0.0F, 0.0F, a << 24 | rgb & 0xFFFFFF, false, over, buffers, Font.DisplayMode.NORMAL, 0,
-                    LightTexture.FULL_BRIGHT);
+            SceneText.drawInBatch(text, 0.0F, 0.0F, a << 24 | rgb & 0xFFFFFF, false, over, buffers, Font.DisplayMode.NORMAL, 0,
+                    LightCoordsUtil.FULL_BRIGHT);
             poseStack.popPose();
         }
 
         /** A part ({@code u0..v1}) of a texture at full light over the writing, tinted {@code rgb}: a drawing's line awake. */
-        void brightSprite(ResourceLocation texture, float x, float y, float wide, float high, float u0, float v0, float u1, float v1,
+        void brightSprite(Identifier texture, float x, float y, float wide, float high, float u0, float v0, float u1, float v1,
                 int rgb, float alpha) {
             int a = Math.round(255.0F * Mth.clamp(alpha, 0.0F, 1.0F));
             if (a < 4) {
                 return;
             }
-            quad(buffers.getBuffer(RenderType.text(texture)), x, y, x + wide, y + high, INK_LIFT * 1.2F, a << 24 | rgb & 0xFFFFFF,
-                    u0, u1, v0, v1, true, LightTexture.FULL_BRIGHT);
+            quad(buffers.getBuffer(RenderTypes.text(texture)), x, y, x + wide, y + high, INK_LIFT * 1.2F, a << 24 | rgb & 0xFFFFFF,
+                    u0, u1, v0, v1, true, LightCoordsUtil.FULL_BRIGHT);
         }
 
         /** A flat colour at full light, over the writing: a spark's ray. */
@@ -714,25 +715,25 @@ final class OpenBook {
             if (a < 4) {
                 return;
             }
-            quad(buffers.getBuffer(RenderType.text(TextureAtlas.LOCATION_BLOCKS)), x, y, x + width, y + height, INK_LIFT * 1.4F,
+            quad(buffers.getBuffer(RenderTypes.text(TextureAtlas.LOCATION_BLOCKS)), x, y, x + width, y + height, INK_LIFT * 1.4F,
                     a << 24 | rgb & 0xFFFFFF, white.getU0(), white.getU1(), white.getV0(), white.getV1(), true,
-                    LightTexture.FULL_BRIGHT);
+                    LightCoordsUtil.FULL_BRIGHT);
         }
 
         /**
          * A whole texture tinted {@code rgb} at {@code alpha} (and the ink), {@code wide} x {@code high} units from its top left;
          * {@code bright}: at full light and over the ink, as glowing writing.
          */
-        void sprite(ResourceLocation texture, float x, float y, float wide, float high, int rgb, float alpha, boolean bright) {
+        void sprite(Identifier texture, float x, float y, float wide, float high, int rgb, float alpha, boolean bright) {
             sprite(texture, x, y, wide, high, 1.0F, 1.0F, rgb, alpha, bright);
         }
 
         /** The top left part {@code u1} x {@code v1} of a texture, as {@link #sprite}. */
-        void sprite(ResourceLocation texture, float x, float y, float wide, float high, float u1, float v1, int rgb, float alpha,
+        void sprite(Identifier texture, float x, float y, float wide, float high, float u1, float v1, int rgb, float alpha,
                 boolean bright) {
             int a = Math.round(255.0F * Mth.clamp(alpha, 0.0F, 1.0F));
-            quad(buffers.getBuffer(RenderType.text(texture)), x, y, x + wide, y + high, bright ? INK_LIFT * 1.2F : MARK_LIFT,
-                    a << 24 | rgb & 0xFFFFFF, 0.0F, u1, 0.0F, v1, true, bright ? LightTexture.FULL_BRIGHT : light);
+            quad(buffers.getBuffer(RenderTypes.text(texture)), x, y, x + wide, y + high, bright ? INK_LIFT * 1.2F : MARK_LIFT,
+                    a << 24 | rgb & 0xFFFFFF, 0.0F, u1, 0.0F, v1, true, bright ? LightCoordsUtil.FULL_BRIGHT : light);
         }
 
         /** Text drawn as the HUD draws the experience level: a black edge round it, then the colour. */
@@ -744,12 +745,12 @@ final class OpenBook {
             }
             Matrix4f matrix = new Matrix4f(poseStack.last().pose()).translate(0.0F, 0.0F, INK_LIFT);
             Font font = Minecraft.getInstance().font;
-            font.drawInBatch(line, x + 1.0F, y, a << 24, false, matrix, buffers, Font.DisplayMode.NORMAL, 0, light);
-            font.drawInBatch(line, x - 1.0F, y, a << 24, false, matrix, buffers, Font.DisplayMode.NORMAL, 0, light);
-            font.drawInBatch(line, x, y + 1.0F, a << 24, false, matrix, buffers, Font.DisplayMode.NORMAL, 0, light);
-            font.drawInBatch(line, x, y - 1.0F, a << 24, false, matrix, buffers, Font.DisplayMode.NORMAL, 0, light);
+            SceneText.drawInBatch(line, x + 1.0F, y, a << 24, false, matrix, buffers, Font.DisplayMode.NORMAL, 0, light);
+            SceneText.drawInBatch(line, x - 1.0F, y, a << 24, false, matrix, buffers, Font.DisplayMode.NORMAL, 0, light);
+            SceneText.drawInBatch(line, x, y + 1.0F, a << 24, false, matrix, buffers, Font.DisplayMode.NORMAL, 0, light);
+            SceneText.drawInBatch(line, x, y - 1.0F, a << 24, false, matrix, buffers, Font.DisplayMode.NORMAL, 0, light);
             Matrix4f over = new Matrix4f(matrix).translate(0.0F, 0.0F, INK_LIFT * 0.5F);
-            font.drawInBatch(line, x, y, a << 24 | rgb & 0xFFFFFF, false, over, buffers, Font.DisplayMode.NORMAL, 0, light);
+            SceneText.drawInBatch(line, x, y, a << 24 | rgb & 0xFFFFFF, false, over, buffers, Font.DisplayMode.NORMAL, 0, light);
         }
 
         /**
@@ -769,9 +770,9 @@ final class OpenBook {
         }
 
         /** A part ({@code u0..v1}) of a texture, {@code wide} x {@code high} units from its top left, tinted; it fades with the ink. */
-        void image(ResourceLocation texture, float x, float y, float wide, float high, float u0, float v0, float u1, float v1,
+        void image(Identifier texture, float x, float y, float wide, float high, float u0, float v0, float u1, float v1,
                 int rgb) {
-            quad(buffers.getBuffer(RenderType.text(texture)), x, y, x + wide, y + high, INK_LIFT, 0xFF000000 | rgb, u0, u1, v0, v1,
+            quad(buffers.getBuffer(RenderTypes.text(texture)), x, y, x + wide, y + high, INK_LIFT, 0xFF000000 | rgb, u0, u1, v0, v1,
                     true);
         }
 
@@ -788,12 +789,10 @@ final class OpenBook {
             }
             poseStack.pushPose();
             poseStack.translate(x + size / 2.0F, y + size / 2.0F, INK_LIFT);
-            ItemRenderer renderer = Minecraft.getInstance().getItemRenderer();
-            BakedModel model = renderer.getModel(stack, level, null, 0);
-            poseStack.scale(size, -size, model.isGui3d() ? BLOCK_DEPTH : ITEM_DEPTH);
-            BakedModel shown = RecipeBook.guiModel.apply(model, poseStack);
-            MultiBufferSource drawn = ink < 1.0F ? DiegesisClient.tinted(buffers, Math.round(255.0F * ink) << 24 | 0xFFFFFF) : buffers;
-            renderer.render(stack, ItemDisplayContext.NONE, false, poseStack, drawn, light, OverlayTexture.NO_OVERLAY, shown);
+            boolean blockLight = SceneDraw.itemState(stack, ItemDisplayContext.GUI, level, 0).usesBlockLight();
+            poseStack.scale(size, -size, blockLight ? BLOCK_DEPTH : ITEM_DEPTH);
+            SceneBuffers drawn = ink < 1.0F ? DiegesisClient.tinted(buffers, Math.round(255.0F * ink) << 24 | 0xFFFFFF) : buffers;
+            SceneDraw.item(stack, ItemDisplayContext.GUI, light, OverlayTexture.NO_OVERLAY, poseStack, drawn, level, 0);
             poseStack.popPose();
         }
 

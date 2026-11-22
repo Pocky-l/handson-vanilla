@@ -4,7 +4,7 @@ import com.mojang.blaze3d.platform.NativeImage;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.renderer.texture.DynamicTexture;
 import net.minecraft.core.Holder;
-import net.minecraft.resources.ResourceLocation;
+import net.minecraft.resources.Identifier;
 import net.minecraft.world.level.block.entity.BannerPattern;
 
 import com.pockyl.handson_vanilla.HandsOnVanilla;
@@ -29,8 +29,8 @@ final class BannerPaint {
     static final int HIGH = 40;
     /** Rows a sweep of the brush covers. */
     private static final int BAND = 4;
-    private static final ResourceLocation TEXTURE = HandsOnVanilla.id("dynamic/loom_paint");
-    private static final Map<ResourceLocation, NativeImage> PATTERNS = new HashMap<>();
+    private static final Identifier TEXTURE = HandsOnVanilla.id("dynamic/loom_paint");
+    private static final Map<Identifier, NativeImage> PATTERNS = new HashMap<>();
     private static DynamicTexture canvas;
 
     /** The pixels to paint, in the brush's order: column and row in the banner texture. */
@@ -57,7 +57,7 @@ final class BannerPaint {
                 for (int row = band; row < Math.min(HIGH, band + BAND); row++) {
                     int u = FRONT_U + column;
                     int v = FRONT_V + row;
-                    if (u < pattern.getWidth() && v < pattern.getHeight() && (pattern.getPixelRGBA(u, v) >>> 24) > 8) {
+                    if (u < pattern.getWidth() && v < pattern.getHeight() && (pattern.getPixel(u, v) >>> 24) > 8) {
                         order.add(new int[] {u, v});
                     }
                 }
@@ -80,7 +80,7 @@ final class BannerPaint {
         NativeImage pixels = canvas.getPixels();
         for (int i = painted; i < to; i++) {
             int[] at = order.get(i);
-            pixels.setPixelRGBA(at[0], at[1], pattern.getPixelRGBA(at[0], at[1]));
+            pixels.setPixel(at[0], at[1], pattern.getPixel(at[0], at[1]));
         }
         painted = to;
         canvas.upload();
@@ -99,23 +99,23 @@ final class BannerPaint {
         return new float[] {a[0] - FRONT_U + (b[0] - a[0]) * t, a[1] - FRONT_V + (b[1] - a[1]) * t};
     }
 
-    static ResourceLocation texture() {
+    static Identifier texture() {
         return TEXTURE;
     }
 
     private static NativeImage canvas() {
         if (canvas == null) {
-            canvas = new DynamicTexture(64, 64, true);
+            canvas = new DynamicTexture(TEXTURE::toString, 64, 64, true);
             Minecraft.getInstance().getTextureManager().register(TEXTURE, canvas);
         }
         return canvas.getPixels();
     }
 
     /** Vanilla's (or a pack's) pattern texture, read once. */
-    private static NativeImage image(ResourceLocation asset) {
+    private static NativeImage image(Identifier asset) {
         return PATTERNS.computeIfAbsent(asset, k -> {
-            ResourceLocation sheet = k.withPrefix("entity/banner/");
-            ResourceLocation file = sheet.withPath(path -> "textures/" + path + ".png");
+            Identifier sheet = k.withPrefix("entity/banner/");
+            Identifier file = sheet.withPath(path -> "textures/" + path + ".png");
             try (InputStream in = Minecraft.getInstance().getResourceManager().open(file)) {
                 return NativeImage.read(in);
             } catch (Exception e) {

@@ -4,7 +4,7 @@ import net.minecraft.core.BlockPos;
 import net.minecraft.gametest.framework.GameTestHelper;
 import net.minecraft.world.entity.player.Inventory;
 import net.minecraft.world.entity.player.Player;
-import net.minecraft.world.inventory.ClickType;
+import net.minecraft.world.inventory.ContainerInput;
 import net.minecraft.world.inventory.ContainerLevelAccess;
 import net.minecraft.world.inventory.SmithingMenu;
 import net.minecraft.world.item.ItemStack;
@@ -41,7 +41,7 @@ public final class SmithingTests {
         inventory.setItem(2, new ItemStack(Items.NETHERITE_UPGRADE_SMITHING_TEMPLATE, 2));
         inventory.setItem(3, new ItemStack(Items.DIRT));
         for (int i = 0; i < 4; i++) {
-            menu.clicked(HOTBAR + i, 0, ClickType.QUICK_MOVE, player);
+            menu.clicked(HOTBAR + i, 0, ContainerInput.QUICK_MOVE, player);
         }
         helper.assertTrue(menu.getSlot(TEMPLATE).getItem().is(Items.NETHERITE_UPGRADE_SMITHING_TEMPLATE), "the template lies in its place");
         helper.assertTrue(menu.getSlot(BASE).getItem().is(Items.DIAMOND_SWORD), "the sword lies in its place");
@@ -49,7 +49,7 @@ public final class SmithingTests {
         helper.assertTrue(inventory.countItem(Items.DIRT) == 1, "the dirt stays in the inventory (moved up out of the hotbar, as vanilla does)");
         helper.assertTrue(menu.getSlot(RESULT).getItem().is(Items.NETHERITE_SWORD), "a netherite sword is the result");
         // The blow: a plain click on the result, which goes onto the cursor and uses one of each.
-        menu.clicked(RESULT, 0, ClickType.PICKUP, player);
+        menu.clicked(RESULT, 0, ContainerInput.PICKUP, player);
         helper.assertTrue(menu.getCarried().is(Items.NETHERITE_SWORD), "the netherite sword is on the cursor");
         helper.assertTrue(menu.getSlot(BASE).getItem().isEmpty(), "the diamond sword is used");
         helper.assertTrue(menu.getSlot(TEMPLATE).getItem().getCount() == 1 && menu.getSlot(ADDITION).getItem().getCount() == 1,

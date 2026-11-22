@@ -6,7 +6,7 @@ import net.minecraft.gametest.framework.GameTestHelper;
 import net.minecraft.world.entity.player.Inventory;
 import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.inventory.AbstractContainerMenu;
-import net.minecraft.world.inventory.ClickType;
+import net.minecraft.world.inventory.ContainerInput;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.item.Items;
 import net.minecraft.world.item.alchemy.PotionContents;
@@ -47,7 +47,7 @@ public final class BrewingTests {
         inventory.setItem(2, PotionContents.createItemStack(Items.POTION, Potions.WATER));
         inventory.setItem(3, new ItemStack(Items.NETHER_WART));
         for (int i = 0; i < 4; i++) {
-            menu.clicked(HOTBAR + i, 0, ClickType.QUICK_MOVE, player);
+            menu.clicked(HOTBAR + i, 0, ContainerInput.QUICK_MOVE, player);
         }
         helper.assertTrue(menu.getSlot(FUEL).getItem().is(Items.BLAZE_POWDER), "the blaze powder lies by the foot");
         helper.assertTrue(menu.getSlot(INGREDIENT).getItem().is(Items.NETHER_WART), "the nether wart is on the rod");

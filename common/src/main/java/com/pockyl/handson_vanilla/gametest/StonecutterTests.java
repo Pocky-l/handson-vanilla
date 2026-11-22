@@ -4,7 +4,7 @@ import net.minecraft.core.BlockPos;
 import net.minecraft.gametest.framework.GameTestHelper;
 import net.minecraft.world.entity.player.Inventory;
 import net.minecraft.world.entity.player.Player;
-import net.minecraft.world.inventory.ClickType;
+import net.minecraft.world.inventory.ContainerInput;
 import net.minecraft.world.inventory.ContainerLevelAccess;
 import net.minecraft.world.inventory.StonecutterMenu;
 import net.minecraft.world.item.Item;
@@ -36,15 +36,17 @@ public final class StonecutterTests {
         inventory.setItem(0, new ItemStack(Items.STONE, 4));
         inventory.setItem(1, new ItemStack(Items.DIRT, 2));
         // The held stone goes onto the table; dirt is cut into nothing, so it stays out.
-        menu.clicked(HOTBAR, 0, ClickType.QUICK_MOVE, player);
-        menu.clicked(HOTBAR + 1, 0, ClickType.QUICK_MOVE, player);
+        menu.clicked(HOTBAR, 0, ContainerInput.QUICK_MOVE, player);
+        menu.clicked(HOTBAR + 1, 0, ContainerInput.QUICK_MOVE, player);
         helper.assertTrue(menu.getSlot(INPUT).getItem().is(Items.STONE) && menu.getSlot(INPUT).getItem().getCount() == 4,
                 "the stone is on the table");
         helper.assertTrue(count(inventory, Items.DIRT) == 2, "the dirt is not");
         // A click on the slab piece: the menu's button of that recipe, as the vanilla screen's list sends it.
         int slab = -1;
-        for (int i = 0; i < menu.getRecipes().size(); i++) {
-            if (menu.getRecipes().get(i).value().getResultItem(helper.getLevel().registryAccess()).is(Items.STONE_SLAB)) {
+        var recipes = menu.getVisibleRecipes().entries();
+        var context = net.minecraft.world.item.crafting.display.SlotDisplayContext.fromLevel(helper.getLevel());
+        for (int i = 0; i < recipes.size(); i++) {
+            if (recipes.get(i).recipe().optionDisplay().resolveForFirstStack(context).is(Items.STONE_SLAB)) {
                 slab = i;
             }
         }
@@ -53,7 +55,7 @@ public final class StonecutterTests {
         helper.assertTrue(menu.getSlot(RESULT).getItem().is(Items.STONE_SLAB) && menu.getSlot(RESULT).getItem().getCount() == 2,
                 "two slabs are the result");
         // Shift on the picked piece cuts all the stone gives.
-        menu.clicked(RESULT, 0, ClickType.QUICK_MOVE, player);
+        menu.clicked(RESULT, 0, ContainerInput.QUICK_MOVE, player);
         helper.assertTrue(count(inventory, Items.STONE_SLAB) == 8, "eight slabs from four stone: " + count(inventory, Items.STONE_SLAB));
         helper.assertTrue(menu.getSlot(INPUT).getItem().isEmpty(), "no stone left on the table");
         helper.succeed();

@@ -1,10 +1,11 @@
 package com.pockyl.handson_vanilla.client;
 
+import com.pockyl.diegesis.impl.client.render.SceneDraw;
 import com.mojang.blaze3d.vertex.PoseStack;
 import com.mojang.math.Axis;
 import net.minecraft.client.Minecraft;
-import net.minecraft.client.renderer.LightTexture;
-import net.minecraft.client.renderer.MultiBufferSource;
+import net.minecraft.util.LightCoordsUtil;
+import com.pockyl.diegesis.api.client.SceneBuffers;
 import net.minecraft.client.renderer.texture.OverlayTexture;
 import net.minecraft.util.Mth;
 import net.minecraft.world.item.ItemDisplayContext;
@@ -52,7 +53,7 @@ final class HoveringResult {
     }
 
     /** Draws the hovering result at the node, {@code clock} being the station's seconds. */
-    void paint(Level level, ItemStack made, float clock, PoseStack poseStack, MultiBufferSource buffers, int light) {
+    void paint(Level level, ItemStack made, float clock, PoseStack poseStack, SceneBuffers buffers, int light) {
         if (!ItemStack.matches(made, seen)) {
             if (seen.isEmpty() || made.isEmpty() || !ItemStack.isSameItem(made, seen)) {
                 appearedAt = clock;
@@ -63,30 +64,30 @@ final class HoveringResult {
             return;
         }
         float scale = size * outCubic((clock - appearedAt) / GROW) * (1.0F + HOVER_SWELL * hover);
-        boolean block = Minecraft.getInstance().getItemRenderer().getModel(made, level, null, 0).isGui3d();
+        boolean block = SceneDraw.itemState(made, ItemDisplayContext.FIXED, level, 0).usesBlockLight();
         poseStack.pushPose();
         poseStack.translate(0.0F, scale * (block ? 0.25F : 0.5F) + BOB * (1.0F + (float) Math.sin(clock * BOB_RATE)), 0.0F);
-        poseStack.mulPose(Axis.YP.rotationDegrees(180.0F + SWAY * (float) Math.sin(clock * SWAY_RATE)));
+        poseStack.rotate(Axis.YP.rotationDegrees(180.0F + SWAY * (float) Math.sin(clock * SWAY_RATE)));
         poseStack.scale(scale, scale, scale);
-        Minecraft.getInstance().getItemRenderer().renderStatic(made, ItemDisplayContext.FIXED, hover > 0.5F ? LightTexture.FULL_BRIGHT : light,
+        SceneDraw.item(made, ItemDisplayContext.FIXED, hover > 0.5F ? LightCoordsUtil.FULL_BRIGHT : light,
                 OverlayTexture.NO_OVERLAY, poseStack, DiegesisClient.items(buffers), level, 0);
         poseStack.popPose();
     }
 
     /** The piece just struck, {@code age} seconds after the blow: it rises off the work and settles from a little larger. */
-    static void paintForged(Level level, ItemStack forged, float age, float itemSize, PoseStack poseStack, MultiBufferSource buffers,
+    static void paintForged(Level level, ItemStack forged, float age, float itemSize, PoseStack poseStack, SceneBuffers buffers,
             int light) {
         if (forged.isEmpty() || age < 0.0F || age >= FORGED) {
             return;
         }
         float t = outCubic(age / FORGED);
         float scale = itemSize * (1.0F + FORGED_SWELL * (1.0F - t));
-        boolean block = Minecraft.getInstance().getItemRenderer().getModel(forged, level, null, 0).isGui3d();
+        boolean block = SceneDraw.itemState(forged, ItemDisplayContext.FIXED, level, 0).usesBlockLight();
         poseStack.pushPose();
         poseStack.translate(0.0F, FORGED_RISE * t + scale * (block ? 0.25F : 0.5F), 0.0F);
-        poseStack.mulPose(Axis.YP.rotationDegrees(180.0F));
+        poseStack.rotate(Axis.YP.rotationDegrees(180.0F));
         poseStack.scale(scale, scale, scale);
-        Minecraft.getInstance().getItemRenderer().renderStatic(forged, ItemDisplayContext.FIXED, light, OverlayTexture.NO_OVERLAY, poseStack,
+        SceneDraw.item(forged, ItemDisplayContext.FIXED, light, OverlayTexture.NO_OVERLAY, poseStack,
                 DiegesisClient.items(buffers), level, 0);
         poseStack.popPose();
     }

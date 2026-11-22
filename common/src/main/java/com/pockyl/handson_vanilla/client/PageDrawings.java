@@ -3,7 +3,7 @@ package com.pockyl.handson_vanilla.client;
 import com.mojang.blaze3d.platform.NativeImage;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.renderer.texture.DynamicTexture;
-import net.minecraft.resources.ResourceLocation;
+import net.minecraft.resources.Identifier;
 import net.minecraft.util.Mth;
 import net.minecraft.util.RandomSource;
 
@@ -42,10 +42,10 @@ final class PageDrawings {
     }
 
     /** A figure drawn: its texture and the part of it it takes. */
-    record Drawn(ResourceLocation texture, float u1, float v1) {
+    record Drawn(Identifier texture, float u1, float v1) {
     }
 
-    private static final ResourceLocation[] IDS = new ResourceLocation[SLOTS];
+    private static final Identifier[] IDS = new Identifier[SLOTS];
     private static final DynamicTexture[] TEXTURES = new DynamicTexture[SLOTS];
     private static final long[] KEYS = new long[SLOTS];
     private static final long[] USED = new long[SLOTS];
@@ -84,7 +84,7 @@ final class PageDrawings {
         }
         NativeImage image = draw(key, shape, wide, high);
         if (TEXTURES[oldest] == null) {
-            TEXTURES[oldest] = new DynamicTexture(image);
+            TEXTURES[oldest] = new DynamicTexture(IDS[oldest]::toString, image);
             Minecraft.getInstance().getTextureManager().register(IDS[oldest], TEXTURES[oldest]);
         } else {
             TEXTURES[oldest].setPixels(image);
@@ -806,13 +806,13 @@ final class PageDrawings {
     private record Sheet(NativeImage image, int w, int h) {
         void dot(int x, int y) {
             if (x >= 0 && y >= 0 && x < w && y < h) {
-                image.setPixelRGBA(x, y, WHITE);
+                image.setPixel(x, y, WHITE);
             }
         }
 
         void clear(int x, int y) {
             if (x >= 0 && y >= 0 && x < w && y < h) {
-                image.setPixelRGBA(x, y, 0);
+                image.setPixel(x, y, 0);
             }
         }
 

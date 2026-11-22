@@ -8,13 +8,11 @@ import net.minecraft.core.component.DataComponents;
 import net.minecraft.core.registries.Registries;
 import net.minecraft.network.chat.Component;
 import net.minecraft.resources.ResourceKey;
-import net.minecraft.resources.ResourceLocation;
+import net.minecraft.resources.Identifier;
 import net.minecraft.tags.BannerPatternTags;
 import net.minecraft.tags.ItemTags;
 import net.minecraft.world.inventory.LoomMenu;
-import net.minecraft.world.item.BannerPatternItem;
 import net.minecraft.world.item.DyeColor;
-import net.minecraft.world.item.DyeItem;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.item.Items;
 import net.minecraft.world.item.crafting.Ingredient;
@@ -56,11 +54,11 @@ final class LoomBook implements RecipeBook.Source {
                 && patterns.equals(madeFrom)) {
             return made;
         }
-        boolean real = LoomBehavior.clothColour(banner) != null && dye.getItem() instanceof DyeItem;
-        DyeColor colour = real ? ((DyeItem) dye.getItem()).getDyeColor() : DyeColor.WHITE;
+        boolean real = LoomBehavior.clothColour(banner) != null && dye.has(DataComponents.DYE);
+        DyeColor colour = real ? dye.get(DataComponents.DYE) : DyeColor.WHITE;
         List<Ingredient> needs = new ArrayList<>();
-        needs.add(Ingredient.of(ItemTags.BANNERS));
-        needs.add(Ingredient.of(Arrays.stream(DyeColor.values()).map(DyeItem::byColor).toArray(DyeItem[]::new)));
+        needs.add(Ingredient.of(Items.BANNER.asList().stream()));
+        needs.add(Ingredient.of(Items.DYE.asList().stream()));
         if (!pattern.isEmpty()) {
             needs.add(Ingredient.of(pattern.getItem()));
         }
@@ -74,7 +72,7 @@ final class LoomBook implements RecipeBook.Source {
             ItemStack dish = real ? woven(banner, holder, colour) : sample(holder);
             dish.set(DataComponents.CUSTOM_NAME, Component.translatable(holder.value().translationKey() + "." + colour.getName())
                     .withStyle(style -> style.withItalic(false)));
-            pages.add(new RecipeBook.Page(key.location(), dish, ingredients, List.of(), null, false));
+            pages.add(new RecipeBook.Page(key.identifier(), dish, ingredients, List.of(), null, false));
         }
         madeBanner = banner.copy();
         madeDye = dye.copy();
@@ -90,7 +88,12 @@ final class LoomBook implements RecipeBook.Source {
         if (loom != null && !loom.getSelectablePatterns().isEmpty()) {
             return loom.getSelectablePatterns();
         }
-        var tag = pattern.getItem() instanceof BannerPatternItem item ? item.getBannerPattern() : BannerPatternTags.NO_ITEM_REQUIRED;
+        // As LoomMenu.getSelectablePatterns: the pattern item's own patterns, or those that need none.
+        if (!pattern.isEmpty()) {
+            var provided = pattern.get(DataComponents.PROVIDES_BANNER_PATTERNS);
+            return provided == null ? List.of() : provided.stream().toList();
+        }
+        var tag = BannerPatternTags.NO_ITEM_REQUIRED;
         ClientLevel level = Minecraft.getInstance().level;
         if (level == null) {
             return List.of();
@@ -109,7 +112,7 @@ final class LoomBook implements RecipeBook.Source {
 
     /** Vanilla's sample of a pattern: a grey banner with the pattern in white. */
     private static ItemStack sample(Holder<BannerPattern> holder) {
-        ItemStack banner = new ItemStack(Items.GRAY_BANNER);
+        ItemStack banner = new ItemStack(Items.BANNER.gray());
         return woven(banner, holder, DyeColor.WHITE);
     }
 
@@ -121,8 +124,8 @@ final class LoomBook implements RecipeBook.Source {
 
     @Override
     public void picked(StationView view, RecipeBook.Page page) {
-        if (page.key() instanceof ResourceLocation pattern) {
-            station.weave(view, pattern, Screen.hasShiftDown());
+        if (page.key() instanceof Identifier pattern) {
+            station.weave(view, pattern, Minecraft.getInstance().hasShiftDown());
         }
     }
 
@@ -135,12 +138,12 @@ final class LoomBook implements RecipeBook.Source {
         }
         int index = loom.getSelectedBannerPatternIndex();
         List<Holder<BannerPattern>> list = loom.getSelectablePatterns();
-        return index >= 0 && index < list.size() ? list.get(index).unwrapKey().map(ResourceKey::location).orElse(null) : null;
+        return index >= 0 && index < list.size() ? list.get(index).unwrapKey().map(ResourceKey::identifier).orElse(null) : null;
     }
 
     @Override
     public void hovered(StationView view, RecipeBook.Page page) {
-        station.preview(page == null ? null : (ResourceLocation) page.key());
+        station.preview(page == null ? null : (Identifier) page.key());
     }
 
     /** A pattern item on the loom offers one pattern, selected by itself: the right page shows it. */

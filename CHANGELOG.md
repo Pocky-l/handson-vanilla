@@ -1,5 +1,19 @@
 # Changelog
 
+## [1.2.3+26.3] - Unreleased
+Hands-On Vanilla on Minecraft 26.3, for [Fabric](https://fabricmc.net), with everything 1.2.3 does on 1.21.1: the crafting
+table, the furnace, smoker and blast furnace, the stonecutter, smithing table, grindstone, brewing stand, anvil, enchanting
+table, lectern, loom and cartography table worked by hand, the recipe books and JEI's keys.
+
+- Needs [Diegesis](https://www.curseforge.com/minecraft/mc-mods/diegesis) 1.0.0-beta.17.1 for 26.3 and
+  [Fabric API](https://www.curseforge.com/minecraft/mc-mods/fabric-api).
+
+### Not on 26.3 yet
+- NeoForge: Diegesis has no NeoForge build for 26.3.
+- The crafting table's book lists only the recipes you have unlocked: on 26.3 the server tells the game no others.
+- [EMI](https://www.curseforge.com/minecraft/mc-mods/emi), Polymorph's choice of recipe at the table and FastWorkbench: these
+  mods have no build for 26.3.
+
 ## [1.2.3+1.21.1] - 2026-11-22
 - The anvil shows the name you type again, so items can be renamed at the station.
 

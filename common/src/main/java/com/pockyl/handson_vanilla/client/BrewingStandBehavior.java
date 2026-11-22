@@ -88,7 +88,7 @@ final class BrewingStandBehavior implements StationBehavior {
         heldSlot = -1;
         LocalPlayer player = Minecraft.getInstance().player;
         if (player != null && view.openedByUse() && !player.getMainHandItem().isEmpty()) {
-            heldSlot = player.getInventory().selected;
+            heldSlot = player.getInventory().getSelectedSlot();
         }
         yaw = ((int) view.facing().toYRot() + 180) % 360;
         Matrix3f turn = new Matrix3f().rotationY((float) Math.toRadians(yaw));

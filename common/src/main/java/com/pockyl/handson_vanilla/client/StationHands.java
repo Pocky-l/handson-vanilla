@@ -1,5 +1,7 @@
 package com.pockyl.handson_vanilla.client;
 
+import net.minecraft.world.item.component.SwingAnimation;
+import com.mojang.blaze3d.platform.InputConstants;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.player.LocalPlayer;
 import net.minecraft.sounds.SoundEvent;
@@ -8,7 +10,6 @@ import net.minecraft.world.entity.player.Inventory;
 import net.minecraft.world.item.ItemStack;
 import org.joml.Vector3f;
 import org.joml.Vector3fc;
-import org.lwjgl.glfw.GLFW;
 
 import com.pockyl.diegesis.api.client.StationView;
 import com.pockyl.diegesis.api.state.SlotRef;
@@ -63,14 +64,14 @@ final class StationHands {
 
     /** Whether the key leaves the station: Escape or the inventory key. */
     static boolean leaves(int keyCode, int scanCode) {
-        return keyCode == GLFW.GLFW_KEY_ESCAPE || Minecraft.getInstance().options.keyInventory.matches(keyCode, scanCode);
+        return keyCode == InputConstants.KEY_ESCAPE || Minecraft.getInstance().options.keyInventory.matches(new net.minecraft.client.input.KeyEvent(keyCode, scanCode, 0));
     }
 
     /** The arm moves as the hand works; only this client sees it, nothing is sent. */
     static void swing() {
         LocalPlayer player = Minecraft.getInstance().player;
         if (player != null) {
-            player.swing(InteractionHand.MAIN_HAND, false);
+            player.swing(InteractionHand.MAIN_HAND, SwingAnimation.DEFAULT, false);
         }
     }
 

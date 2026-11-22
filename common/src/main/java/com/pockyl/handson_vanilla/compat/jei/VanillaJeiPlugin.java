@@ -10,7 +10,7 @@ import net.minecraft.client.gui.screens.Screen;
 import com.pockyl.diegesis.api.client.DiegesisClient;
 import mezz.jei.api.gui.ingredient.IRecipeSlotsView;
 import mezz.jei.api.ingredients.ITypedIngredient;
-import mezz.jei.api.recipe.RecipeType;
+import mezz.jei.api.recipe.types.IRecipeType;
 import mezz.jei.api.recipe.transfer.IRecipeTransferError;
 import mezz.jei.api.recipe.transfer.IRecipeTransferHandler;
 import mezz.jei.api.recipe.transfer.IRecipeTransferHandlerHelper;
@@ -18,9 +18,8 @@ import mezz.jei.api.registration.IGuiHandlerRegistration;
 import mezz.jei.api.registration.IRecipeTransferRegistration;
 import mezz.jei.api.runtime.IClickableIngredient;
 import mezz.jei.api.runtime.IIngredientManager;
-import net.minecraft.client.player.LocalPlayer;
 import net.minecraft.client.renderer.Rect2i;
-import net.minecraft.resources.ResourceLocation;
+import net.minecraft.resources.Identifier;
 import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.inventory.CraftingMenu;
 import net.minecraft.world.inventory.MenuType;
@@ -35,13 +34,12 @@ import java.util.Optional;
 
 /**
  * JEI at a station: its keys (recipes, uses, bookmark) work over the item under the cursor, and its "+" lays a crafting recipe into
- * the crafting table station the vanilla recipe book's way, which any server takes. Everywhere else JEI's own transfer works as
- * before.
+ * the crafting table station by JEI's own transfer. Everywhere else JEI's own transfer works as before.
  */
 @JeiPlugin
 public final class VanillaJeiPlugin implements IModPlugin {
     @Override
-    public ResourceLocation getPluginUid() {
+    public Identifier getPluginUid() {
         return HandsOnVanilla.id("jei");
     }
 
@@ -145,9 +143,9 @@ public final class VanillaJeiPlugin implements IModPlugin {
     }
 
     /**
-     * At the crafting table station: the vanilla book's packet for a recipe in the player's book, which any server takes; a recipe
-     * not in the book yet goes through JEI's own transfer, as at the vanilla crafting table (the server refuses the book's packet for
-     * it). Anywhere else: JEI's own crafting transfer, unchanged.
+     * JEI's own crafting transfer, at the crafting table station too; there the items fly into the grid as the book's do. Since
+     * Minecraft 1.21.2 the client cannot tell which recipe of its recipe book JEI's recipe is (the book knows recipes by display ids
+     * only), so the vanilla book's packet is not used for it as on 1.21.1.
      */
     private record StationTransfer(IRecipeTransferHandler<CraftingMenu, RecipeHolder<CraftingRecipe>> basic)
             implements IRecipeTransferHandler<CraftingMenu, RecipeHolder<CraftingRecipe>> {
@@ -162,20 +160,18 @@ public final class VanillaJeiPlugin implements IModPlugin {
         }
 
         @Override
-        public RecipeType<RecipeHolder<CraftingRecipe>> getRecipeType() {
+        public IRecipeType<RecipeHolder<CraftingRecipe>> getRecipeType() {
             return RecipeTypes.CRAFTING;
         }
 
         @Override
         public IRecipeTransferError transferRecipe(CraftingMenu container, RecipeHolder<CraftingRecipe> recipe, IRecipeSlotsView slots,
                 Player player, boolean maxTransfer, boolean doTransfer) {
-            if (StationHover.menu() != container || !(player instanceof LocalPlayer local) || !local.getRecipeBook().contains(recipe)) {
-                return basic.transferRecipe(container, recipe, slots, player, maxTransfer, doTransfer);
+            IRecipeTransferError error = basic.transferRecipe(container, recipe, slots, player, maxTransfer, doTransfer);
+            if (doTransfer && error == null && StationHover.menu() == container) {
+                StationHover.recipeLaid();
             }
-            if (doTransfer) {
-                StationHover.placeRecipe(recipe.id(), maxTransfer);
-            }
-            return null;
+            return error;
         }
     }
 }

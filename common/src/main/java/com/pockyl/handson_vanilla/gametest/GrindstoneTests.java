@@ -5,7 +5,7 @@ import net.minecraft.core.registries.Registries;
 import net.minecraft.gametest.framework.GameTestHelper;
 import net.minecraft.world.entity.player.Inventory;
 import net.minecraft.world.entity.player.Player;
-import net.minecraft.world.inventory.ClickType;
+import net.minecraft.world.inventory.ContainerInput;
 import net.minecraft.world.inventory.ContainerLevelAccess;
 import net.minecraft.world.inventory.GrindstoneMenu;
 import net.minecraft.world.item.ItemStack;
@@ -39,25 +39,25 @@ public final class GrindstoneTests {
         worn.setDamageValue(200);
         inventory.setItem(0, worn.copy());
         inventory.setItem(1, worn.copy());
-        menu.clicked(HOTBAR, 0, ClickType.QUICK_MOVE, player);
-        menu.clicked(HOTBAR + 1, 0, ClickType.QUICK_MOVE, player);
+        menu.clicked(HOTBAR, 0, ContainerInput.QUICK_MOVE, player);
+        menu.clicked(HOTBAR + 1, 0, ContainerInput.QUICK_MOVE, player);
         helper.assertTrue(menu.getSlot(INPUT).getItem().is(Items.IRON_SWORD) && menu.getSlot(ADDITIONAL).getItem().is(Items.IRON_SWORD),
                 "both swords are before the wheel");
         ItemStack mended = menu.getSlot(RESULT).getItem();
         helper.assertTrue(mended.is(Items.IRON_SWORD) && mended.getDamageValue() < 200, "the result is one mended sword");
-        menu.clicked(RESULT, 0, ClickType.PICKUP, player);
+        menu.clicked(RESULT, 0, ContainerInput.PICKUP, player);
         helper.assertTrue(menu.getCarried().is(Items.IRON_SWORD) && menu.getCarried().getDamageValue() < 200, "the mended sword is on the cursor");
         helper.assertTrue(menu.getSlot(INPUT).getItem().isEmpty() && menu.getSlot(ADDITIONAL).getItem().isEmpty(), "both swords are used");
         menu.setCarried(ItemStack.EMPTY);
         // An enchanted sword alone is ground clean.
         ItemStack sharp = new ItemStack(Items.DIAMOND_SWORD);
-        sharp.enchant(helper.getLevel().registryAccess().registryOrThrow(Registries.ENCHANTMENT)
-                .getHolderOrThrow(Enchantments.SHARPNESS), 3);
+        sharp.enchant(helper.getLevel().registryAccess().lookupOrThrow(Registries.ENCHANTMENT)
+                .getOrThrow(Enchantments.SHARPNESS), 3);
         inventory.setItem(2, sharp);
-        menu.clicked(HOTBAR + 2, 0, ClickType.QUICK_MOVE, player);
+        menu.clicked(HOTBAR + 2, 0, ContainerInput.QUICK_MOVE, player);
         ItemStack clean = menu.getSlot(RESULT).getItem();
         helper.assertTrue(clean.is(Items.DIAMOND_SWORD) && !clean.isEnchanted(), "the result has no enchantment");
-        menu.clicked(RESULT, 0, ClickType.QUICK_MOVE, player);
+        menu.clicked(RESULT, 0, ContainerInput.QUICK_MOVE, player);
         helper.assertTrue(inventory.countItem(Items.DIAMOND_SWORD) == 1 && menu.getSlot(INPUT).getItem().isEmpty()
                 && menu.getSlot(ADDITIONAL).getItem().isEmpty(), "shift on the result puts the clean sword into the inventory");
         helper.succeed();

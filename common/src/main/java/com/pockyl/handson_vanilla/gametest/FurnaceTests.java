@@ -5,7 +5,7 @@ import net.minecraft.gametest.framework.GameTestHelper;
 import net.minecraft.world.entity.player.Inventory;
 import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.inventory.AbstractContainerMenu;
-import net.minecraft.world.inventory.ClickType;
+import net.minecraft.world.inventory.ContainerInput;
 import net.minecraft.world.item.Item;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.item.Items;
@@ -65,9 +65,9 @@ public final class FurnaceTests {
         inventory.setItem(0, new ItemStack(cooks, 5));
         inventory.setItem(1, new ItemStack(Items.COAL, 3));
         inventory.setItem(2, new ItemStack(elsewhere, 4));
-        menu.clicked(HOTBAR, 0, ClickType.QUICK_MOVE, player);
-        menu.clicked(HOTBAR + 1, 0, ClickType.QUICK_MOVE, player);
-        menu.clicked(HOTBAR + 2, 0, ClickType.QUICK_MOVE, player);
+        menu.clicked(HOTBAR, 0, ContainerInput.QUICK_MOVE, player);
+        menu.clicked(HOTBAR + 1, 0, ContainerInput.QUICK_MOVE, player);
+        menu.clicked(HOTBAR + 2, 0, ContainerInput.QUICK_MOVE, player);
         helper.assertTrue(menu.getSlot(INPUT).getItem().is(cooks) && menu.getSlot(INPUT).getItem().getCount() == 5,
                 "what cooks here is in the input");
         helper.assertTrue(menu.getSlot(FUEL).getItem().is(Items.COAL) && menu.getSlot(FUEL).getItem().getCount() == 3,

@@ -1,28 +1,22 @@
 package com.pockyl.handson_vanilla.client;
 
+import com.pockyl.diegesis.impl.client.render.SceneDraw;
 import com.mojang.blaze3d.vertex.PoseStack;
 import com.mojang.math.Axis;
 import net.minecraft.client.Minecraft;
-import net.minecraft.client.renderer.MultiBufferSource;
+import com.pockyl.diegesis.api.client.SceneBuffers;
 import net.minecraft.client.renderer.texture.OverlayTexture;
-import net.minecraft.core.NonNullList;
-import net.minecraft.resources.ResourceLocation;
+import net.minecraft.resources.Identifier;
 import net.minecraft.sounds.SoundEvents;
 import net.minecraft.world.item.ItemDisplayContext;
 import net.minecraft.world.item.ItemStack;
-import net.minecraft.world.item.crafting.CraftingInput;
-import net.minecraft.world.item.crafting.CraftingRecipe;
-import net.minecraft.world.item.crafting.RecipeHolder;
-import net.minecraft.world.item.crafting.RecipeType;
 
 import com.pockyl.diegesis.api.client.NodeView;
 import com.pockyl.diegesis.api.client.StationView;
 import com.pockyl.diegesis.api.state.SlotRef;
 
 import java.lang.reflect.Method;
-import java.util.ArrayList;
 import java.util.Arrays;
-import java.util.List;
 
 /**
  * With Polymorph, one grid can make several things (two mods' recipes for the same shape); its vanilla screen has a button that
@@ -42,7 +36,7 @@ final class RecipeChoice {
     private static boolean anyShown;
 
     /** Each place's recipe and what it makes; empty places hold nothing. */
-    private final ResourceLocation[] recipes = new ResourceLocation[PLACES];
+    private final Identifier[] recipes = new Identifier[PLACES];
     private final ItemStack[] outputs = new ItemStack[PLACES];
     /** The grid as read last: the matches are read again only when it changes. */
     private ItemStack[] grid = new ItemStack[0];
@@ -99,42 +93,16 @@ final class RecipeChoice {
         read(view, now, shown);
     }
 
+    /**
+     * What else the grid makes. Since Minecraft 1.21.2 the client has no recipes to match the grid against, and Polymorph has no build
+     * for 26.3: nothing is found, and no place is shown.
+     */
     private void read(StationView view, ItemStack[] now, ItemStack shown) {
         Arrays.fill(recipes, null);
         Arrays.fill(outputs, ItemStack.EMPTY);
-        var level = view.level();
-        NonNullList<ItemStack> items = NonNullList.withSize(9, ItemStack.EMPTY);
-        for (int i = 0; i < now.length; i++) {
-            items.set(i, now[i].copy());
-        }
-        CraftingInput container = CraftingInput.of(3, 3, items);
-        List<RecipeHolder<CraftingRecipe>> matches = level.getRecipeManager().getRecipesFor(RecipeType.CRAFTING, container, level);
-        int place = 0;
-        List<ItemStack> seen = new ArrayList<>();
-        if (!shown.isEmpty()) {
-            seen.add(shown);
-        }
-        for (RecipeHolder<CraftingRecipe> recipe : matches) {
-            ItemStack makes = recipe.value().assemble(container, level.registryAccess());
-            if (makes.isEmpty() || seen.stream().anyMatch(other -> ItemStack.isSameItemSameComponents(other, makes))) {
-                continue;
-            }
-            seen.add(makes);
-            if (place < PLACES) {
-                recipes[place] = recipe.id();
-                outputs[place] = makes;
-                place++;
-            }
-        }
-        anyShown = recipes[0] != null;
+        anyShown = false;
         for (int i = 0; i < PLACES; i++) {
-            int at = i;
-            view.node(node(i)).ifPresent(node -> {
-                node.setVisible(recipes[at] != null);
-                if (recipes[at] != null) {
-                    node.setTooltip(outputs[at].getHoverName());
-                }
-            });
+            view.node(node(i)).ifPresent(node -> node.setVisible(false));
         }
     }
 
@@ -174,7 +142,7 @@ final class RecipeChoice {
     }
 
     /** Standing small and still, turned to the camera as the result is; a little bigger under the cursor. */
-    private void paint(StationView view, NodeView node, int place, PoseStack poseStack, MultiBufferSource buffers, int light) {
+    private void paint(StationView view, NodeView node, int place, PoseStack poseStack, SceneBuffers buffers, int light) {
         ItemStack stack = outputs[place];
         if (stack.isEmpty()) {
             return;
@@ -182,10 +150,10 @@ final class RecipeChoice {
         float size = SIZE * (node.isHovered() ? HOVER_GROWTH : 1.0F);
         poseStack.pushPose();
         poseStack.translate(0.0F, size * 0.5F, 0.0F);
-        poseStack.mulPose(Axis.YP.rotationDegrees(180.0F));
-        poseStack.mulPose(Axis.XP.rotationDegrees(-35.0F));
+        poseStack.rotate(Axis.YP.rotationDegrees(180.0F));
+        poseStack.rotate(Axis.XP.rotationDegrees(-35.0F));
         poseStack.scale(size, size, size);
-        Minecraft.getInstance().getItemRenderer().renderStatic(stack, ItemDisplayContext.FIXED, light, OverlayTexture.NO_OVERLAY, poseStack,
+        SceneDraw.item(stack, ItemDisplayContext.FIXED, light, OverlayTexture.NO_OVERLAY, poseStack,
                 buffers, view.level(), place);
         poseStack.popPose();
     }
@@ -208,7 +176,7 @@ final class RecipeChoice {
             looked = true;
             try {
                 Class<?> network = Class.forName("com.illusivesoulworks.polymorph.api.common.base.IPolymorphNetwork");
-                selection = network.getMethod("sendPlayerRecipeSelectionC2S", ResourceLocation.class);
+                selection = network.getMethod("sendPlayerRecipeSelectionC2S", Identifier.class);
             } catch (ReflectiveOperationException | LinkageError ignored) {
                 selection = null;
             }

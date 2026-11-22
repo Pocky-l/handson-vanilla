@@ -20,39 +20,33 @@ import java.nio.file.Path;
 public final class HandsOnVanillaClient {
     public static final String GRID = "grid";
     public static final String RESULT = "result";
-    private static final net.minecraft.resources.ResourceLocation VISUAL_WORKBENCH =
-            net.minecraft.resources.ResourceLocation.fromNamespaceAndPath("visualworkbench", "crafting");
+    private static final net.minecraft.resources.Identifier VISUAL_WORKBENCH =
+            net.minecraft.resources.Identifier.fromNamespaceAndPath("visualworkbench", "crafting");
     /** Easy Magic's menu for the enchanting table: the vanilla one, the item and lapis kept in the table, new offers for a price. */
-    private static final net.minecraft.resources.ResourceLocation EASY_MAGIC =
-            net.minecraft.resources.ResourceLocation.fromNamespaceAndPath("easymagic", "enchanting");
+    private static final net.minecraft.resources.Identifier EASY_MAGIC =
+            net.minecraft.resources.Identifier.fromNamespaceAndPath("easymagic", "enchanting");
     /** Easy Anvils' menu: the vanilla one, the two pieces kept in the anvil. */
-    private static final net.minecraft.resources.ResourceLocation EASY_ANVILS =
-            net.minecraft.resources.ResourceLocation.fromNamespaceAndPath("easyanvils", "repair");
+    private static final net.minecraft.resources.Identifier EASY_ANVILS =
+            net.minecraft.resources.Identifier.fromNamespaceAndPath("easyanvils", "repair");
 
     private HandsOnVanillaClient() {
-    }
-
-    /** The loader's way to apply a model's GUI transform (Forge: a model may give another one for the GUI). */
-    public static void setGuiModel(java.util.function.BiFunction<net.minecraft.client.resources.model.BakedModel,
-            com.mojang.blaze3d.vertex.PoseStack, net.minecraft.client.resources.model.BakedModel> how) {
-        RecipeBook.guiModel = how;
     }
 
     /**
      * The enchanting table's runes as scene particles: one style a letter of vanilla's standard galactic alphabet (its own sprites,
      * so a pack's glyphs are used), pale violet as the glyphs drifting to a vanilla table, gone as they reach the item.
      */
-    static final java.util.List<net.minecraft.resources.ResourceLocation> GLYPHS = java.util.stream.IntStream.range(0, 8)
+    static final java.util.List<net.minecraft.resources.Identifier> GLYPHS = java.util.stream.IntStream.range(0, 8)
             .mapToObj(n -> HandsOnVanilla.id("glyph_" + n)).toList();
     /** The same runes crumbling off a page: slower, rising and swaying, fading as they shrink. */
-    static final java.util.List<net.minecraft.resources.ResourceLocation> DRIFTING_GLYPHS = java.util.stream.IntStream.range(0, 8)
+    static final java.util.List<net.minecraft.resources.Identifier> DRIFTING_GLYPHS = java.util.stream.IntStream.range(0, 8)
             .mapToObj(n -> HandsOnVanilla.id("drifting_glyph_" + n)).toList();
     private static final String GLYPH_LETTERS = "aeklqrvz";
 
     @SuppressWarnings("removal")
     private static void registerGlyphs() {
         for (int n = 0; n < GLYPHS.size(); n++) {
-            net.minecraft.resources.ResourceLocation sprite = net.minecraft.resources.ResourceLocation.withDefaultNamespace(
+            net.minecraft.resources.Identifier sprite = net.minecraft.resources.Identifier.withDefaultNamespace(
                     "sga_" + GLYPH_LETTERS.charAt(n));
             DiegesisClient.registerParticle(GLYPHS.get(n), com.pockyl.diegesis.api.client.ParticleStyle.builder(sprite)
                     .color(0xFFEDE6FF).size(1.1F, 1.5F).life(EnchantingTableBehavior.GLYPH_FLIGHT, EnchantingTableBehavior.GLYPH_FLIGHT)

@@ -1,10 +1,11 @@
 package com.pockyl.handson_vanilla.client;
 
+import com.mojang.blaze3d.platform.InputConstants;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.gui.Font;
 import net.minecraft.client.gui.screens.Screen;
 import net.minecraft.client.player.LocalPlayer;
-import net.minecraft.client.renderer.LightTexture;
+import net.minecraft.util.LightCoordsUtil;
 import net.minecraft.core.component.DataComponents;
 import net.minecraft.network.chat.Component;
 import net.minecraft.network.chat.Style;
@@ -13,11 +14,10 @@ import net.minecraft.sounds.SoundEvents;
 import net.minecraft.util.FormattedCharSequence;
 import net.minecraft.util.StringUtil;
 import net.minecraft.world.inventory.AnvilMenu;
-import net.minecraft.world.inventory.ClickType;
+import net.minecraft.world.inventory.ContainerInput;
 import net.minecraft.world.item.ItemStack;
 import org.joml.Matrix4f;
 import org.joml.Vector3f;
-import org.lwjgl.glfw.GLFW;
 
 import com.pockyl.diegesis.api.client.DiegesisParticles;
 import com.pockyl.diegesis.api.client.MenuAccess;
@@ -153,7 +153,7 @@ final class AnvilBehavior implements StationBehavior {
      * words and colours it. Turned to the camera like the counts of a station's stacks: drawn in the camera's axes where the node is.
      */
     private void tag(StationView view, boolean hovered, com.mojang.blaze3d.vertex.PoseStack poseStack,
-            net.minecraft.client.renderer.MultiBufferSource buffers) {
+            com.pockyl.diegesis.api.client.SceneBuffers buffers) {
         AnvilMenu menu = anvil(view);
         if (menu == null || menu.getSlot(LEFT_SLOT).getItem().isEmpty()) {
             return;
@@ -164,19 +164,19 @@ final class AnvilBehavior implements StationBehavior {
         float unit = new Vector3f(pose.m00(), pose.m01(), pose.m02()).length();
         // Since 1.20.5 the level's pose is in the world's axes (the view's turn is in the model-view): turned as the camera looks,
         // as Diegesis turns its counts, or the tag shows the camera its back and is culled.
-        Matrix4f matrix = new Matrix4f().translation(at).rotate(Minecraft.getInstance().gameRenderer.getMainCamera().rotation())
+        Matrix4f matrix = new Matrix4f().translation(at).rotate(Minecraft.getInstance().gameRenderer.mainCamera().rotation())
                 .scale(TEXT_SCALE * unit, -TEXT_SCALE * unit, TEXT_SCALE * unit);
         String shown = typing && !picked ? name + ((int) (clock * 3.0F) % 2 == 0 ? "_" : " ") : name;
         Component line = Component.literal(shown.isEmpty() ? " " : shown)
                 .withStyle(Style.EMPTY.withUnderlined(hovered && !typing).withItalic(!typing && isRenamed(menu)));
         FormattedCharSequence text = line.getVisualOrderText();
-        font.drawInBatch(text, -font.width(text) / 2.0F, -font.lineHeight, NAME_COLOR, false, matrix, buffers, Font.DisplayMode.NORMAL,
-                typing && picked ? PICKED_BACKGROUND : TAG_BACKGROUND, LightTexture.FULL_BRIGHT);
+        SceneText.drawInBatch(text, -font.width(text) / 2.0F, -font.lineHeight, NAME_COLOR, false, matrix, buffers, Font.DisplayMode.NORMAL,
+                typing && picked ? PICKED_BACKGROUND : TAG_BACKGROUND, LightCoordsUtil.FULL_BRIGHT);
         Component cost = costLine(menu);
         if (cost != null) {
             boolean dear = !canPay(menu);
-            font.drawInBatch(cost, -font.width(cost) / 2.0F, 2.0F, dear ? DEAR_COLOR : COST_COLOR, false, matrix, buffers,
-                    Font.DisplayMode.NORMAL, TAG_BACKGROUND, LightTexture.FULL_BRIGHT);
+            SceneText.drawInBatch(cost, -font.width(cost) / 2.0F, 2.0F, dear ? DEAR_COLOR : COST_COLOR, false, matrix, buffers,
+                    Font.DisplayMode.NORMAL, TAG_BACKGROUND, LightCoordsUtil.FULL_BRIGHT);
         }
     }
 
@@ -214,7 +214,7 @@ final class AnvilBehavior implements StationBehavior {
         heldSlot = -1;
         LocalPlayer player = Minecraft.getInstance().player;
         if (player != null && view.openedByUse() && worked(player.getMainHandItem())) {
-            heldSlot = player.getInventory().selected;
+            heldSlot = player.getInventory().getSelectedSlot();
         }
         phase = Phase.IDLE;
         queued = 0;
@@ -346,9 +346,11 @@ final class AnvilBehavior implements StationBehavior {
      * scene event, and the keys after them (E, the number keys) must be the station's again.
      */
     private void endTypingOnClickAway(StationView view) {
-        long window = Minecraft.getInstance().getWindow().getWindow();
-        boolean down = GLFW.glfwGetMouseButton(window, GLFW.GLFW_MOUSE_BUTTON_LEFT) == GLFW.GLFW_PRESS
-                || GLFW.glfwGetMouseButton(window, GLFW.GLFW_MOUSE_BUTTON_RIGHT) == GLFW.GLFW_PRESS;
+        boolean down;
+        try (org.lwjgl.system.MemoryStack stack = org.lwjgl.system.MemoryStack.stackPush()) {
+            // SDL's mask of the buttons down: the left one is its first bit, the right one its third (SDL_BUTTON_LMASK, _RMASK).
+            down = (org.lwjgl.sdl.SDLMouse.SDL_GetMouseState(stack.mallocFloat(1), stack.mallocFloat(1)) & 0b101) != 0;
+        }
         if (down && !mouseWasDown && typing && !view.node(NAME).map(node -> node.isHovered()).orElse(false)) {
             typing = false;
         }
@@ -436,7 +438,7 @@ final class AnvilBehavior implements StationBehavior {
         if (menu != null && anvil != null && canTake(view, strikeAll)) {
             ItemStack made = anvil.getSlot(RESULT_SLOT).getItem().copy();
             AnvilSound.forget();
-            menu.click(RESULT_SLOT, 0, strikeAll ? ClickType.QUICK_MOVE : ClickType.PICKUP);
+            menu.click(RESULT_SLOT, 0, strikeAll ? ContainerInput.QUICK_MOVE : ContainerInput.PICKUP);
             // The pieces used up are the strike's, not taken by hand.
             watch.forget();
             forged = made;
@@ -509,7 +511,7 @@ final class AnvilBehavior implements StationBehavior {
             return;
         }
         if (RESULT.equals(click.node())) {
-            strike(view, Screen.hasShiftDown());
+            strike(view, Minecraft.getInstance().hasShiftDown());
         } else if (NAME.equals(click.node())) {
             startTyping(view);
         } else {
@@ -555,20 +557,20 @@ final class AnvilBehavior implements StationBehavior {
             return false;
         }
         switch (keyCode) {
-            case GLFW.GLFW_KEY_ENTER, GLFW.GLFW_KEY_KP_ENTER, GLFW.GLFW_KEY_ESCAPE -> typing = false;
-            case GLFW.GLFW_KEY_BACKSPACE, GLFW.GLFW_KEY_DELETE -> {
+            case InputConstants.KEY_RETURN, InputConstants.KEY_NUMPADENTER, InputConstants.KEY_ESCAPE -> typing = false;
+            case InputConstants.KEY_BACKSPACE, InputConstants.KEY_DELETE -> {
                 if (picked) {
                     picked = false;
                     rename(view, "");
-                } else if (!name.isEmpty() && keyCode == GLFW.GLFW_KEY_BACKSPACE) {
+                } else if (!name.isEmpty() && keyCode == InputConstants.KEY_BACKSPACE) {
                     rename(view, name.substring(0, name.offsetByCodePoints(name.length(), -1)));
                 }
             }
-            case GLFW.GLFW_KEY_LEFT, GLFW.GLFW_KEY_RIGHT, GLFW.GLFW_KEY_END, GLFW.GLFW_KEY_HOME -> picked = false;
+            case InputConstants.KEY_LEFT, InputConstants.KEY_RIGHT, InputConstants.KEY_END, InputConstants.KEY_HOME -> picked = false;
             default -> {
-                if (keyCode == GLFW.GLFW_KEY_V && Screen.hasControlDown()) {
+                if (keyCode == InputConstants.KEY_V && Minecraft.getInstance().hasControlDown()) {
                     type(view, Minecraft.getInstance().keyboardHandler.getClipboard());
-                } else if (keyCode == GLFW.GLFW_KEY_A && Screen.hasControlDown()) {
+                } else if (keyCode == InputConstants.KEY_A && Minecraft.getInstance().hasControlDown()) {
                     picked = true;
                 }
             }
@@ -576,14 +578,18 @@ final class AnvilBehavior implements StationBehavior {
         return true;
     }
 
-    /** Whether a key types a character: the printable keys and the keypad's digits, without Ctrl, Alt or Super. */
+    /**
+     * Whether a key types a character: the printable keys and the keypad's digits, without Ctrl, Alt or Super. Since Minecraft 26.x
+     * keys are SDL scancodes: letters and digits, then the punctuation from space to slash, the keypad's digits and the key beside
+     * the left shift of European keyboards (SDL_SCANCODE_NONUSBACKSLASH, 100).
+     */
     private static boolean types(int keyCode, int modifiers) {
-        if ((modifiers & (GLFW.GLFW_MOD_CONTROL | GLFW.GLFW_MOD_ALT | GLFW.GLFW_MOD_SUPER)) != 0) {
+        if ((modifiers & (InputConstants.MOD_CONTROL | InputConstants.MOD_ALT | InputConstants.MOD_SUPER)) != 0) {
             return false;
         }
-        return keyCode >= GLFW.GLFW_KEY_SPACE && keyCode <= GLFW.GLFW_KEY_GRAVE_ACCENT
-                || keyCode == GLFW.GLFW_KEY_WORLD_1 || keyCode == GLFW.GLFW_KEY_WORLD_2
-                || keyCode >= GLFW.GLFW_KEY_KP_0 && keyCode <= GLFW.GLFW_KEY_KP_9;
+        return keyCode >= InputConstants.KEY_A && keyCode <= InputConstants.KEY_0
+                || keyCode >= InputConstants.KEY_SPACE && keyCode <= InputConstants.KEY_SLASH
+                || keyCode >= InputConstants.KEY_NUMPAD1 && keyCode <= InputConstants.KEY_NUMPAD0 || keyCode == 100;
     }
 
     @Override

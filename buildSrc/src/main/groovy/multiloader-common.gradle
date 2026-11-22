@@ -10,7 +10,7 @@ base {
     archivesName = "${mod_id}-${project.name}-${minecraft_version}"
 }
 
-java.toolchain.languageVersion = JavaLanguageVersion.of(21)
+java.toolchain.languageVersion = JavaLanguageVersion.of(25)
 
 repositories {
     mavenCentral()
@@ -36,7 +36,7 @@ repositories {
         )
         filter { includeGroup('org.parchmentmc.data') }
     }
-    // Recipe viewers, compile only: JEI and EMI.
+    // JEI, compile only.
     exclusiveContent {
         forRepository {
             maven {
@@ -45,15 +45,6 @@ repositories {
             }
         }
         filter { includeGroup('mezz.jei') }
-    }
-    exclusiveContent {
-        forRepository {
-            maven {
-                name = 'TerraformersMC (EMI)'
-                url = 'https://maven.terraformersmc.com/releases/'
-            }
-        }
-        filter { includeGroup('dev.emi') }
     }
 }
 

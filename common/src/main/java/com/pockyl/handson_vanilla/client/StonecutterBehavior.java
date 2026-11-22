@@ -1,23 +1,23 @@
 package com.pockyl.handson_vanilla.client;
 
+import com.pockyl.diegesis.impl.client.render.SceneDraw;
 import com.mojang.blaze3d.vertex.PoseStack;
 import com.mojang.math.Axis;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.player.LocalPlayer;
-import net.minecraft.client.renderer.MultiBufferSource;
+import com.pockyl.diegesis.api.client.SceneBuffers;
 import net.minecraft.client.renderer.texture.OverlayTexture;
 import net.minecraft.core.Direction;
-import net.minecraft.resources.ResourceLocation;
 import net.minecraft.sounds.SoundEvents;
 import net.minecraft.util.Mth;
 import net.minecraft.world.entity.player.Inventory;
-import net.minecraft.world.inventory.ClickType;
+import net.minecraft.world.inventory.ContainerInput;
 import net.minecraft.world.inventory.StonecutterMenu;
 import net.minecraft.world.item.BlockItem;
 import net.minecraft.world.item.ItemDisplayContext;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.item.crafting.Ingredient;
-import net.minecraft.world.item.crafting.RecipeHolder;
+import net.minecraft.world.item.crafting.SelectableRecipe;
 import net.minecraft.world.item.crafting.StonecutterRecipe;
 import net.minecraft.world.level.block.StonecutterBlock;
 import org.joml.Vector3f;
@@ -98,7 +98,7 @@ final class StonecutterBehavior implements StationBehavior {
     private float cut = -1.0F;
     /** Seconds before a cut waits to start: the stone is still flying onto the slab. */
     private float startIn = -1.0F;
-    private ResourceLocation cutId;
+    private StonecutterBook.Cut cutId;
     private boolean cutAll;
     private int bites;
     private int bitten;
@@ -106,7 +106,7 @@ final class StonecutterBehavior implements StationBehavior {
     private float dustIn;
     private int queued;
     /** Another page picked during a cut: cut after it (and after the picks queued of the same piece). */
-    private ResourceLocation nextId;
+    private StonecutterBook.Cut nextId;
     private boolean nextAll;
     /**
      * The pieces springing out of the stone, and seconds since they did (negative: none); it runs on through the next cut's start.
@@ -140,7 +140,7 @@ final class StonecutterBehavior implements StationBehavior {
         heldSlot = -1;
         LocalPlayer player = Minecraft.getInstance().player;
         if (player != null && view.openedByUse() && StonecutterUse.usable(player.getMainHandItem())) {
-            heldSlot = player.getInventory().selected;
+            heldSlot = player.getInventory().getSelectedSlot();
         }
         // The saw runs along the block's sides: across the scene when the player stands at its face or back.
         Direction block = view.level().getBlockState(view.pos()).getOptionalValue(StonecutterBlock.FACING).orElse(Direction.NORTH);
@@ -199,14 +199,14 @@ final class StonecutterBehavior implements StationBehavior {
     }
 
     /** The recipe the stonecutter is set to cut, or null. */
-    ResourceLocation picked(StationView view) {
+    StonecutterBook.Cut picked(StationView view) {
         StonecutterMenu cutter = stonecutter(view);
         if (cutter == null) {
             return null;
         }
         int index = cutter.getSelectedRecipeIndex();
-        List<RecipeHolder<StonecutterRecipe>> recipes = cutter.getRecipes();
-        return index >= 0 && index < recipes.size() ? recipes.get(index).id() : null;
+        List<SelectableRecipe.SingleInputEntry<StonecutterRecipe>> recipes = cutter.getVisibleRecipes().entries();
+        return index >= 0 && index < recipes.size() ? new StonecutterBook.Cut(recipes.get(index)) : null;
     }
 
     /**
@@ -214,7 +214,7 @@ final class StonecutterBehavior implements StationBehavior {
      * stone laid on the slab first when another or none lies there. Without that stone, or without room for the pieces in the
      * inventory, the slab's stone shakes.
      */
-    void cut(StationView view, ResourceLocation id, boolean all) {
+    void cut(StationView view, StonecutterBook.Cut id, boolean all) {
         MenuAccess menu = view.menu();
         StonecutterMenu cutter = stonecutter(view);
         LocalPlayer player = Minecraft.getInstance().player;
@@ -230,14 +230,11 @@ final class StonecutterBehavior implements StationBehavior {
             }
             return;
         }
-        // byKey gives the holder on this version: test and cast its recipe, never the holder itself.
-        StonecutterRecipe recipe = view.level().getRecipeManager().byKey(id).map(RecipeHolder::value)
-                .filter(StonecutterRecipe.class::isInstance).map(StonecutterRecipe.class::cast).orElse(null);
-        if (recipe == null || recipe.getIngredients().isEmpty()) {
+        Ingredient stone = id.entry().input();
+        ItemStack makes = id.makes(view.level());
+        if (makes.isEmpty()) {
             return;
         }
-        Ingredient stone = recipe.getIngredients().get(0);
-        ItemStack makes = recipe.getResultItem(view.level().registryAccess());
         int from = stone.test(input(view)) ? -1 : find(player.getInventory(), stone);
         if (!stone.test(input(view)) && from < 0 || landing(cutter, makes, !all) < 0) {
             refuse(view);
@@ -247,7 +244,7 @@ final class StonecutterBehavior implements StationBehavior {
         if (from >= 0) {
             if (!input(view).isEmpty()) {
                 // The other stone goes back to the inventory, as a shift-click on it would send it.
-                menu.click(0, 0, ClickType.QUICK_MOVE);
+                menu.click(0, 0, ContainerInput.QUICK_MOVE);
             }
             menu.quickMoveFromInventory(from);
             flight(view, from);
@@ -281,8 +278,9 @@ final class StonecutterBehavior implements StationBehavior {
         ItemStack stone = input(view);
         int index = -1;
         if (cutter != null) {
-            for (int i = 0; i < cutter.getRecipes().size(); i++) {
-                if (cutter.getRecipes().get(i).id().equals(cutId)) {
+            List<SelectableRecipe.SingleInputEntry<StonecutterRecipe>> recipes = cutter.getVisibleRecipes().entries();
+            for (int i = 0; i < recipes.size(); i++) {
+                if (cutId != null && recipes.get(i).equals(cutId.entry())) {
                     index = i;
                 }
             }
@@ -369,7 +367,7 @@ final class StonecutterBehavior implements StationBehavior {
                 queued--;
                 begin(view);
             } else if (nextId != null) {
-                ResourceLocation next = nextId;
+                StonecutterBook.Cut next = nextId;
                 nextId = null;
                 cut(view, next, nextAll);
             }
@@ -474,10 +472,10 @@ final class StonecutterBehavior implements StationBehavior {
             return;
         }
         if (cutAll) {
-            menu.click(1, 0, ClickType.QUICK_MOVE);
+            menu.click(1, 0, ContainerInput.QUICK_MOVE);
         } else {
-            menu.click(1, 0, ClickType.PICKUP);
-            menu.click(to, 0, ClickType.PICKUP);
+            menu.click(1, 0, ContainerInput.PICKUP);
+            menu.click(to, 0, ContainerInput.PICKUP);
         }
         // The stone used up is the saw's, not taken by hand.
         watch.forget();
@@ -567,8 +565,8 @@ final class StonecutterBehavior implements StationBehavior {
      * The pieces at their node, turned to the camera: standing as they spring up, a flat item tipping over to lie on the slab as they
      * drop (a block stays on its foot), shrinking as they fly away; more than one piece shows as two or three.
      */
-    private void pieces(StationView view, PoseStack poseStack, MultiBufferSource buffers, int light) {
-        boolean block = Minecraft.getInstance().getItemRenderer().getModel(popPiece, view.level(), null, 0).isGui3d();
+    private void pieces(StationView view, PoseStack poseStack, SceneBuffers buffers, int light) {
+        boolean block = SceneDraw.itemState(popPiece, ItemDisplayContext.FIXED, view.level(), 0).usesBlockLight();
         float lie = popTime < POP ? ease(popTime / POP) : 1.0F;
         float size = Mth.lerp(lie, POP_SIZE, PILE_SIZE);
         if (popTime > POP + LIE) {
@@ -586,12 +584,12 @@ final class StonecutterBehavior implements StationBehavior {
             }
             float up = block ? size * 0.25F : Mth.lerp(lie, size * 0.5F, size / 32.0F + 0.02F);
             poseStack.translate(0.0F, up, 0.0F);
-            poseStack.mulPose(Axis.YP.rotationDegrees(225.0F));
+            poseStack.rotate(Axis.YP.rotationDegrees(225.0F));
             if (!block) {
-                poseStack.mulPose(Axis.XP.rotationDegrees(-90.0F * lie));
+                poseStack.rotate(Axis.XP.rotationDegrees(-90.0F * lie));
             }
             poseStack.scale(size, size, size);
-            Minecraft.getInstance().getItemRenderer().renderStatic(popPiece, ItemDisplayContext.FIXED, light, OverlayTexture.NO_OVERLAY,
+            SceneDraw.item(popPiece, ItemDisplayContext.FIXED, light, OverlayTexture.NO_OVERLAY,
                     poseStack, DiegesisClient.items(buffers), view.level(), 0);
             poseStack.popPose();
         }

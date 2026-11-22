@@ -9,7 +9,7 @@ import net.minecraft.client.model.geom.builders.CubeListBuilder;
 import net.minecraft.client.model.geom.builders.LayerDefinition;
 import net.minecraft.client.model.geom.builders.MeshDefinition;
 import net.minecraft.client.model.geom.builders.PartDefinition;
-import net.minecraft.resources.ResourceLocation;
+import net.minecraft.resources.Identifier;
 import net.minecraft.util.Mth;
 
 import com.pockyl.handson_vanilla.HandsOnVanilla;
@@ -24,7 +24,7 @@ import com.pockyl.handson_vanilla.HandsOnVanilla;
  * {@code art/textures/entity/enchanting_book.aseprite}. The layer is built and baked here, so nothing is registered.
  */
 final class EnchantingBookModel {
-    static final ResourceLocation TEXTURE = HandsOnVanilla.id("textures/entity/enchanting_book.png");
+    static final Identifier TEXTURE = HandsOnVanilla.id("textures/entity/enchanting_book.png");
 
     private final ModelPart root;
     private final ModelPart leftLid;
