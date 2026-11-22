@@ -21,6 +21,7 @@ import net.minecraft.world.item.crafting.RecipeBookCategories;
 import net.minecraft.world.item.crafting.RecipeBookCategory;
 import net.minecraft.world.item.crafting.RecipeHolder;
 import net.minecraft.world.item.crafting.RecipeManager;
+import net.minecraft.world.item.crafting.display.RecipeDisplay;
 import net.minecraft.world.item.crafting.display.RecipeDisplayEntry;
 import net.minecraft.world.item.crafting.display.RecipeDisplayId;
 import net.minecraft.world.level.Level;
@@ -102,8 +103,8 @@ public final class CraftingBook implements RecipeBook.Source {
             }
             byDisplay.put(entry.id(), recipe);
             String group = entry.group().isPresent() ? Integer.toString(entry.group().getAsInt()) : null;
-            pages.add(new RecipeBook.Page(new Key(entry.id(), name), result.copy(), RecipeDisplays.laid(entry.display(), context), List.of(),
-                    null, false, kind(entry.category()), group));
+            pages.add(new RecipeBook.Page(new Key(entry.id(), name), result.copy(), RecipeDisplays.laid(entry.display(), context),
+                    List.of(), null, false, kind(entry.category()), group));
         }
         madeFrom = entries;
         made = List.copyOf(pages);
@@ -152,15 +153,29 @@ public final class CraftingBook implements RecipeBook.Source {
         return known;
     }
 
-    /** The entry the game's own server shows a recipe by (a world played alone), for laying a recipe named by its id. */
-    public static Optional<RecipeDisplayEntry> display(ResourceKey<Recipe<?>> recipe) {
+    /**
+     * The entry of the player's own recipe book for a recipe a recipe viewer names, which the vanilla book's packet lays: in a world
+     * played alone by the game's own server's list, on another server the entry that shows the recipe as the recipe itself would
+     * ({@code Recipe.display()}); empty when the player's book has none.
+     */
+    public static Optional<RecipeDisplayId> bookEntry(LocalPlayer player, ResourceKey<Recipe<?>> key, Recipe<?> recipe) {
+        Set<RecipeDisplayId> known = known(player);
         IntegratedServer server = Minecraft.getInstance().getSingleplayerServer();
-        if (server == null) {
-            return Optional.empty();
+        if (server != null) {
+            List<RecipeDisplayEntry> found = new ArrayList<>();
+            server.getRecipeManager().listDisplaysForRecipe(key, found::add);
+            return found.stream().filter(entry -> RecipeDisplays.isCrafting(entry.display()) && known.contains(entry.id()))
+                    .map(RecipeDisplayEntry::id).findFirst();
         }
-        List<RecipeDisplayEntry> found = new ArrayList<>();
-        server.getRecipeManager().listDisplaysForRecipe(recipe, found::add);
-        return found.stream().filter(entry -> RecipeDisplays.isCrafting(entry.display())).findFirst();
+        List<RecipeDisplay> looks = recipe.display();
+        for (RecipeCollection collection : player.getRecipeBook().getCollections()) {
+            for (RecipeDisplayEntry entry : collection.getRecipes()) {
+                if (looks.contains(entry.display())) {
+                    return Optional.of(entry.id());
+                }
+            }
+        }
+        return Optional.empty();
     }
 
     /** The vanilla book's kinds of crafting recipes, by the names of this book's tabs. */

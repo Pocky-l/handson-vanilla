@@ -130,6 +130,11 @@ public final class StationHover {
         return Math.min(screenWidth, Math.round(rightEdge()) + VIEWER_GAP);
     }
 
+    /** A viewer lays a recipe into the crafting table station: its items fly in as the book's do. */
+    public static void recipeLaid() {
+        CraftingTableBehavior.recipeLaid();
+    }
+
     /** Lays a recipe into the station's menu as the vanilla recipe book does: {@code recipe} is an entry of the player's book. */
     public static void placeRecipe(net.minecraft.world.item.crafting.display.RecipeDisplayId recipe, boolean all) {
         CraftingTableBehavior.recipeLaid();

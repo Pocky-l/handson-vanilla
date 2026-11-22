@@ -1,10 +1,5 @@
 package com.pockyl.handson_vanilla.client;
 
-import com.mojang.datafixers.util.Either;
-import net.minecraft.core.Holder;
-import net.minecraft.core.HolderSet;
-import net.minecraft.core.registries.Registries;
-import net.minecraft.tags.TagKey;
 import net.minecraft.util.context.ContextMap;
 import net.minecraft.world.item.Item;
 import net.minecraft.world.item.ItemStack;
@@ -16,11 +11,10 @@ import net.minecraft.world.item.crafting.display.SlotDisplay;
 import net.minecraft.world.item.crafting.display.SlotDisplayContext;
 import net.minecraft.world.level.Level;
 
-import com.pockyl.handson_vanilla.HandsOnVanilla;
+import com.pockyl.handson_vanilla.RecipeParts;
 
 import java.util.ArrayList;
 import java.util.List;
-import java.util.Optional;
 
 /**
  * Recipes as a client knows them since Minecraft 1.21.2: no recipe objects, only what the server shows of them (a recipe display:
@@ -28,39 +22,8 @@ import java.util.Optional;
  * ghost in the grid are made from these.
  */
 final class RecipeDisplays {
-    /**
-     * An ingredient that takes nothing, where {@code Ingredient.EMPTY} stood: a gap in a shaped recipe's grid. An ingredient of no
-     * listed items cannot be made since 1.21.2, while one of an empty tag can; so this is one of a tag of no items, told from a real
-     * empty tag by being this very object.
-     */
-    static final Ingredient GAP = Ingredient.of(new HolderSet.ListBacked<Item>() {
-        private final TagKey<Item> tag = TagKey.create(Registries.ITEM, HandsOnVanilla.id("nothing"));
-
-        @Override
-        protected List<Holder<Item>> contents() {
-            return List.of();
-        }
-
-        @Override
-        public boolean isBound() {
-            return true;
-        }
-
-        @Override
-        public Either<TagKey<Item>, List<Holder<Item>>> unwrap() {
-            return Either.left(tag);
-        }
-
-        @Override
-        public Optional<TagKey<Item>> unwrapKey() {
-            return Optional.of(tag);
-        }
-
-        @Override
-        public boolean contains(Holder<Item> value) {
-            return false;
-        }
-    });
+    /** A gap in a shaped recipe's grid, where {@code Ingredient.EMPTY} stood: {@link RecipeParts#NOTHING}. */
+    static final Ingredient GAP = RecipeParts.NOTHING;
 
     private static final int GRID = 3;
 
@@ -73,7 +36,7 @@ final class RecipeDisplays {
 
     /** A stack of each item {@code ingredient} takes, as {@code Ingredient.getItems()} gave them; none for {@link #GAP}. */
     static ItemStack[] items(Ingredient ingredient) {
-        return ingredient.items().map(ItemStack::new).toArray(ItemStack[]::new);
+        return RecipeParts.items(ingredient);
     }
 
     /** Whether the crafting table makes it: a shaped or shapeless craft. */

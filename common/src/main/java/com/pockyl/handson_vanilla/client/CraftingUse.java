@@ -5,6 +5,7 @@ import net.minecraft.client.gui.screens.recipebook.RecipeCollection;
 import net.minecraft.tags.ItemTags;
 import net.minecraft.world.item.BannerItem;
 import net.minecraft.world.item.BlockItem;
+import net.minecraft.world.item.DyeItem;
 import net.minecraft.world.item.Item;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.item.Items;
@@ -18,9 +19,9 @@ import java.util.HashSet;
 import java.util.Set;
 
 /**
- * Whether a stack can do anything in a crafting grid: an ingredient of a crafting recipe the client knows ({@link #refresh}), or something the
- * special recipes take (a tool to repair, leather to dye, a map or a book to copy, a firework, a banner, a shield, a shulker
- * box, a lingering potion for arrows). Stacks that can do nothing stay out of the rows over the hotbar.
+ * Whether a stack can do anything in a crafting grid: an ingredient of a crafting recipe the client knows ({@link #refresh}), or
+ * something the special recipes take (a tool to repair, leather to dye, a dye, a map or a book to copy, a firework, a banner, a
+ * shield, a shulker box, a lingering potion for arrows). Stacks that can do nothing stay out of the rows over the hotbar.
  */
 final class CraftingUse {
     private static final Set<Item> SPECIAL = Set.of(Items.FILLED_MAP, Items.WRITTEN_BOOK, Items.FIREWORK_STAR, Items.FIREWORK_ROCKET,
@@ -69,6 +70,6 @@ final class CraftingUse {
         }
         Item item = stack.getItem();
         return INGREDIENTS.contains(item) || SPECIAL.contains(item) || stack.isDamageableItem() || stack.is(ItemTags.DYEABLE)
-                || item instanceof BannerItem || item instanceof BlockItem block && block.getBlock() instanceof ShulkerBoxBlock;
+                || item instanceof DyeItem || item instanceof BannerItem || item instanceof BlockItem block && block.getBlock() instanceof ShulkerBoxBlock;
     }
 }
