@@ -1,8 +1,12 @@
 package com.pockyl.handson_vanilla.gametest;
 
 import net.minecraft.gametest.framework.GameTestHelper;
+import net.minecraft.world.item.ItemStack;
+import net.minecraft.world.item.Items;
+import net.minecraft.world.item.crafting.Ingredient;
 
 import com.pockyl.handson_vanilla.BookMath;
+import com.pockyl.handson_vanilla.RecipeParts;
 
 /**
  * The recipe book's arithmetic, checked on a server: the mod is client-side only, and what a server does with its clicks is
@@ -43,6 +47,18 @@ public final class BookTests {
         helper.assertTrue(BookMath.matches("", "Stick", "minecraft:stick"), "nothing typed finds all");
         helper.assertTrue(!BookMath.matches("birch", "Oak Stairs", "minecraft:oak_stairs"), "another wood is not found");
         helper.assertTrue(BookMath.matches("STICK", "Sticky Piston", "minecraft:sticky_piston"), "case aside");
+        helper.succeed();
+    }
+
+    /**
+     * A gap in a shaped recipe's grid (no ingredient at all since Minecraft 1.21.2) reads as an ingredient of nothing: the crafting
+     * table's book reads every place of its pages as it opens, and one that throws leaves it blank.
+     */
+    public static void bookGapReadsEmpty(GameTestHelper helper) {
+        Ingredient gap = RecipeParts.NOTHING;
+        helper.assertTrue(RecipeParts.items(gap).length == 0, "a gap lists no items");
+        helper.assertTrue(gap.isEmpty(), "a gap is empty");
+        helper.assertTrue(!gap.test(new ItemStack(Items.STONE)) && !gap.test(ItemStack.EMPTY), "a gap takes nothing");
         helper.succeed();
     }
 }

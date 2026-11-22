@@ -18,9 +18,9 @@ import com.pockyl.handson_vanilla.gametest.StonecutterTests;
 
 /**
  * The mod is client-side only: this checks that it loads on a Fabric server and stays out of the way there, and runs the book's
- * arithmetic ({@link BookTests}), the book's laying by clicks ({@link CraftingLayTests}) and the smoker's and blast furnace's pack files and
- * shift-clicks ({@link FurnaceTests}), the stonecutter's clicks ({@link StonecutterTests}), the smithing table's
- * ({@link SmithingTests}), the grindstone's ({@link GrindstoneTests}), the brewing stand's ({@link BrewingTests}), the
+ * arithmetic and its grid gaps ({@link BookTests}), the book's laying by clicks ({@link CraftingLayTests}), the smoker's and blast
+ * furnace's pack files and shift-clicks ({@link FurnaceTests}), the stonecutter's clicks ({@link StonecutterTests}), the smithing
+ * table's ({@link SmithingTests}), the grindstone's ({@link GrindstoneTests}), the brewing stand's ({@link BrewingTests}), the
  * anvil's ({@link AnvilTests}), the enchanting table's ({@link EnchantingTests}), the lectern's ({@link LecternTests}),
  * the loom's ({@link LoomTests}) and the cartography table's ({@link CartographyTests}).
  * They run when the game starts with {@code -Dfabric-api.gametest} ({@code :fabric:runGameTest}).
@@ -44,6 +44,11 @@ public final class FabricGameTests {
     @GameTest
     public void bookSearch(GameTestHelper helper) {
         BookTests.bookSearch(helper);
+    }
+
+    @GameTest
+    public void bookGapReadsEmpty(GameTestHelper helper) {
+        BookTests.bookGapReadsEmpty(helper);
     }
 
     @GameTest
