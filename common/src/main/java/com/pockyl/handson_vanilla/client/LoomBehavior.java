@@ -159,7 +159,7 @@ final class LoomBehavior implements StationBehavior {
             return loom.getSlot(BANNER_SLOT).mayPlace(stack) || loom.getSlot(DYE_SLOT).mayPlace(stack) || loom.getSlot(2).mayPlace(stack);
         }
         return stack.getItem() instanceof BannerItem || stack.is(net.minecraft.tags.ItemTags.LOOM_DYES) && stack.has(DataComponents.DYE)
-                || stack.has(DataComponents.PROVIDES_BANNER_PATTERNS);
+                || stack.is(net.minecraft.tags.ItemTags.LOOM_PATTERNS) && stack.has(DataComponents.PROVIDES_BANNER_PATTERNS);
     }
 
     private static final java.util.Map<Class<?>, java.util.Optional<java.lang.reflect.Method>> CLOTH_COLOUR =

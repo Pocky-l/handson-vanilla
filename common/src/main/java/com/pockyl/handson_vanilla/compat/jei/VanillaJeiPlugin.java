@@ -26,7 +26,7 @@ import net.minecraft.world.inventory.MenuType;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.item.crafting.CraftingRecipe;
 import net.minecraft.world.item.crafting.RecipeHolder;
-import net.minecraft.world.item.crafting.display.RecipeDisplayEntry;
+import net.minecraft.world.item.crafting.display.RecipeDisplayId;
 import net.minecraft.client.player.LocalPlayer;
 import com.pockyl.handson_vanilla.client.CraftingBook;
 
@@ -147,10 +147,11 @@ public final class VanillaJeiPlugin implements IModPlugin {
     }
 
     /**
-     * At the crafting table station: the vanilla book's packet for a recipe in the player's book, which any server takes; a recipe
-     * not in the book yet goes through JEI's own transfer, as at the vanilla crafting table (the server refuses the book's packet for
-     * it). Since Minecraft 1.21.2 the packet names the book's entry of the recipe, which only the game's own server can tell (a world
-     * played alone); elsewhere JEI's own transfer lays it. Anywhere else: JEI's own crafting transfer, unchanged.
+     * At the crafting table station: the vanilla book's packet for a recipe in the player's book, which any server takes; since
+     * Minecraft 1.21.2 it names the book's entry for the recipe, found by the game's own server's list in a world played alone, else by
+     * the look the recipe gives itself. A recipe not in the book yet goes through JEI's own transfer, as at the vanilla crafting table
+     * (the server refuses the book's packet for it), and its items fly in as the book's do. Anywhere else: JEI's own crafting
+     * transfer, unchanged.
      */
     private record StationTransfer(IRecipeTransferHandler<CraftingMenu, RecipeHolder<CraftingRecipe>> basic)
             implements IRecipeTransferHandler<CraftingMenu, RecipeHolder<CraftingRecipe>> {
@@ -172,17 +173,17 @@ public final class VanillaJeiPlugin implements IModPlugin {
         @Override
         public IRecipeTransferError transferRecipe(CraftingMenu container, RecipeHolder<CraftingRecipe> recipe, IRecipeSlotsView slots,
                 Player player, boolean maxTransfer, boolean doTransfer) {
-            Optional<RecipeDisplayEntry> entry = StationHover.menu() == container && player instanceof LocalPlayer local
-                    ? CraftingBook.display(recipe.id()).filter(found -> CraftingBook.known(local).contains(found.id()))
-                    : Optional.empty();
+            Optional<RecipeDisplayId> entry = StationHover.menu() == container && player instanceof LocalPlayer local
+                    ? CraftingBook.bookEntry(local, recipe.id(), recipe.value()) : Optional.empty();
             if (entry.isPresent()) {
                 if (doTransfer) {
-                    StationHover.placeRecipe(entry.get().id(), maxTransfer);
+                    StationHover.placeRecipe(entry.get(), maxTransfer);
                 }
                 return null;
             }
             IRecipeTransferError error = basic.transferRecipe(container, recipe, slots, player, maxTransfer, doTransfer);
             if (doTransfer && error == null && StationHover.menu() == container) {
+                // JEI's own transfer: its items fly in as the book's do.
                 StationHover.recipeLaid();
             }
             return error;

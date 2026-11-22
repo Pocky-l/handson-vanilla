@@ -6,17 +6,23 @@ import com.mojang.math.Axis;
 import net.minecraft.client.Minecraft;
 import com.pockyl.diegesis.api.client.SceneBuffers;
 import net.minecraft.client.renderer.texture.OverlayTexture;
+import net.minecraft.core.NonNullList;
 import net.minecraft.resources.Identifier;
 import net.minecraft.sounds.SoundEvents;
 import net.minecraft.world.item.ItemDisplayContext;
 import net.minecraft.world.item.ItemStack;
+import net.minecraft.world.item.crafting.CraftingInput;
+import net.minecraft.world.item.crafting.CraftingRecipe;
+import net.minecraft.world.item.crafting.RecipeHolder;
 
 import com.pockyl.diegesis.api.client.NodeView;
 import com.pockyl.diegesis.api.client.StationView;
 import com.pockyl.diegesis.api.state.SlotRef;
 
 import java.lang.reflect.Method;
+import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.List;
 
 /**
  * With Polymorph, one grid can make several things (two mods' recipes for the same shape); its vanilla screen has a button that
@@ -93,16 +99,51 @@ final class RecipeChoice {
         read(view, now, shown);
     }
 
-    /**
-     * What else the grid makes. Since Minecraft 1.21.2 the client has no recipes to match the grid against, and Polymorph has no build
-     * for 26.3: nothing is found, and no place is shown.
-     */
     private void read(StationView view, ItemStack[] now, ItemStack shown) {
         Arrays.fill(recipes, null);
         Arrays.fill(outputs, ItemStack.EMPTY);
-        anyShown = false;
+        var level = view.level();
+        NonNullList<ItemStack> items = NonNullList.withSize(9, ItemStack.EMPTY);
+        for (int i = 0; i < now.length; i++) {
+            items.set(i, now[i].copy());
+        }
+        CraftingInput container = CraftingInput.of(3, 3, items);
+        // Since Minecraft 1.21.2 a client knows no recipes: they are read from the game's own server in a world played alone.
+        var server = Minecraft.getInstance().getSingleplayerServer();
+        List<RecipeHolder<CraftingRecipe>> matches = new ArrayList<>();
+        if (server != null) {
+            for (RecipeHolder<?> holder : server.getRecipeManager().getRecipes()) {
+                if (holder.value() instanceof CraftingRecipe recipe && recipe.matches(container, level)) {
+                    matches.add(new RecipeHolder<>(holder.id(), recipe));
+                }
+            }
+        }
+        int place = 0;
+        List<ItemStack> seen = new ArrayList<>();
+        if (!shown.isEmpty()) {
+            seen.add(shown);
+        }
+        for (RecipeHolder<CraftingRecipe> recipe : matches) {
+            ItemStack makes = recipe.value().assemble(container);
+            if (makes.isEmpty() || seen.stream().anyMatch(other -> ItemStack.isSameItemSameComponents(other, makes))) {
+                continue;
+            }
+            seen.add(makes);
+            if (place < PLACES) {
+                recipes[place] = recipe.id().identifier();
+                outputs[place] = makes;
+                place++;
+            }
+        }
+        anyShown = recipes[0] != null;
         for (int i = 0; i < PLACES; i++) {
-            view.node(node(i)).ifPresent(node -> node.setVisible(false));
+            int at = i;
+            view.node(node(i)).ifPresent(node -> {
+                node.setVisible(recipes[at] != null);
+                if (recipes[at] != null) {
+                    node.setTooltip(outputs[at].getHoverName());
+                }
+            });
         }
     }
 

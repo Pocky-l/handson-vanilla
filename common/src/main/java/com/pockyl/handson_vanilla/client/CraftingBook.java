@@ -84,6 +84,7 @@ public final class CraftingBook implements RecipeBook.Source {
         }
         ContextMap context = SlotDisplayContext.fromLevel(level);
         List<RecipeBook.Page> pages = new ArrayList<>();
+        Map<String, Integer> names = new HashMap<>();
         byDisplay.clear();
         for (Shown recipe : shown) {
             RecipeDisplayEntry entry = recipe.entry();
@@ -95,7 +96,7 @@ public final class CraftingBook implements RecipeBook.Source {
             byDisplay.put(entry.id(), recipe);
             Identifier category = BuiltInRegistries.RECIPE_BOOK_CATEGORY.getKey(entry.category());
             String group = entry.group().isPresent() ? Integer.toString(entry.group().getAsInt()) : "";
-            pages.add(new RecipeBook.Page(new Key(entry.id(), name(result, laid)), result.copy(), laid, List.of(), null, false,
+            pages.add(new RecipeBook.Page(new Key(entry.id(), name(recipe, result, names)), result.copy(), laid, List.of(), null, false,
                     kind(category), group));
         }
         madeFrom = unlocked;
@@ -104,8 +105,8 @@ public final class CraftingBook implements RecipeBook.Source {
     }
 
     /**
-     * A page's key: the recipe as the server numbers it for this session, and a name for it that stays across sessions (what the book
-     * remembers of the recipes laid last).
+     * A page's key: the recipe as the server numbers it for this session, and a name for it that stays across sessions, for the
+     * recipes laid lately and the search (the recipe's id in a world played alone, as on 1.21.1; else what it makes).
      */
     record Key(RecipeDisplayId id, String name) {
         @Override
@@ -114,13 +115,12 @@ public final class CraftingBook implements RecipeBook.Source {
         }
     }
 
-    /** What makes a recipe known across sessions: what it makes and the first item of each place. */
-    private static String name(ItemStack result, List<Ingredient> laid) {
-        StringBuilder name = new StringBuilder(BuiltInRegistries.ITEM.getKey(result.getItem()).toString());
-        for (Ingredient ingredient : laid) {
-            name.append('|').append(ingredient.items().findFirst().map(item -> item.getRegisteredName()).orElse(""));
-        }
-        return Integer.toHexString(name.toString().hashCode());
+    /** The recipe's id when the game's own server knows it, else the id of what it makes, numbered from the second on. */
+    private static String name(Shown recipe, ItemStack result, Map<String, Integer> names) {
+        String name = recipe.recipe() != null ? recipe.recipe().id().identifier().toString()
+                : BuiltInRegistries.ITEM.getKey(result.getItem()).toString();
+        int same = names.merge(name, 1, Integer::sum);
+        return same > 1 ? name + "#" + same : name;
     }
 
     /**
@@ -169,15 +169,29 @@ public final class CraftingBook implements RecipeBook.Source {
         return known;
     }
 
-    /** The entry the game's own server shows a recipe by (a world played alone), for laying a recipe named by its id. */
-    public static Optional<RecipeDisplayEntry> display(ResourceKey<Recipe<?>> recipe) {
+    /**
+     * The entry of the player's own recipe book for a recipe a recipe viewer names, which the vanilla book's packet lays: in a world
+     * played alone by the game's own server's list, on another server the entry that shows the recipe as the recipe itself would
+     * ({@code Recipe.display()}); empty when the player's book has none.
+     */
+    public static Optional<RecipeDisplayId> bookEntry(LocalPlayer player, ResourceKey<Recipe<?>> key, Recipe<?> recipe) {
+        Set<RecipeDisplayId> known = known(player);
         IntegratedServer server = Minecraft.getInstance().getSingleplayerServer();
-        if (server == null) {
-            return Optional.empty();
+        if (server != null) {
+            List<RecipeDisplayEntry> found = new ArrayList<>();
+            server.getRecipeManager().listDisplaysForRecipe(key, found::add);
+            return found.stream().filter(entry -> isCrafting(entry.display()) && known.contains(entry.id()))
+                    .map(RecipeDisplayEntry::id).findFirst();
         }
-        List<RecipeDisplayEntry> found = new ArrayList<>();
-        server.getRecipeManager().listDisplaysForRecipe(recipe, found::add);
-        return found.stream().filter(entry -> isCrafting(entry.display())).findFirst();
+        List<RecipeDisplay> looks = recipe.display();
+        for (RecipeCollection collection : player.getRecipeBook().getCollections()) {
+            for (RecipeDisplayEntry entry : collection.getRecipes()) {
+                if (looks.contains(entry.display())) {
+                    return Optional.of(entry.id());
+                }
+            }
+        }
+        return Optional.empty();
     }
 
     /** The tab a recipe book category belongs to, by the names the 1.21.1 categories had ({@code building}, {@code redstone}...). */
@@ -338,7 +352,8 @@ public final class CraftingBook implements RecipeBook.Source {
     @Override
     public void seen(RecipeBook.Page page) {
         LocalPlayer player = Minecraft.getInstance().player;
-        if (player != null && page.key() instanceof Key(RecipeDisplayId recipe, String ignored)) {
+        if (player != null && page.key() instanceof Key(RecipeDisplayId recipe, String ignored)
+                && player.getRecipeBook().willHighlight(recipe)) {
             player.getRecipeBook().removeHighlight(recipe);
             player.connection.send(new ServerboundRecipeBookSeenRecipePacket(recipe));
         }
