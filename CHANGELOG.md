@@ -1,6 +1,6 @@
 # Changelog
 
-## [1.2.3+1.21.1] - Unreleased
+## [1.2.3+1.21.1] - 2026-11-22
 - The anvil shows the name you type again, so items can be renamed at the station.
 
 ## [1.2.2+1.21.1] - 2026-11-21
