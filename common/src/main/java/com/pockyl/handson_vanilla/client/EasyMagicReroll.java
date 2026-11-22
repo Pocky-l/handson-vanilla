@@ -19,6 +19,8 @@ final class EasyMagicReroll {
     /** The menu button Easy Magic's screen presses for new offers. */
     static final int BUTTON = 4;
     private static final String MENU = "fuzs.easymagic.world.inventory.ModEnchantmentMenu";
+    /** Easy Magic for Minecraft 26.x keeps its classes under {@code fuzs.easymagic.common}; the members are the same. */
+    private static final String COMMON = "fuzs.easymagic.common.";
 
     private static Bridge bridge;
     private static boolean looked;
@@ -80,7 +82,8 @@ final class EasyMagicReroll {
     }
 
     private static Bridge bridge(AbstractContainerMenu menu) {
-        if (menu == null || !menu.getClass().getName().equals(MENU)) {
+        if (menu == null || !menu.getClass().getName().equals(MENU)
+                && !menu.getClass().getName().equals(COMMON + "world.inventory.ModEnchantmentMenu")) {
             return null;
         }
         if (!looked) {
@@ -93,6 +96,15 @@ final class EasyMagicReroll {
             }
         }
         return bridge;
+    }
+
+    /** The first of two classes there is. */
+    private static Class<?> either(String name, String other) throws ClassNotFoundException {
+        try {
+            return Class.forName(name);
+        } catch (ClassNotFoundException e) {
+            return Class.forName(other);
+        }
     }
 
     private static final class Bridge {
@@ -109,9 +121,9 @@ final class EasyMagicReroll {
             clues = menu.getField("clues");
             canPay = menu.getMethod("canUseReroll", Player.class);
             catalysts = menu.getMethod("getRerollCatalystCount");
-            Class<?> mod = Class.forName("fuzs.easymagic.EasyMagic");
+            Class<?> mod = either(COMMON + "EasyMagic", "fuzs.easymagic.EasyMagic");
             config = mod.getField("CONFIG");
-            serverConfig = Class.forName("fuzs.easymagic.config.ServerConfig");
+            serverConfig = either(COMMON + "config.ServerConfig", "fuzs.easymagic.config.ServerConfig");
             Method found = null;
             for (Method method : config.getType().getMethods()) {
                 if (method.getName().equals("get") && method.getParameterCount() == 1 && method.getParameterTypes()[0] == Class.class) {

@@ -22,14 +22,29 @@ import java.util.function.Supplier;
  * item places the twin, world generation converts to it, and vanilla's block, unless their config allows it or it is in their
  * "unaltered" tag, only answers its use with "invalid block". The stations open on the twins; on a refused vanilla block they
  * stay closed, so the game's own message comes as without this mod. Reached by name and reflection, with no compile dependency.
+ * Their builds for Minecraft 26.x (classes under {@code fuzs.<mod>.common}) have no setting that refuses vanilla's blocks: Easy
+ * Magic converts a vanilla table when it is used, so a vanilla block is never taken as refused with them.
  */
 final class BlockTwins {
     static final String EASY_MAGIC = "easymagic";
     static final String EASY_ANVILS = "easyanvils";
 
     private static final Map<String, Boolean> DISABLED = new ConcurrentHashMap<>();
+    private static final Map<String, Boolean> PRESENT = new ConcurrentHashMap<>();
 
     private BlockTwins() {
+    }
+
+    /** Whether the class is there (the mod is loaded), without loading it. */
+    static boolean present(String className) {
+        return PRESENT.computeIfAbsent(className, name -> {
+            try {
+                Class.forName(name, false, BlockTwins.class.getClassLoader());
+                return true;
+            } catch (ClassNotFoundException | LinkageError e) {
+                return false;
+            }
+        });
     }
 
     /** {@code mod}'s twin of {@code vanilla}, looked up once the station first needs it; vanilla's block when there is none. */
@@ -51,6 +66,10 @@ final class BlockTwins {
 
     /** Whether the game refuses the use of this vanilla enchanting table or anvil because Easy Magic / Easy Anvils took it over. */
     static boolean refused(BlockState state) {
+        if (present("fuzs.easymagic.common.EasyMagic") && state.is(Blocks.ENCHANTING_TABLE)
+                || present("fuzs.easyanvils.common.EasyAnvils") && !state.is(Blocks.ENCHANTING_TABLE)) {
+            return false;
+        }
         if (state.is(Blocks.ENCHANTING_TABLE)) {
             return refusedBy(state, EASY_MAGIC, "fuzs.easymagic.EasyMagic", "fuzs.easymagic.config.CommonConfig",
                     "disableVanillaEnchantingTable", "unaltered_enchanting_tables", Blocks.ENCHANTING_TABLE);
