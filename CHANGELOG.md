@@ -1,20 +1,21 @@
 # Changelog
 
 ## [1.2.3+26.3] - Unreleased
-Hands-On Vanilla on Minecraft 26.3, for [Fabric](https://fabricmc.net), with everything 1.2.3 does on 1.21.1: the crafting
-table, the furnace, smoker and blast furnace, the stonecutter, smithing table, grindstone, brewing stand, anvil, enchanting
-table, lectern, loom and cartography table worked by hand, the recipe books and JEI's keys.
-
-- Needs [Diegesis](https://www.curseforge.com/minecraft/mc-mods/diegesis) 1.0.0-beta.17.1 for 26.3 and
+- Minecraft 26.3 on [Fabric](https://fabricmc.net): every station of 1.2.3+1.21.1, the recipe books, and the keys and "+" of
+  [JEI](https://www.curseforge.com/minecraft/mc-mods/jei) at the stations.
+- Needs [Diegesis](https://www.curseforge.com/minecraft/mc-mods/diegesis) 1.0.0-beta.17.1+26.3 and
   [Fabric API](https://www.curseforge.com/minecraft/mc-mods/fabric-api).
+- Since Minecraft 1.21.2 a server tells the game only the recipes you have unlocked: the crafting table's book shows every recipe
+  (`book_recipes=all`, or with [Not Enough Recipe Book](https://www.curseforge.com/minecraft/mc-mods/notenoughrecipebook)) in
+  singleplayer only.
+- A vanilla enchanting table or anvil that [Easy Magic](https://www.curseforge.com/minecraft/mc-mods/easy-magic) or
+  [Easy Anvils](https://www.curseforge.com/minecraft/mc-mods/easy-anvils) turns into its own when first used opens the station from
+  the next use on.
 
 ### Not on 26.3 yet
-- NeoForge: Diegesis has no NeoForge build for 26.3.
-- On a server the crafting table's book lists only the recipes you have unlocked, also with `book_recipes=all` or
-  [Not Enough Recipe Book](https://www.curseforge.com/minecraft/mc-mods/notenoughrecipebook): on 26.3 a server tells the game no
-  others. In single player it shows every recipe as before.
-- [EMI](https://www.curseforge.com/minecraft/mc-mods/emi), Polymorph's choice of recipe at the table and FastWorkbench: these
-  mods have no build for 26.3.
+- NeoForge.
+- [EMI](https://www.curseforge.com/minecraft/mc-mods/emi), [Polymorph](https://www.curseforge.com/minecraft/mc-mods/polymorph) and
+  [FastWorkbench](https://www.curseforge.com/minecraft/mc-mods/fastworkbench): they have no Fabric build for 26.3.
 
 ## [1.2.3+1.21.1] - 2026-11-22
 - The anvil shows the name you type again, so items can be renamed at the station.
