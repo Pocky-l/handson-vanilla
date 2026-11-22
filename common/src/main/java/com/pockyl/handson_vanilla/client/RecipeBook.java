@@ -1887,8 +1887,39 @@ final class RecipeBook implements NodePainter {
      * A gap in a shaped recipe's grid, where {@code Ingredient.EMPTY} stood before Minecraft 1.21.2: an ingredient can no longer list
      * no items, but one of a tag that names none can. It takes nothing and needs nothing.
      */
-    static final Ingredient GAP = Ingredient.of(net.minecraft.core.HolderSet.emptyNamed(net.minecraft.core.registries.BuiltInRegistries.ITEM,
-            net.minecraft.tags.TagKey.create(net.minecraft.core.registries.Registries.ITEM, HandsOnVanilla.id("gap"))));
+    static final Ingredient GAP = emptyTag(net.minecraft.tags.TagKey.create(net.minecraft.core.registries.Registries.ITEM,
+            HandsOnVanilla.id("gap")));
+
+    /** An ingredient of {@code tag} as a tag that names no items reads: it takes nothing (as Hands-On Delight's on 26.x). */
+    private static Ingredient emptyTag(net.minecraft.tags.TagKey<net.minecraft.world.item.Item> tag) {
+        return Ingredient.of(new net.minecraft.core.HolderSet.ListBacked<net.minecraft.world.item.Item>() {
+            @Override
+            protected List<net.minecraft.core.Holder<net.minecraft.world.item.Item>> contents() {
+                return List.of();
+            }
+
+            @Override
+            public boolean isBound() {
+                return true;
+            }
+
+            @Override
+            public com.mojang.datafixers.util.Either<net.minecraft.tags.TagKey<net.minecraft.world.item.Item>,
+                    List<net.minecraft.core.Holder<net.minecraft.world.item.Item>>> unwrap() {
+                return com.mojang.datafixers.util.Either.left(tag);
+            }
+
+            @Override
+            public Optional<net.minecraft.tags.TagKey<net.minecraft.world.item.Item>> unwrapKey() {
+                return Optional.of(tag);
+            }
+
+            @Override
+            public boolean contains(net.minecraft.core.Holder<net.minecraft.world.item.Item> value) {
+                return false;
+            }
+        });
+    }
 
     /** The stacks an ingredient takes, one of each item, as {@code Ingredient.getItems()} gave them before Minecraft 1.21.2. */
     static ItemStack[] items(Ingredient ingredient) {
