@@ -7,11 +7,6 @@ plugins {
 neoForge {
     version = project.neo_version
 
-    parchment {
-        mappingsVersion = project.parchment_mappings_version
-        minecraftVersion = project.parchment_minecraft_version
-    }
-
     runs {
         client {
             client()
@@ -38,17 +33,21 @@ neoForge {
     }
 }
 
+// The compat sources common leaves out (see common/build.gradle).
+evaluationDependsOn(':common')
+tasks.named('compileJava', JavaCompile) {
+    exclude(project(':common').compatSources)
+}
+
 // Dependencies added to localRuntime are available in dev runs but are not published as dependencies.
 configurations {
     runtimeClasspath.extendsFrom localRuntime
 }
 
 dependencies {
-    // NeoForge mods are published in Mojang names: Diegesis runs in the development environment as it is, mixins included.
+    // Minecraft 26.x is unobfuscated: Diegesis runs in the development environment as it is, mixins included.
     implementation "com.pockyl.diegesis:neoforge:${diegesis_version}"
     compileOnly "mezz.jei:jei-${minecraft_version}-common-api:${jei_version}"
-    compileOnly "mezz.jei:jei-${minecraft_version}-neoforge-api:${jei_version}"
-    compileOnly "dev.emi:emi-neoforge:${emi_version}:api"
 }
 
 var generateModMetadata = tasks.register('generateModMetadata', ProcessResources) {

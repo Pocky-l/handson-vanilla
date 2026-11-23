@@ -17,8 +17,7 @@ rootProject.name = 'handson_vanilla'
 
 // common: the stations, scenes and assets, compiled against plain Minecraft and the Diegesis API; neoforge / fabric: the
 // loader glue. Each loader project compiles the common sources into its own jar.
-// Minecraft 26.2: Fabric only, as Diegesis on this line. The neoforge project is kept but not built.
-include 'common', 'fabric'
+include 'common', 'neoforge', 'fabric'
 
 // The Diegesis library comes from its 26.2 working copy (mods-26.2/diegesis) while both are developed together.
 includeBuild('../diegesis')
