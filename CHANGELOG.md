@@ -1,6 +1,6 @@
 # Changelog
 
-## [1.2.3+26.1.2] - Unreleased
+## [1.2.3+26.1.2] - 2026-11-23
 - Minecraft 26.1.2 on [NeoForge](https://neoforged.net) and [Fabric](https://fabricmc.net): every station of 1.2.3+1.21.1, the recipe books, and the keys and "+" of
   [JEI](https://www.curseforge.com/minecraft/mc-mods/jei) at the stations.
 - Needs [Diegesis](https://www.curseforge.com/minecraft/mc-mods/diegesis) 1.0.0-beta.17.2+26.1.2; on NeoForge 26.1.2.114 or newer,
