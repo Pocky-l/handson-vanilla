@@ -3,49 +3,27 @@ package com.pockyl.handson_vanilla.mixin;
 import net.minecraft.client.renderer.blockentity.BlockEntityRenderDispatcher;
 import net.minecraft.client.renderer.blockentity.state.BlockEntityRenderState;
 import net.minecraft.client.renderer.feature.ModelFeatureRenderer;
-import net.minecraft.world.level.block.Blocks;
 import net.minecraft.world.level.block.entity.BlockEntity;
 import org.spongepowered.asm.mixin.Mixin;
 import org.spongepowered.asm.mixin.injection.At;
 import org.spongepowered.asm.mixin.injection.Inject;
 import org.spongepowered.asm.mixin.injection.callback.CallbackInfoReturnable;
 
-import com.pockyl.diegesis.api.client.DiegesisClient;
-import com.pockyl.handson_vanilla.client.FurnaceKind;
+import com.pockyl.handson_vanilla.client.StationRenderers;
 
 /**
- * Vanilla gives the crafting table and the furnaces no block entity renderer, but other mods do: Visual Workbench draws what lies
- * in the table's grid over it, Easy Anvils the pieces on an anvil, others draw a furnace's contents in front of it. Where this
- * mod's scene shows the same things (the table's cells while its menu is open here, an anvil's pieces and a furnace's or smoker's
- * insides whenever its scene is drawn) they would be drawn twice, one copy floating off its place; such a renderer is stopped
- * there, at the dispatcher, whichever mod registered it. Everywhere else, and at a table nobody here works at, it draws as before.
- * The enchanting table's and the lectern's own books are stopped the same way while the scene draws them. Since Minecraft 26.x a
- * block entity is drawn from the look the dispatcher reads of it: none read, nothing drawn.
+ * Other mods' block entity renderers at a station whose scene draws the same things are stopped at the dispatcher
+ * ({@link StationRenderers}). NeoForge's level reads block entities through a form of this method of its own: its mixin is in the
+ * neoforge project.
  */
 @Mixin(BlockEntityRenderDispatcher.class)
 abstract class StationRenderersMixin {
-    @Inject(method = "tryExtractRenderState", at = @At("HEAD"), cancellable = true)
+    @Inject(method = "tryExtractRenderState(Lnet/minecraft/world/level/block/entity/BlockEntity;FLnet/minecraft/client/renderer/feature/ModelFeatureRenderer$CrumblingOverlay;Z)Lnet/minecraft/client/renderer/blockentity/state/BlockEntityRenderState;",
+            at = @At("HEAD"), cancellable = true)
     private void handson_vanilla$drawnByScene(BlockEntity blockEntity, float partialTicks,
             ModelFeatureRenderer.CrumblingOverlay breakProgress, boolean isGloballyRendered,
             CallbackInfoReturnable<BlockEntityRenderState> callback) {
-        var state = blockEntity.getBlockState();
-        if (state.is(Blocks.CRAFTING_TABLE)) {
-            if (DiegesisClient.station(blockEntity.getBlockPos()).map(view -> view.menu() != null).orElse(false)) {
-                callback.setReturnValue(null);
-            }
-        } else if (FurnaceKind.remodelled(state) != null && DiegesisClient.isSceneDrawn(blockEntity.getBlockPos())) {
-            callback.setReturnValue(null);
-        } else if (state.getBlock() instanceof net.minecraft.world.level.block.EnchantingTableBlock
-                && DiegesisClient.station(blockEntity.getBlockPos()).map(view -> view.isBlockHidden()).orElse(false)) {
-            // The table's book is drawn by the scene while it comes to the player and goes back; its ticks go on, so it returns to
-            // where the table's own book is then.
-            callback.setReturnValue(null);
-        } else if ((state.is(net.minecraft.tags.BlockTags.ANVIL) || state.getBlock() instanceof net.minecraft.world.level.block.AnvilBlock)
-                && DiegesisClient.isSceneDrawn(blockEntity.getBlockPos())) {
-            // Easy Anvils keeps the two pieces in the anvil and draws them lying on it: the scene's slots show them meanwhile.
-            callback.setReturnValue(null);
-        } else if (state.is(Blocks.LECTERN) && DiegesisClient.isSceneDrawn(blockEntity.getBlockPos())) {
-            // The lectern's book is the scene's, in the same place and pose, with its text on it while it is read.
+        if (StationRenderers.drawnByScene(blockEntity)) {
             callback.setReturnValue(null);
         }
     }

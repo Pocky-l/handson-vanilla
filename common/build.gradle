@@ -10,8 +10,8 @@ neoForge {
 }
 
 // Minecraft 26.3: EMI has no build above 1.21.1, so its plugin, its mixin and the sidebar that draws EMI at a station are
-// left out of the build (the sources stay, and the fabric project leaves out the same files). They are also left out of
-// handson_vanilla.mixins.json. FastWorkbench has neither a 26.3 nor a Fabric build: its result handler goes too.
+// left out of the build (the sources stay, and the loader projects leave out the same files). They are also left out of
+// handson_vanilla.mixins.json. FastWorkbench has no 26.3 build: its result handler goes too.
 ext.compatSources = [
         'com/pockyl/handson_vanilla/client/FastBenchResult.java',
         'com/pockyl/handson_vanilla/compat/emi/**',
