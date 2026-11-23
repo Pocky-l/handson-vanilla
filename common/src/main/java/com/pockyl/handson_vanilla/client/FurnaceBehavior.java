@@ -122,7 +122,7 @@ final class FurnaceBehavior implements StationBehavior {
                 }
                 // Upright, as the scene stands its slot items.
                 Minecraft minecraft = Minecraft.getInstance();
-                boolean block = com.pockyl.diegesis.impl.client.render.SceneDraw.itemState(stack, net.minecraft.world.item.ItemDisplayContext.FIXED, view.level(), 0).usesBlockLight();
+                boolean block = ItemLook.isGui3d(stack, net.minecraft.world.item.ItemDisplayContext.FIXED, view.level());
                 poseStack.pushPose();
                 poseStack.translate(0.0F, block ? size * 0.25F : size * 0.5F, 0.0F);
                 poseStack.mulPose(com.mojang.math.Axis.YP.rotationDegrees(180.0F));

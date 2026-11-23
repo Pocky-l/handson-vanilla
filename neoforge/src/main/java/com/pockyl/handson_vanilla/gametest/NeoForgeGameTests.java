@@ -80,8 +80,7 @@ public final class NeoForgeGameTests {
                 new TestEnvironmentDefinition.AllOf(List.of()));
         for (Test test : TESTS) {
             Identifier id = HandsOnVanilla.id(test.name());
-            // Vanilla's own empty structure: a data folder in the jar would make the game read pack.mcmeta as a data pack too,
-            // and on 1.21.11 a data pack from format 75 needs supported_formats, which the resource side refuses.
+            // Vanilla's own empty structure: the jar carries no data of its own.
             TestData<Holder<TestEnvironmentDefinition>> data = new TestData<>(environment, Identifier.withDefaultNamespace("empty"),
                     test.timeout(), 0, true, Rotation.NONE, false, 1, 1, false);
             event.registerTest(id, new FunctionGameTestInstance(ResourceKey.create(Registries.TEST_FUNCTION, id), data));

@@ -790,7 +790,7 @@ final class OpenBook {
             }
             poseStack.pushPose();
             poseStack.translate(x + size / 2.0F, y + size / 2.0F, INK_LIFT);
-            boolean blockLight = SceneDraw.itemState(stack, ItemDisplayContext.GUI, level, 0).usesBlockLight();
+            boolean blockLight = ItemLook.isGui3d(stack, ItemDisplayContext.GUI, level);
             poseStack.scale(size, -size, blockLight ? BLOCK_DEPTH : ITEM_DEPTH);
             SceneBuffers drawn = ink < 1.0F ? DiegesisClient.tinted(buffers, Math.round(255.0F * ink) << 24 | 0xFFFFFF) : buffers;
             SceneDraw.item(stack, ItemDisplayContext.GUI, light, OverlayTexture.NO_OVERLAY, poseStack, drawn, level, 0);

@@ -172,7 +172,7 @@ public final class GhostRecipe {
         if (stack.isEmpty()) {
             return;
         }
-        boolean block = com.pockyl.diegesis.impl.client.render.SceneDraw.itemState(stack, net.minecraft.world.item.ItemDisplayContext.FIXED, view.level(), 0).usesBlockLight();
+        boolean block = ItemLook.isGui3d(stack, net.minecraft.world.item.ItemDisplayContext.FIXED, view.level());
         float jitter = ((cell * 7919) % 25 - 12) * 0.7F;
         if (block) {
             poseStack.translate(0.0F, CELL_SIZE * 0.25F, 0.0F);

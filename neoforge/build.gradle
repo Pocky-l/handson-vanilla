@@ -90,3 +90,10 @@ publishMods {
     displayName = "${mod_name} ${mod_version}+${minecraft_version} (NeoForge)"
     modLoaders.add('neoforge')
 }
+
+// The common pack.mcmeta declares the pack formats for Fabric (75 to 94). NeoForge reads a mod's pack as a data pack too and
+// cannot take that declaration there (formats below 82 need the old fields, which resource packs above 64 reject): it logs
+// "Couldn't load mod/handson_vanilla pack metadata". A mod's pack without a pack.mcmeta fits every format on NeoForge.
+tasks.named('processResources', ProcessResources) {
+    exclude 'pack.mcmeta'
+}

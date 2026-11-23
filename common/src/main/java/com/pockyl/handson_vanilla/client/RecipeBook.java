@@ -2580,7 +2580,7 @@ final class RecipeBook implements NodePainter {
         void item(ItemStack stack, float x, float y, float size, boolean faded) {
             poseStack.pushPose();
             poseStack.translate(x + size / 2.0F, y + size / 2.0F, ITEM_LIFT);
-            boolean blockLight = SceneDraw.itemState(stack, ItemDisplayContext.GUI, station.level(), 0).usesBlockLight();
+            boolean blockLight = ItemLook.isGui3d(stack, ItemDisplayContext.GUI, station.level());
             Matrix3f facing = new Matrix3f(poseStack.last().normal());
             poseStack.scale(size, -size, blockLight ? BLOCK_DEPTH : ITEM_DEPTH);
             // As in the GUI, the flip and the depth leave the normals alone: IconLight lights the faces as the GUI does.
