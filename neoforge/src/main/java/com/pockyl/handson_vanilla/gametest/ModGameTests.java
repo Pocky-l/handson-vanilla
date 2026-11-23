@@ -58,6 +58,11 @@ public final class ModGameTests {
     }
 
     @GameTest(template = "empty")
+    public static void everyChoosingStationHasItsPlaces(GameTestHelper helper) {
+        ChoiceTests.everyChoosingStationHasItsPlaces(helper);
+    }
+
+    @GameTest(template = "empty")
     public static void smokerShiftClicksRoute(GameTestHelper helper) {
         FurnaceTests.smokerShiftClicksRoute(helper);
     }

@@ -10,7 +10,9 @@ import net.minecraft.world.item.crafting.SingleRecipeInput;
 import net.minecraft.world.level.Level;
 import net.minecraft.world.level.block.entity.AbstractFurnaceBlockEntity;
 
+import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 import java.util.Optional;
 
@@ -57,5 +59,22 @@ final class FurnaceUse {
                     .getRecipeFor(type, new SingleRecipeInput(new ItemStack(item)), level).map(RecipeHolder::value);
             return recipe.map(found -> found.getResultItem(level.registryAccess()).copy()).orElse(ItemStack.EMPTY);
         });
+    }
+
+    /**
+     * Every recipe of this type that cooks {@code stack}, with what it makes, in the order the recipe manager lists them: the first
+     * is what the furnace cooks until another is chosen, as Polymorph takes it.
+     */
+    static List<RecipeChoice.Option> matches(RecipeType<? extends AbstractCookingRecipe> type, ItemStack stack) {
+        Level level = Minecraft.getInstance().level;
+        if (stack.isEmpty() || level == null) {
+            return List.of();
+        }
+        SingleRecipeInput one = new SingleRecipeInput(stack.copyWithCount(1));
+        List<RecipeChoice.Option> options = new ArrayList<>();
+        for (RecipeHolder<? extends AbstractCookingRecipe> recipe : level.getRecipeManager().getRecipesFor(type, one, level)) {
+            options.add(new RecipeChoice.Option(recipe.id(), recipe.value().assemble(one, level.registryAccess())));
+        }
+        return options;
     }
 }

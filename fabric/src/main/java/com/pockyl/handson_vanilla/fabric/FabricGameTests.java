@@ -8,6 +8,7 @@ import com.pockyl.handson_vanilla.gametest.AnvilTests;
 import com.pockyl.handson_vanilla.gametest.BookTests;
 import com.pockyl.handson_vanilla.gametest.BrewingTests;
 import com.pockyl.handson_vanilla.gametest.CartographyTests;
+import com.pockyl.handson_vanilla.gametest.ChoiceTests;
 import com.pockyl.handson_vanilla.gametest.CraftingLayTests;
 import com.pockyl.handson_vanilla.gametest.EnchantingTests;
 import com.pockyl.handson_vanilla.gametest.FurnaceTests;
@@ -60,6 +61,11 @@ public final class FabricGameTests implements FabricGameTest {
     @GameTest(template = FabricGameTest.EMPTY_STRUCTURE)
     public void furnaceFilesServed(GameTestHelper helper) {
         FurnaceTests.furnaceFilesServed(helper);
+    }
+
+    @GameTest(template = FabricGameTest.EMPTY_STRUCTURE)
+    public void everyChoosingStationHasItsPlaces(GameTestHelper helper) {
+        ChoiceTests.everyChoosingStationHasItsPlaces(helper);
     }
 
     @GameTest(template = FabricGameTest.EMPTY_STRUCTURE)

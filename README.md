@@ -107,7 +107,7 @@ Built on [Diegesis](https://www.curseforge.com/minecraft/mc-mods/diegesis), from
 
 [![FastWorkbench](https://raw.githubusercontent.com/Pocky-l/handson-vanilla/main/docs/compat/fastworkbench.png)](https://www.curseforge.com/minecraft/mc-mods/fastworkbench) ✅ **[FastWorkbench](https://www.curseforge.com/minecraft/mc-mods/fastworkbench)** (optional) - the result shows on the table
 
-[![Polymorph](https://raw.githubusercontent.com/Pocky-l/handson-vanilla/main/docs/compat/polymorph.png)](https://www.curseforge.com/minecraft/mc-mods/polymorph) ✅ **[Polymorph](https://www.curseforge.com/minecraft/mc-mods/polymorph)** (optional) - the other results of a grid lie beside it, click one to make it
+[![Polymorph](https://raw.githubusercontent.com/Pocky-l/handson-vanilla/main/docs/compat/polymorph.png)](https://www.curseforge.com/minecraft/mc-mods/polymorph) ✅ **[Polymorph](https://www.curseforge.com/minecraft/mc-mods/polymorph)** (optional) - at the crafting table, furnace, smoker, blast furnace and smithing table the other results lie beside the result, click one to make it
 
 [![Crafting Tweaks](https://raw.githubusercontent.com/Pocky-l/handson-vanilla/main/docs/compat/crafting-tweaks.png)](https://www.curseforge.com/minecraft/mc-mods/crafting-tweaks) ✅ **[Crafting Tweaks](https://www.curseforge.com/minecraft/mc-mods/crafting-tweaks)** (optional) - its rotate, balance and clear are marks on the table's edge, its keys work there too
 

@@ -1,5 +1,8 @@
 # Changelog
 
+## [1.2.4+1.21.1] - Unreleased
+- With [Polymorph](https://www.curseforge.com/minecraft/mc-mods/polymorph), the furnaces and the smithing table let you choose between recipes that take the same things, as the crafting table does.
+
 ## [1.2.3+1.21.1] - 2026-11-22
 - The anvil shows the name you type again, so items can be renamed at the station.
 

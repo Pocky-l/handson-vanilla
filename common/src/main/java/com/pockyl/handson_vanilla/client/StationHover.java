@@ -14,6 +14,9 @@ import com.pockyl.diegesis.api.client.DiegesisClient;
 import com.pockyl.diegesis.api.client.MenuAccess;
 import com.pockyl.diegesis.api.client.StationView;
 
+import java.util.ArrayList;
+import java.util.List;
+
 /** What recipe viewers ask of a station: the item under the cursor, and the vanilla menu it works through. */
 public final class StationHover {
     /** Room left between the station's right edge on the screen and a viewer's list, GUI pixels. */
@@ -108,10 +111,10 @@ public final class StationHover {
             return fallback;
         }
         float right = Float.NEGATIVE_INFINITY;
-        float[][] points = RecipeChoice.isShown()
-                // The other recipes lie right of the result while there is a choice: the viewer's list keeps clear of them too.
-                ? new float[][] {{0, 16, 0}, {16, 16, 0}, {0, 16, 16}, {16, 16, 16}, {0, 0, 0}, {16, 0, 0}, {0, 21, 8}, {-7.2F, 18.5F, 11}, {-7.2F, 16, 4}}
-                : new float[][] {{0, 16, 0}, {16, 16, 0}, {0, 16, 16}, {16, 16, 16}, {0, 0, 0}, {16, 0, 0}, {0, 21, 8}};
+        List<float[]> points = new ArrayList<>(List.of(new float[][] {{0, 16, 0}, {16, 16, 0}, {0, 16, 16}, {16, 16, 16}, {0, 0, 0},
+                {16, 0, 0}, {0, 21, 8}}));
+        // The other recipes lie beside the result while there is a choice: the viewer's list keeps clear of them too.
+        points.addAll(RecipeChoice.shownPoints());
         boolean flying = DiegesisClient.arrival() < 1.0F;
         for (float[] point : points) {
             var at = flying ? FinalShot.toScreen(view, point[0], point[1], point[2])

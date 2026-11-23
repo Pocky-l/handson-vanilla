@@ -13,6 +13,7 @@
     "GhostRecipeMixin",
     "JeiRecipesGuiMixin",
     "LecternBookMixin",
+    "PolymorphListMixin",
     "ScreenShownMixin",
     "SmokerParticlesMixin",
     "StationInputMixin",
