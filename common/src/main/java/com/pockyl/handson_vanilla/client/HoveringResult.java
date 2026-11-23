@@ -64,7 +64,7 @@ final class HoveringResult {
             return;
         }
         float scale = size * outCubic((clock - appearedAt) / GROW) * (1.0F + HOVER_SWELL * hover);
-        boolean block = SceneDraw.itemState(made, ItemDisplayContext.FIXED, level, 0).usesBlockLight();
+        boolean block = ItemLook.isGui3d(made, ItemDisplayContext.FIXED, level);
         poseStack.pushPose();
         poseStack.translate(0.0F, scale * (block ? 0.25F : 0.5F) + BOB * (1.0F + (float) Math.sin(clock * BOB_RATE)), 0.0F);
         poseStack.rotate(Axis.YP.rotationDegrees(180.0F + SWAY * (float) Math.sin(clock * SWAY_RATE)));
@@ -82,7 +82,7 @@ final class HoveringResult {
         }
         float t = outCubic(age / FORGED);
         float scale = itemSize * (1.0F + FORGED_SWELL * (1.0F - t));
-        boolean block = SceneDraw.itemState(forged, ItemDisplayContext.FIXED, level, 0).usesBlockLight();
+        boolean block = ItemLook.isGui3d(forged, ItemDisplayContext.FIXED, level);
         poseStack.pushPose();
         poseStack.translate(0.0F, FORGED_RISE * t + scale * (block ? 0.25F : 0.5F), 0.0F);
         poseStack.rotate(Axis.YP.rotationDegrees(180.0F));

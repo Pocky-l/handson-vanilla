@@ -566,7 +566,7 @@ final class StonecutterBehavior implements StationBehavior {
      * drop (a block stays on its foot), shrinking as they fly away; more than one piece shows as two or three.
      */
     private void pieces(StationView view, PoseStack poseStack, SceneBuffers buffers, int light) {
-        boolean block = SceneDraw.itemState(popPiece, ItemDisplayContext.FIXED, view.level(), 0).usesBlockLight();
+        boolean block = ItemLook.isGui3d(popPiece, ItemDisplayContext.FIXED, view.level());
         float lie = popTime < POP ? ease(popTime / POP) : 1.0F;
         float size = Mth.lerp(lie, POP_SIZE, PILE_SIZE);
         if (popTime > POP + LIE) {

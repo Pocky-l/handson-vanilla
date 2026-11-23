@@ -3,7 +3,7 @@
 ## [1.2.3+26.3] - Unreleased
 - Minecraft 26.3 on [NeoForge](https://neoforged.net) and [Fabric](https://fabricmc.net): every station of 1.2.3+1.21.1, the recipe books, and the keys and "+" of
   [JEI](https://www.curseforge.com/minecraft/mc-mods/jei) at the stations.
-- Needs [Diegesis](https://www.curseforge.com/minecraft/mc-mods/diegesis) 1.0.0-beta.17.1+26.3; on NeoForge 26.3.0.84 or newer,
+- Needs [Diegesis](https://www.curseforge.com/minecraft/mc-mods/diegesis) 1.0.0-beta.17.2+26.3; on NeoForge 26.3.0.84 or newer,
   on Fabric [Fabric API](https://www.curseforge.com/minecraft/mc-mods/fabric-api).
 - Since Minecraft 1.21.2 a server tells the game only the recipes you have unlocked: the crafting table's book shows every recipe
   (`book_recipes=all`, or with [Not Enough Recipe Book](https://www.curseforge.com/minecraft/mc-mods/notenoughrecipebook)) in
