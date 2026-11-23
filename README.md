@@ -4,7 +4,7 @@
 
 <p align="center">
   <a href="https://www.curseforge.com/minecraft/mc-mods/hands-on-vanilla"><img alt="CurseForge" src="https://img.shields.io/badge/CurseForge-Hands--On%20Vanilla-F16436"></a>
-  <a href="https://www.curseforge.com/minecraft/mc-mods/hands-on-vanilla/files"><img alt="Minecraft 1.20.1 and 1.21.1" src="https://img.shields.io/badge/Minecraft-1.20.1%20%7C%201.21.1-62B47A"></a>
+  <a href="https://www.curseforge.com/minecraft/mc-mods/hands-on-vanilla/files"><img alt="Minecraft 1.20.1, 1.21.1, 1.21.11, 26.1.2, 26.2 and 26.3" src="https://img.shields.io/badge/Minecraft-1.20.1%20%7C%201.21.1%20%7C%201.21.11%20%7C%2026.1.2%20%7C%2026.2%20%7C%2026.3-62B47A"></a>
   <a href="https://files.minecraftforge.net"><img alt="Forge, NeoForge or Fabric" src="https://img.shields.io/badge/Loader-Forge%20%7C%20NeoForge%20%7C%20Fabric-DFA86A"></a>
   <a href="https://www.curseforge.com/minecraft/mc-mods/hands-on-vanilla"><img alt="Client-side" src="https://img.shields.io/badge/Client--side-any%20server-8a6a4a"></a>
   <a href="https://discord.gg/mGkPKccJEf"><img alt="Discord: Pocky's Kitchen" src="https://img.shields.io/badge/Discord-Pocky's%20Kitchen-5865F2?logo=discord&logoColor=white"></a>
@@ -147,8 +147,9 @@ Resource packs keep their furnace, smoker and blast furnace textures. The open f
 ## Installation
 
 1. Minecraft 1.20.1 with [Forge](https://files.minecraftforge.net) or [Fabric](https://fabricmc.net), or Minecraft
-   1.21.1 with [NeoForge](https://neoforged.net) or Fabric. Fabric also needs
-   [Fabric API](https://www.curseforge.com/minecraft/mc-mods/fabric-api).
+   1.21.1, 1.21.11, 26.1.2, 26.2 or 26.3 with [NeoForge](https://neoforged.net) or Fabric. Fabric also needs
+   [Fabric API](https://www.curseforge.com/minecraft/mc-mods/fabric-api). Above 1.21.1, EMI and Polymorph are
+   not supported yet (they have no builds there), and FastWorkbench only on 26.1.2.
 2. [Diegesis](https://www.curseforge.com/minecraft/mc-mods/diegesis) and this mod in the `mods` folder of the client. The
    server needs neither.
 
@@ -161,8 +162,8 @@ Discord server.
 ./gradlew build
 ```
 
-The jars are written to `forge/build/libs/` and `fabric/build/libs/`. The `1.21.1` branch builds `neoforge/` and
-`fabric/`.
+The jars are written to `forge/build/libs/` and `fabric/build/libs/`. The `1.21.1`, `1.21.11`, `26.1.2`, `26.2` and `26.3` branches build
+`neoforge/` and `fabric/`.
 
 ## Credits
 
