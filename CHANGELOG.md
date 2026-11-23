@@ -1,5 +1,8 @@
 # Changelog
 
+## [1.2.4] - Unreleased
+- With [Polymorph](https://www.curseforge.com/minecraft/mc-mods/polymorph), the furnaces and the smithing table let you choose between recipes that take the same things, as the crafting table does.
+
 ## [1.2.2]
 - With [EMI](https://www.curseforge.com/minecraft/mc-mods/emi), its item list stands beside the stations, and its keys, search and
   "+" work there.

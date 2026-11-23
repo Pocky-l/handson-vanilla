@@ -16,9 +16,11 @@ import com.pockyl.diegesis.api.client.MeshShape;
 import com.pockyl.diegesis.api.client.NodeView;
 import com.pockyl.diegesis.api.client.StationBehavior;
 import com.pockyl.diegesis.api.client.StationView;
+import com.pockyl.diegesis.api.event.SceneEvent;
 import com.pockyl.diegesis.api.scene.Visual;
 import com.pockyl.diegesis.api.state.SlotRef;
 
+import java.util.List;
 import java.util.Optional;
 
 /**
@@ -57,6 +59,8 @@ final class FurnaceBehavior implements StationBehavior {
     /** How long after the automatic shift-click a slot that fills is taken for the item flying in. */
     private static final long AUTO_FLIGHT_MS = 1500L;
 
+    /** How long a choice made here holds against what the server says, ms: a list sent before it heard the choice names the old one. */
+    private static final long CHOICE_HEARD_MS = 1000L;
     /** How often a furnace nobody works at asks what lies in it (singleplayer), ticks. */
     private static final int IDLE_ASK_TICKS = 20;
     private final FurnaceKind kind;
@@ -77,6 +81,19 @@ final class FurnaceBehavior implements StationBehavior {
     private int resultHeld;
     private ItemStack lastResult = ItemStack.EMPTY;
     private boolean known;
+    /** With Polymorph: the other things the input cooks into lie beside the result, a click makes one what this furnace cooks. */
+    private final RecipeChoice choice = new RecipeChoice(true, 2.2F, 10.0F);
+    private boolean listening;
+    /** How many of Polymorph's lists had come when the menu opened: only later ones tell this furnace's choice. */
+    private int listsAtOpen;
+    /** The recipe this furnace keeps, as far as is known (Polymorph's server told it, or it was chosen here); null: its first. */
+    private ResourceLocation kept;
+    private long chosenAt;
+    /** The input the matches were read for, and those matches. */
+    private ItemStack choiceInput;
+    private List<RecipeChoice.Option> matches = List.of();
+    /** What stands see-through in the empty result place: what the furnace will make, while there is a choice. */
+    private ItemStack keptShown = ItemStack.EMPTY;
 
     FurnaceBehavior(FurnaceKind kind) {
         this.kind = kind;
@@ -93,6 +110,7 @@ final class FurnaceBehavior implements StationBehavior {
     @Override
     public void onSceneReady(StationView view) {
         view.setInventoryFilter(this::usable);
+        choice.onSceneReady(view);
         shownIdle(view, INPUT, FurnaceContents.INPUT);
         shownIdle(view, FUEL, FurnaceContents.FUEL);
         shownIdle(view, RESULT, FurnaceContents.RESULT);
@@ -159,12 +177,26 @@ final class FurnaceBehavior implements StationBehavior {
             heldSlot = -1;
         }
         remember(view);
+        if (RecipeChoice.available()) {
+            // As Polymorph's furnace screen does while it is open: its server then tells which recipe this furnace keeps.
+            listsAtOpen = PolymorphLink.lists();
+            kept = null;
+            PolymorphLink.listen(true);
+            listening = true;
+        }
     }
 
     @Override
     public void onClose(StationView view) {
         heldSlot = -1;
         known = false;
+        if (listening) {
+            PolymorphLink.listen(false);
+            listening = false;
+        }
+        choice.clear(view);
+        choiceInput = null;
+        showKept(view, ItemStack.EMPTY);
         opening = false;
         play(view, kind.closeSound(), "body", 0.25F, kind.pitch() + 0.1F * random(view));
     }
@@ -275,6 +307,7 @@ final class FurnaceBehavior implements StationBehavior {
         } else if (++idleTicks % IDLE_ASK_TICKS == 0 && kind.on()) {
             FurnaceContents.ask(view.level(), view.pos());
         }
+        choices(view);
         if (!view.isFocused() || view.menu() == null) {
             return;
         }
@@ -298,6 +331,66 @@ final class FurnaceBehavior implements StationBehavior {
             swing();
         }
         remember(view);
+    }
+
+    /**
+     * With Polymorph, what else the input cooks into lies beside the result, and what this furnace will make stands see-through in
+     * its empty result place. Which recipe the furnace keeps comes from Polymorph's server; until it tells, the first, as the server
+     * takes it; a choice made here holds until the server has heard it.
+     */
+    private void choices(StationView view) {
+        if (!listening || view.menu() == null || !view.isFocused()) {
+            choice.clear(view);
+            choiceInput = null;
+            showKept(view, ItemStack.EMPTY);
+            return;
+        }
+        ResourceLocation told = PolymorphLink.told(listsAtOpen);
+        if (told != null && net.minecraft.Util.getMillis() - chosenAt > CHOICE_HEARD_MS) {
+            kept = told;
+        }
+        ItemStack in = view.state().getItem(SlotRef.of(INPUT, 0));
+        if (choiceInput == null || !ItemStack.isSameItemSameTags(in, choiceInput)) {
+            choiceInput = in.copy();
+            matches = FurnaceUse.matches(kind.recipes(), in);
+        }
+        ItemStack making = matches.stream().filter(option -> option.recipe().equals(kept)).findFirst()
+                .or(() -> matches.stream().findFirst()).map(RecipeChoice.Option::output).orElse(ItemStack.EMPTY);
+        choice.show(view, matches, making);
+        showKept(view, RecipeChoice.shownPoints().isEmpty() ? ItemStack.EMPTY : making);
+    }
+
+    private void showKept(StationView view, ItemStack making) {
+        if (ItemStack.matches(making, keptShown)) {
+            return;
+        }
+        keptShown = making.copy();
+        view.node(RESULT).ifPresent(node -> node.setGhostItems(making.isEmpty() ? null : List.of(making)));
+    }
+
+    private void choose(StationView view, int place) {
+        ResourceLocation chosen = choice.click(view, place);
+        if (chosen != null) {
+            kept = chosen;
+            chosenAt = net.minecraft.Util.getMillis();
+        }
+    }
+
+    @Override
+    public void onEvent(StationView view, SceneEvent event) {
+        if (event instanceof SceneEvent.Click click && RecipeChoice.place(click.node()) >= 0) {
+            choose(view, RecipeChoice.place(click.node()));
+        }
+    }
+
+    /** A choice is made with the hand full too: what is held stays held. */
+    @Override
+    public boolean onItemClick(StationView view, String node, ItemStack stack, int button, boolean shift) {
+        if (RecipeChoice.place(node) >= 0) {
+            choose(view, RecipeChoice.place(node));
+            return true;
+        }
+        return false;
     }
 
     /** Something came into a slot: from the hotbar by the automatic shift-click it flies there, otherwise it is just put. */

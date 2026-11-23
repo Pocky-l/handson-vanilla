@@ -5,49 +5,54 @@ import com.mojang.math.Axis;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.renderer.MultiBufferSource;
 import net.minecraft.client.renderer.texture.OverlayTexture;
-import net.minecraft.core.NonNullList;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraft.sounds.SoundEvents;
-import net.minecraft.world.inventory.TransientCraftingContainer;
 import net.minecraft.world.item.ItemDisplayContext;
 import net.minecraft.world.item.ItemStack;
-import net.minecraft.world.item.crafting.CraftingRecipe;
-import net.minecraft.world.item.crafting.RecipeType;
+import org.joml.Vector3fc;
 
 import com.pockyl.diegesis.api.client.NodeView;
 import com.pockyl.diegesis.api.client.StationView;
-import com.pockyl.diegesis.api.state.SlotRef;
 
-import java.lang.reflect.Method;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
+import java.util.Objects;
 
 /**
- * With Polymorph, one grid can make several things (two mods' recipes for the same shape); its vanilla screen has a button that
- * lists them. At the table the others lie small beside the result, each as what it makes: a click on one makes it the result.
- * The choice goes to the server through Polymorph's own selection packet, which picks the recipe and remakes the result, as its
- * button does. Without Polymorph the server always makes its first match, so there is nothing to choose and nothing is shown.
+ * With Polymorph, one set of inputs can make several things (two mods' recipes for the same inputs); its vanilla screens have a
+ * button that lists them. At a station the others lie small beside the result, each as what it makes: a click on one chooses it.
+ * The choice goes to the server through Polymorph's own packets ({@link PolymorphLink}), as its buttons send it: the player's at
+ * the crafting and smithing tables, where the server remakes the result; the furnace's own at the furnaces, which keep it.
+ * Without Polymorph the server always makes its first match, so there is nothing to choose and nothing is shown.
  */
 final class RecipeChoice {
-    /** As many others as the scene has places for, beside the result. */
+    /** As many others as a scene has places for ({@code choice_N} nodes), beside the result. */
     static final int PLACES = 4;
-    private static final float SIZE = 1.9F;
     private static final float HOVER_GROWTH = 1.18F;
+    /** Where the places of the station showing them lie, scene pixels, for what is laid out beside the station. */
+    private static List<float[]> shownPoints = List.of();
 
-    private static Method selection;
-    private static boolean looked;
-    /** Whether any table shows a choice now. */
-    private static boolean anyShown;
+    /** A recipe the station's inputs match, and what it makes of them. */
+    record Option(ResourceLocation recipe, ItemStack output) {
+    }
 
+    private final boolean keptByTheBlock;
+    private final float size;
+    private final float tilt;
     /** Each place's recipe and what it makes; empty places hold nothing. */
     private final ResourceLocation[] recipes = new ResourceLocation[PLACES];
     private final ItemStack[] outputs = new ItemStack[PLACES];
-    /** The grid as read last: the matches are read again only when it changes. */
-    private ItemStack[] grid = new ItemStack[0];
-    private ItemStack result = ItemStack.EMPTY;
 
-    RecipeChoice() {
+    /**
+     * @param keptByTheBlock whether the block keeps the choice (a furnace) rather than the player
+     * @param size           how big the others stand, pixels
+     * @param tilt           how far they lean back to the camera, degrees
+     */
+    RecipeChoice(boolean keptByTheBlock, float size, float tilt) {
+        this.keptByTheBlock = keptByTheBlock;
+        this.size = size;
+        this.tilt = tilt;
         Arrays.fill(outputs, ItemStack.EMPTY);
     }
 
@@ -61,8 +66,9 @@ final class RecipeChoice {
         }
     }
 
-    static boolean isShown() {
-        return anyShown;
+    /** Whether Polymorph is there to choose with. */
+    static boolean available() {
+        return PolymorphLink.present();
     }
 
     static String node(int place) {
@@ -79,92 +85,79 @@ final class RecipeChoice {
         return -1;
     }
 
-    /** Once a tick at the table: what else the grid makes. */
-    void tick(StationView view) {
-        if (selection() == null || view.menu() == null || !view.isFocused()) {
-            clear(view);
-            return;
-        }
-        ItemStack[] now = new ItemStack[9];
-        for (int i = 0; i < now.length; i++) {
-            now[i] = view.state().getItem(SlotRef.of(HandsOnVanillaClient.GRID, i));
-        }
-        ItemStack shown = view.state().getOutput(HandsOnVanillaClient.RESULT);
-        if (same(now, grid) && ItemStack.matches(shown, result)) {
-            return;
-        }
-        grid = Arrays.stream(now).map(ItemStack::copy).toArray(ItemStack[]::new);
-        result = shown.copy();
-        read(view, now, shown);
+    /** Scene points around the places shown now, empty while none is. */
+    static List<float[]> shownPoints() {
+        return shownPoints;
     }
 
-    private void read(StationView view, ItemStack[] now, ItemStack shown) {
-        Arrays.fill(recipes, null);
-        Arrays.fill(outputs, ItemStack.EMPTY);
-        var level = view.level();
-        NonNullList<ItemStack> items = NonNullList.withSize(9, ItemStack.EMPTY);
-        for (int i = 0; i < now.length; i++) {
-            items.set(i, now[i].copy());
-        }
-        TransientCraftingContainer container = new TransientCraftingContainer(view.menu().handle(), 3, 3, items);
-        List<CraftingRecipe> matches = level.getRecipeManager().getRecipesFor(RecipeType.CRAFTING, container, level);
-        int place = 0;
+    /**
+     * Shows the matches that make something else than {@code current} (what the server makes now), each once, as many as there are
+     * places; nothing when there is no other.
+     */
+    void show(StationView view, List<Option> matches, ItemStack current) {
+        ResourceLocation[] now = new ResourceLocation[PLACES];
+        ItemStack[] made = new ItemStack[PLACES];
+        Arrays.fill(made, ItemStack.EMPTY);
         List<ItemStack> seen = new ArrayList<>();
-        if (!shown.isEmpty()) {
-            seen.add(shown);
+        if (!current.isEmpty()) {
+            seen.add(current);
         }
-        for (CraftingRecipe recipe : matches) {
-            ItemStack makes = recipe.assemble(container, level.registryAccess());
+        int place = 0;
+        for (Option option : matches) {
+            ItemStack makes = option.output();
             if (makes.isEmpty() || seen.stream().anyMatch(other -> ItemStack.isSameItemSameTags(other, makes))) {
                 continue;
             }
             seen.add(makes);
             if (place < PLACES) {
-                recipes[place] = recipe.getId();
-                outputs[place] = makes;
+                now[place] = option.recipe();
+                made[place] = makes;
                 place++;
             }
         }
-        anyShown = recipes[0] != null;
+        if (Arrays.equals(now, recipes) && sameStacks(made, outputs)) {
+            return;
+        }
+        System.arraycopy(now, 0, recipes, 0, PLACES);
+        System.arraycopy(made, 0, outputs, 0, PLACES);
+        List<float[]> points = new ArrayList<>();
         for (int i = 0; i < PLACES; i++) {
             int at = i;
             view.node(node(i)).ifPresent(node -> {
                 node.setVisible(recipes[at] != null);
                 if (recipes[at] != null) {
                     node.setTooltip(outputs[at].getHoverName());
+                    Vector3fc pos = node.definition().transform().pos();
+                    points.add(new float[] {pos.x() - size, pos.y(), pos.z() - size});
+                    points.add(new float[] {pos.x() + size, pos.y() + size, pos.z() + size});
                 }
             });
         }
+        shownPoints = List.copyOf(points);
     }
 
-    /** A place was clicked: its recipe becomes the result. */
-    void click(StationView view, int place) {
-        Method send = selection();
-        if (send == null || place < 0 || recipes[place] == null) {
-            return;
+    /** A place was clicked: its recipe is chosen, as Polymorph's button chooses it. Gives the recipe chosen, or null. */
+    ResourceLocation click(StationView view, int place) {
+        if (place < 0 || recipes[place] == null) {
+            return null;
         }
-        try {
-            Object api = Class.forName("com.illusivesoulworks.polymorph.api.PolymorphApi").getMethod("common").invoke(null);
-            Object distributor = api.getClass().getMethod("getPacketDistributor").invoke(api);
-            send.invoke(distributor, recipes[place]);
-        } catch (ReflectiveOperationException | RuntimeException ignored) {
-            return;
+        ResourceLocation chosen = recipes[place];
+        boolean sent = keptByTheBlock ? PolymorphLink.chooseBlockRecipe(chosen) : PolymorphLink.choosePlayerRecipe(chosen);
+        if (!sent) {
+            return null;
         }
         float volume = 0.3F * VanillaConfig.soundVolume();
         if (volume > 0.0F) {
             view.playSound(SoundEvents.ITEM_FRAME_ROTATE_ITEM, node(place), volume, 1.1F);
         }
-        // Read again once the server's new result arrives.
-        result = ItemStack.EMPTY;
+        return chosen;
     }
 
     void clear(StationView view) {
-        if (grid.length == 0 && Arrays.stream(recipes).allMatch(java.util.Objects::isNull)) {
+        if (Arrays.stream(recipes).allMatch(Objects::isNull)) {
             return;
         }
-        grid = new ItemStack[0];
-        result = ItemStack.EMPTY;
-        anyShown = false;
+        shownPoints = List.of();
         Arrays.fill(recipes, null);
         Arrays.fill(outputs, ItemStack.EMPTY);
         for (int i = 0; i < PLACES; i++) {
@@ -178,18 +171,19 @@ final class RecipeChoice {
         if (stack.isEmpty()) {
             return;
         }
-        float size = SIZE * (node.isHovered() ? HOVER_GROWTH : 1.0F);
+        float shown = size * (node.isHovered() ? HOVER_GROWTH : 1.0F);
         poseStack.pushPose();
-        poseStack.translate(0.0F, size * 0.5F, 0.0F);
+        poseStack.translate(0.0F, shown * 0.5F, 0.0F);
         poseStack.mulPose(Axis.YP.rotationDegrees(180.0F));
-        poseStack.mulPose(Axis.XP.rotationDegrees(-35.0F));
-        poseStack.scale(size, size, size);
+        poseStack.mulPose(Axis.XP.rotationDegrees(-tilt));
+        poseStack.scale(shown, shown, shown);
         Minecraft.getInstance().getItemRenderer().renderStatic(stack, ItemDisplayContext.FIXED, light, OverlayTexture.NO_OVERLAY, poseStack,
                 buffers, view.level(), place);
         poseStack.popPose();
     }
 
-    private static boolean same(ItemStack[] a, ItemStack[] b) {
+    /** Whether two rows of stacks hold the same, place by place. */
+    static boolean sameStacks(ItemStack[] a, ItemStack[] b) {
         if (a.length != b.length) {
             return false;
         }
@@ -199,19 +193,5 @@ final class RecipeChoice {
             }
         }
         return true;
-    }
-
-    /** Polymorph's {@code sendPlayerRecipeSelectionC2S}, or null without Polymorph. */
-    private static Method selection() {
-        if (!looked) {
-            looked = true;
-            try {
-                Class<?> distributor = Class.forName("com.illusivesoulworks.polymorph.api.common.base.IPolymorphPacketDistributor");
-                selection = distributor.getMethod("sendPlayerRecipeSelectionC2S", ResourceLocation.class);
-            } catch (ReflectiveOperationException | LinkageError ignored) {
-                selection = null;
-            }
-        }
-        return selection;
     }
 }

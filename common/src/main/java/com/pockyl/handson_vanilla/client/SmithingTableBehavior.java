@@ -5,10 +5,14 @@ import net.minecraft.client.gui.screens.Screen;
 import net.minecraft.client.player.LocalPlayer;
 import net.minecraft.network.chat.TextColor;
 import net.minecraft.sounds.SoundEvents;
+import net.minecraft.world.SimpleContainer;
 import net.minecraft.world.inventory.ClickType;
 import net.minecraft.world.inventory.SmithingMenu;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.item.armortrim.ArmorTrim;
+import net.minecraft.world.item.crafting.RecipeType;
+import net.minecraft.world.item.crafting.SmithingRecipe;
+import net.minecraft.world.level.Level;
 import org.joml.Vector3f;
 import org.joml.Vector3fc;
 
@@ -17,7 +21,10 @@ import com.pockyl.diegesis.api.client.MenuAccess;
 import com.pockyl.diegesis.api.client.StationBehavior;
 import com.pockyl.diegesis.api.client.StationView;
 import com.pockyl.diegesis.api.event.SceneEvent;
+import com.pockyl.diegesis.api.state.SlotRef;
 
+import java.util.ArrayList;
+import java.util.List;
 import java.util.Optional;
 
 /**
@@ -112,10 +119,16 @@ final class SmithingTableBehavior implements StationBehavior {
     private float forgedAt;
     private final HoveringResult result = new HoveringResult(RESULT_SIZE);
     private final StationHands.SlotWatch watch = new StationHands.SlotWatch(TEMPLATE, "template", BASE, "base", ADDITION, "addition");
+    /** With Polymorph: what else the plate's pieces make lies beside the result, a click makes it the result. */
+    private final RecipeChoice choice = new RecipeChoice(false, 2.4F, 35.0F);
+    /** The pieces and the result the choices were read for: read again only when one changes. */
+    private ItemStack[] choicePieces = new ItemStack[0];
+    private ItemStack choiceResult = ItemStack.EMPTY;
 
     @Override
     public void onSceneReady(StationView view) {
         view.setInventoryFilter(SmithingUse::usable);
+        choice.onSceneReady(view);
         view.node(RESULT).ifPresent(node -> node.setPainter((poseStack, buffers, light) -> {
             SmithingMenu menu = smithing(view);
             ItemStack made = menu == null ? ItemStack.EMPTY : menu.getSlot(RESULT_SLOT).getItem();
@@ -165,6 +178,8 @@ final class SmithingTableBehavior implements StationBehavior {
     @Override
     public void onClose(StationView view) {
         queued = 0;
+        choice.clear(view);
+        choicePieces = new ItemStack[0];
         press(view, false, 0.0F);
         pose(view, hang(), hangTurn(), HANG_BACK, true);
         to(Phase.HANGING_BACK);
@@ -179,6 +194,7 @@ final class SmithingTableBehavior implements StationBehavior {
     /** Pieces put onto the plate and taken off it by hand sound; the one put by itself on opening flies there from the hotbar. */
     @Override
     public void tick(StationView view) {
+        choices(view);
         watch.tick(view, (node, change) -> {
             if (change > 0) {
                 if (flyFrom >= 0) {
@@ -402,6 +418,31 @@ final class SmithingTableBehavior implements StationBehavior {
         });
     }
 
+    /** With Polymorph, what else the pieces make lies beside the result: read once a tick, again only when something changes. */
+    private void choices(StationView view) {
+        SmithingMenu menu = smithing(view);
+        if (!RecipeChoice.available() || menu == null || !view.isFocused()) {
+            choice.clear(view);
+            choicePieces = new ItemStack[0];
+            return;
+        }
+        ItemStack[] pieces = {view.state().getItem(SlotRef.of(TEMPLATE, 0)), view.state().getItem(SlotRef.of(BASE, 0)),
+                view.state().getItem(SlotRef.of(ADDITION, 0))};
+        ItemStack shown = menu.getSlot(RESULT_SLOT).getItem();
+        if (RecipeChoice.sameStacks(pieces, choicePieces) && ItemStack.matches(shown, choiceResult)) {
+            return;
+        }
+        choicePieces = java.util.Arrays.stream(pieces).map(ItemStack::copy).toArray(ItemStack[]::new);
+        choiceResult = shown.copy();
+        SimpleContainer inputs = new SimpleContainer(pieces[0].copy(), pieces[1].copy(), pieces[2].copy());
+        Level level = view.level();
+        List<RecipeChoice.Option> options = new ArrayList<>();
+        for (SmithingRecipe recipe : level.getRecipeManager().getRecipesFor(RecipeType.SMITHING, inputs, level)) {
+            options.add(new RecipeChoice.Option(recipe.getId(), recipe.assemble(inputs, level.registryAccess())));
+        }
+        choice.show(view, options, shown);
+    }
+
     private void to(Phase next) {
         phase = next;
         phaseTime = 0.0F;
@@ -411,6 +452,8 @@ final class SmithingTableBehavior implements StationBehavior {
     public void onEvent(StationView view, SceneEvent event) {
         if (event instanceof SceneEvent.Click click && (HAMMER.equals(click.node()) || RESULT.equals(click.node()))) {
             strike(view, Screen.hasShiftDown());
+        } else if (event instanceof SceneEvent.Click click && RecipeChoice.place(click.node()) >= 0) {
+            choice.click(view, RecipeChoice.place(click.node()));
         }
     }
 
@@ -419,6 +462,11 @@ final class SmithingTableBehavior implements StationBehavior {
     public boolean onItemClick(StationView view, String node, ItemStack stack, int button, boolean shift) {
         if (HAMMER.equals(node) || RESULT.equals(node)) {
             strike(view, shift);
+            return true;
+        }
+        if (RecipeChoice.place(node) >= 0) {
+            // A choice is made with the hand full too: what is held stays held.
+            choice.click(view, RecipeChoice.place(node));
             return true;
         }
         return false;

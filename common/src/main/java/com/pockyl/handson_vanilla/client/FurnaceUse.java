@@ -1,6 +1,7 @@
 package com.pockyl.handson_vanilla.client;
 
 import net.minecraft.client.Minecraft;
+import net.minecraft.core.registries.BuiltInRegistries;
 import net.minecraft.world.SimpleContainer;
 import net.minecraft.world.item.Item;
 import net.minecraft.world.item.ItemStack;
@@ -9,7 +10,10 @@ import net.minecraft.world.item.crafting.RecipeType;
 import net.minecraft.world.level.Level;
 import net.minecraft.world.level.block.entity.AbstractFurnaceBlockEntity;
 
+import java.util.ArrayList;
+import java.util.Comparator;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 import java.util.Optional;
 
@@ -56,5 +60,24 @@ final class FurnaceUse {
                     .getRecipeFor(type, new SimpleContainer(new ItemStack(item)), level);
             return recipe.map(found -> found.getResultItem(level.registryAccess()).copy()).orElse(ItemStack.EMPTY);
         });
+    }
+
+    /**
+     * Every recipe of this type that cooks {@code stack}, with what it makes, in the order of Polymorph's list: other mods' and
+     * datapacks' recipes before vanilla's, then by what they make. The first is what the furnace cooks until another is chosen.
+     */
+    static List<RecipeChoice.Option> matches(RecipeType<? extends AbstractCookingRecipe> type, ItemStack stack) {
+        Level level = Minecraft.getInstance().level;
+        if (stack.isEmpty() || level == null) {
+            return List.of();
+        }
+        SimpleContainer one = new SimpleContainer(stack.copyWithCount(1));
+        List<RecipeChoice.Option> options = new ArrayList<>();
+        for (AbstractCookingRecipe recipe : level.getRecipeManager().getRecipesFor(type, one, level)) {
+            options.add(new RecipeChoice.Option(recipe.getId(), recipe.assemble(one, level.registryAccess())));
+        }
+        options.sort(Comparator.comparing((RecipeChoice.Option option) -> option.recipe().getNamespace().equals("minecraft"))
+                .thenComparing(option -> BuiltInRegistries.ITEM.getKey(option.output().getItem())));
+        return options;
     }
 }

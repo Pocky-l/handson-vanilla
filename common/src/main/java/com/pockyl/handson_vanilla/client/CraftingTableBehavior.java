@@ -2,16 +2,25 @@ package com.pockyl.handson_vanilla.client;
 
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.player.LocalPlayer;
+import net.minecraft.core.NonNullList;
 import net.minecraft.sounds.SoundEvent;
 import net.minecraft.sounds.SoundEvents;
 import net.minecraft.world.InteractionHand;
+import net.minecraft.world.inventory.TransientCraftingContainer;
 import net.minecraft.world.item.ItemStack;
+import net.minecraft.world.item.crafting.CraftingRecipe;
+import net.minecraft.world.item.crafting.RecipeType;
+import net.minecraft.world.level.Level;
 import org.joml.Vector3f;
 
 import com.pockyl.diegesis.api.client.StationBehavior;
 import com.pockyl.diegesis.api.event.SceneEvent;
 import com.pockyl.diegesis.api.client.StationView;
 import com.pockyl.diegesis.api.state.SlotRef;
+
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.List;
 
 /**
  * The crafting table's feedback, read from what changes in the menu: a quiet tick on the wood when something is put
@@ -32,7 +41,10 @@ final class CraftingTableBehavior implements StationBehavior {
     private int craftDelay;
     private final RecipeBook book = new RecipeBook(new CraftingBook());
     private final GhostRecipe ghost = new GhostRecipe();
-    private final RecipeChoice choice = new RecipeChoice();
+    private final RecipeChoice choice = new RecipeChoice(false, 1.9F, 35.0F);
+    /** The grid and the result the choices were read for: read again only when one changes. */
+    private ItemStack[] choiceGrid = new ItemStack[0];
+    private ItemStack choiceResult = ItemStack.EMPTY;
     private final GridTweaks tweaks = new GridTweaks();
     private final ContinuousCrafting continuous = new ContinuousCrafting();
     /** The last laying of a recipe this table has seen: a new one takes the ghost away. */
@@ -111,6 +123,36 @@ final class CraftingTableBehavior implements StationBehavior {
         }).orElse(null);
     }
 
+    /** With Polymorph, what else the grid makes lies beside the result: read once a tick, again only when the grid or result changes. */
+    private void choices(StationView view) {
+        if (!RecipeChoice.available() || view.menu() == null || !view.isFocused()) {
+            choice.clear(view);
+            choiceGrid = new ItemStack[0];
+            return;
+        }
+        ItemStack[] now = new ItemStack[9];
+        for (int i = 0; i < now.length; i++) {
+            now[i] = view.state().getItem(SlotRef.of(HandsOnVanillaClient.GRID, i));
+        }
+        ItemStack shown = view.state().getOutput(HandsOnVanillaClient.RESULT);
+        if (RecipeChoice.sameStacks(now, choiceGrid) && ItemStack.matches(shown, choiceResult)) {
+            return;
+        }
+        choiceGrid = Arrays.stream(now).map(ItemStack::copy).toArray(ItemStack[]::new);
+        choiceResult = shown.copy();
+        NonNullList<ItemStack> items = NonNullList.withSize(9, ItemStack.EMPTY);
+        for (int i = 0; i < now.length; i++) {
+            items.set(i, now[i].copy());
+        }
+        TransientCraftingContainer container = new TransientCraftingContainer(view.menu().handle(), 3, 3, items);
+        Level level = view.level();
+        List<RecipeChoice.Option> options = new ArrayList<>();
+        for (CraftingRecipe recipe : level.getRecipeManager().getRecipesFor(RecipeType.CRAFTING, container, level)) {
+            options.add(new RecipeChoice.Option(recipe.getId(), recipe.assemble(container, level.registryAccess())));
+        }
+        choice.show(view, options, shown);
+    }
+
     @Override
     public void onEvent(StationView view, SceneEvent event) {
         if (event instanceof SceneEvent.Click click && "book_open".equals(click.node())) {
@@ -172,6 +214,7 @@ final class CraftingTableBehavior implements StationBehavior {
         book.shut(view);
         ghost.reset();
         choice.clear(view);
+        choiceGrid = new ItemStack[0];
         tweaks.clear(view);
         continuous.clear(view);
         known = false;
@@ -185,7 +228,7 @@ final class CraftingTableBehavior implements StationBehavior {
             craftSounds--;
             craftDelay = CRAFT_SOUND_GAP;
         }
-        choice.tick(view);
+        choices(view);
         if (!view.isFocused() || view.menu() == null) {
             return;
         }
