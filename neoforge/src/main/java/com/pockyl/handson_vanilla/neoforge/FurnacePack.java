@@ -1,24 +1,24 @@
 package com.pockyl.handson_vanilla.neoforge;
 
 import net.minecraft.network.chat.Component;
-import net.minecraft.resources.ResourceLocation;
+import net.minecraft.resources.Identifier;
 import net.minecraft.server.packs.PackLocationInfo;
 import net.minecraft.server.packs.PackSelectionConfig;
 import net.minecraft.server.packs.PackType;
-import net.minecraft.server.packs.PathPackResources;
 import net.minecraft.server.packs.repository.Pack;
 import net.minecraft.server.packs.repository.PackCompatibility;
 import net.minecraft.server.packs.repository.PackSource;
 import net.minecraft.server.packs.resources.IoSupplier;
 import net.minecraft.world.flag.FeatureFlagSet;
 import net.neoforged.fml.ModList;
+import net.neoforged.fml.jarcontents.JarContents;
 import net.neoforged.neoforge.event.AddPackFindersEvent;
+import net.neoforged.neoforge.resource.JarContentsPackResources;
 
 import com.pockyl.handson_vanilla.HandsOnVanilla;
 import com.pockyl.handson_vanilla.client.RemodelledBlocks;
 
 import java.io.InputStream;
-import java.nio.file.Path;
 import java.util.List;
 import java.util.Optional;
 import java.util.Set;
@@ -28,9 +28,8 @@ import java.util.Set;
  * Their block states and models lie under Minecraft's own names, and a resource pack sits above every mod: a pack that remodels a
  * furnace (or only names other models in its block state) would win, and the station would open on a block whose hollows are not
  * where its slots, flames and doors are. So the files come as a hidden built-in pack fixed above all others; a pack's furnace and
- * smoker textures still apply to the models' outside. The cartography table's tray of felt comes the same way
- * ({@link RemodelledBlocks}). Each block's files are there only while its station is on ({@link RemodelledBlocks#served}): turned
- * off, it is vanilla's, or the resource pack's, again.
+ * smoker textures still apply to the models' outside. Each block's files are there only while its station is on
+ * ({@link RemodelledBlocks#served}): turned off, it is vanilla's, or the resource pack's, again.
  */
 final class FurnacePack {
     private static final String ID = HandsOnVanilla.MOD_ID + "_furnace";
@@ -44,34 +43,35 @@ final class FurnacePack {
         if (event.getPackType() != PackType.CLIENT_RESOURCES || !RemodelledBlocks.anyOn()) {
             return;
         }
-        Path root = ModList.get().getModFileById(HandsOnVanilla.MOD_ID).getFile().getSecureJar().getRootPath().resolve(FOLDER);
+        JarContents contents = ModList.get().getModFileById(HandsOnVanilla.MOD_ID).getFile().getContents();
         PackLocationInfo location = new PackLocationInfo(ID, Component.literal("Hands-On Vanilla: blocks"), PackSource.BUILT_IN,
                 Optional.empty());
         Pack.ResourcesSupplier resources = new Pack.ResourcesSupplier() {
             @Override
             public OnlyTheFurnace openPrimary(PackLocationInfo info) {
-                return new OnlyTheFurnace(info, root);
+                return new OnlyTheFurnace(info, contents);
             }
 
             @Override
             public OnlyTheFurnace openFull(PackLocationInfo info, Pack.Metadata metadata) {
-                return new OnlyTheFurnace(info, root);
+                return new OnlyTheFurnace(info, contents);
             }
         };
         // The folder has no pack.mcmeta of its own: the pack's metadata is made here.
-        Pack.Metadata metadata = new Pack.Metadata(location.title(), PackCompatibility.COMPATIBLE, FeatureFlagSet.of(), List.of());
+        Pack.Metadata metadata = new Pack.Metadata(location.title(), PackCompatibility.COMPATIBLE, FeatureFlagSet.of(), List.of(),
+                false);
         Pack pack = new Pack(location, resources, metadata, new PackSelectionConfig(true, Pack.Position.TOP, true));
         event.addRepositorySource(consumer -> consumer.accept(pack.hidden()));
     }
 
     /** The pack's files: client resources under Minecraft's name only, of the furnaces whose station is on. */
-    private static final class OnlyTheFurnace extends PathPackResources {
-        OnlyTheFurnace(PackLocationInfo info, Path root) {
-            super(info, root);
+    private static final class OnlyTheFurnace extends JarContentsPackResources {
+        OnlyTheFurnace(PackLocationInfo info, JarContents contents) {
+            super(info, contents, FOLDER);
         }
 
         @Override
-        public IoSupplier<InputStream> getResource(PackType type, ResourceLocation location) {
+        public IoSupplier<InputStream> getResource(PackType type, Identifier location) {
             return type == PackType.CLIENT_RESOURCES && RemodelledBlocks.served(location.getPath()) ? super.getResource(type, location) : null;
         }
 
@@ -88,7 +88,7 @@ final class FurnacePack {
 
         @Override
         public Set<String> getNamespaces(PackType type) {
-            return type == PackType.CLIENT_RESOURCES ? Set.of(ResourceLocation.DEFAULT_NAMESPACE) : Set.of();
+            return type == PackType.CLIENT_RESOURCES ? Set.of(Identifier.DEFAULT_NAMESPACE) : Set.of();
         }
     }
 }

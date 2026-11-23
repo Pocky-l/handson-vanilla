@@ -14,8 +14,8 @@ neoForge {
 }
 
 // Minecraft 1.21.11: EMI has no build for it, so what compiles against EMI is left out of the build (the sources stay, for the
-// lines that have it). The loader project leaves out the same files; the EMI mixins are out of handson_vanilla.mixins.json.
-// FastWorkbench's result is NeoForge's only (its mixin is in neoforge/), and this line is Fabric only.
+// lines that have it). The loader projects leave out the same files; the EMI mixins are out of handson_vanilla.mixins.json.
+// FastWorkbench has no 1.21.11 build: its result handler goes too.
 ext.compatSources = [
         'com/pockyl/handson_vanilla/client/FastBenchResult.java',
         'com/pockyl/handson_vanilla/compat/emi/**',

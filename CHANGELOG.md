@@ -1,10 +1,10 @@
 # Changelog
 
 ## [1.2.3+1.21.11] - Unreleased
-- Minecraft 1.21.11 on [Fabric](https://fabricmc.net): every station of 1.2.3+1.21.1, the recipe books, and the keys and "+" of
+- Minecraft 1.21.11 on [NeoForge](https://neoforged.net) and [Fabric](https://fabricmc.net): every station of 1.2.3+1.21.1, the recipe books, and the keys and "+" of
   [JEI](https://www.curseforge.com/minecraft/mc-mods/jei) at the stations.
-- Needs [Diegesis](https://www.curseforge.com/minecraft/mc-mods/diegesis) 1.0.0-beta.17.1+1.21.11 and
-  [Fabric API](https://www.curseforge.com/minecraft/mc-mods/fabric-api).
+- Needs [Diegesis](https://www.curseforge.com/minecraft/mc-mods/diegesis) 1.0.0-beta.17.1+1.21.11; on NeoForge 21.11.48 or newer,
+  on Fabric [Fabric API](https://www.curseforge.com/minecraft/mc-mods/fabric-api).
 - Since Minecraft 1.21.2 a server tells the game only the recipes you have unlocked: the crafting table's book shows every recipe
   (`book_recipes=all`, or with [Not Enough Recipe Book](https://www.curseforge.com/minecraft/mc-mods/notenoughrecipebook)) in
   singleplayer only.
@@ -13,9 +13,8 @@
   the next use on.
 
 ### Not on 1.21.11 yet
-- NeoForge.
 - [EMI](https://www.curseforge.com/minecraft/mc-mods/emi), [Polymorph](https://www.curseforge.com/minecraft/mc-mods/polymorph) and
-  [FastWorkbench](https://www.curseforge.com/minecraft/mc-mods/fastworkbench): they have no Fabric build for 1.21.11.
+  [FastWorkbench](https://www.curseforge.com/minecraft/mc-mods/fastworkbench): they have no build for 1.21.11.
 
 ## [1.2.3+1.21.1] - 2026-11-22
 - The anvil shows the name you type again, so items can be renamed at the station.
