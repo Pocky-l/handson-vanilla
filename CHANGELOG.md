@@ -5,9 +5,8 @@
   [JEI](https://www.curseforge.com/minecraft/mc-mods/jei) at the stations.
 - Needs [Diegesis](https://www.curseforge.com/minecraft/mc-mods/diegesis) 1.0.0-beta.17.2+26.2; on NeoForge 26.2.0.88 or newer,
   on Fabric [Fabric API](https://www.curseforge.com/minecraft/mc-mods/fabric-api).
-- Since Minecraft 1.21.2 a server tells the game only the recipes you have unlocked: the crafting table's book shows every recipe
-  (`book_recipes=all`, or with [Not Enough Recipe Book](https://www.curseforge.com/minecraft/mc-mods/notenoughrecipebook)) in
-  singleplayer only.
+- The crafting table's book shows every recipe (`book_recipes=all` or [Not Enough Recipe Book](https://www.curseforge.com/minecraft/mc-mods/notenoughrecipebook))
+  only in singleplayer: since 1.21.2 a server sends only the recipes you have unlocked.
 - A vanilla enchanting table or anvil that [Easy Magic](https://www.curseforge.com/minecraft/mc-mods/easy-magic) or
   [Easy Anvils](https://www.curseforge.com/minecraft/mc-mods/easy-anvils) turns into its own when first used opens the station from
   the next use on.
