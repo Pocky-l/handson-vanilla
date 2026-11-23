@@ -4,6 +4,7 @@
   "package": "com.pockyl.handson_vanilla.neoforge.mixin",
   "compatibilityLevel": "JAVA_25",
   "client": [
+    "FastBenchResultMixin",
     "StationRenderersNeoForgeMixin"
   ],
   "injectors": {

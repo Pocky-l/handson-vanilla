@@ -2,34 +2,27 @@ package com.pockyl.handson_vanilla.client;
 
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.gui.screens.inventory.AbstractContainerScreen;
-import net.minecraft.resources.Identifier;
 import net.minecraft.world.inventory.CraftingMenu;
 import net.minecraft.world.inventory.ResultContainer;
 import net.minecraft.world.item.ItemStack;
 
-import java.lang.reflect.Field;
+import java.lang.reflect.Method;
 
 /** FastWorkbench's result message, given to a crafting menu that is open without a screen (a station's). */
 public final class FastBenchResult {
-    private static Field recipeId;
-    private static Field output;
+    private static Method output;
 
     private FastBenchResult() {
     }
 
-    /** On the network thread: what the message says, put into the station's result slot on the game thread. */
+    /** What the message says, put into the station's result slot on the game thread. */
     public static void arrived(Object message) {
-        Identifier id;
         ItemStack stack;
         try {
-            if (recipeId == null) {
-                recipeId = message.getClass().getDeclaredField("recipeId");
-                recipeId.setAccessible(true);
-                output = message.getClass().getDeclaredField("output");
-                output.setAccessible(true);
+            if (output == null) {
+                output = message.getClass().getMethod("output");
             }
-            id = (Identifier) recipeId.get(message);
-            stack = (ItemStack) output.get(message);
+            stack = (ItemStack) output.invoke(message);
         } catch (ReflectiveOperationException | RuntimeException ignored) {
             return;
         }
@@ -40,10 +33,9 @@ public final class FastBenchResult {
             if (player == null || !(player.containerMenu instanceof CraftingMenu menu) || minecraft.screen instanceof AbstractContainerScreen<?>) {
                 return;
             }
-            // Into the result container itself, recipe first, as FastWorkbench's own handler does: its result slot is its own and
-            // does not take a plain set. Its shift-craft reads the recipe from here to guess what moves before the server says so.
-            if (menu.getSlot(0).container instanceof ResultContainer container && minecraft.level != null) {
-                container.setRecipeUsed(id == null ? null : minecraft.level.getRecipeManager().byKey(id).orElse(null));
+            // Into the result container itself, as FastWorkbench's own handler does: its result slot is its own and does not take
+            // a plain set. A client has no recipes since Minecraft 1.21.2, so the message carries the result alone.
+            if (menu.getSlot(0).container instanceof ResultContainer container) {
                 container.setItem(0, result);
             }
         });
