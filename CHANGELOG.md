@@ -1,6 +1,6 @@
 # Changelog
 
-## [1.2.4] - Unreleased
+## [1.2.4] - 2026-11-23
 - With [Polymorph](https://www.curseforge.com/minecraft/mc-mods/polymorph), the furnaces and the smithing table let you choose between recipes that take the same things, as the crafting table does.
 
 ## [1.2.2]
