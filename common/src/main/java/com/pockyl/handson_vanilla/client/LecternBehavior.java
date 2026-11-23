@@ -366,26 +366,26 @@ final class LecternBehavior implements StationBehavior {
                 return;
             }
             if (minecraft.options.chatLinksPrompt().get()) {
-                minecraft.gui.setScreen(new ConfirmLinkScreen(open -> {
+                minecraft.setScreen(new ConfirmLinkScreen(open -> {
                     if (open) {
                         net.minecraft.util.Util.getPlatform().openUri(uri);
                     }
-                    minecraft.gui.setScreen(null);
+                    minecraft.setScreen(null);
                 }, uri.toString(), false));
             } else {
                 net.minecraft.util.Util.getPlatform().openUri(uri);
             }
             return;
         }
-        Screen screen = minecraft.gui.screen();
+        Screen screen = minecraft.screen;
         if (screen == null || minecraft.player == null || event == null) {
             return;
         }
         if (event instanceof ClickEvent.RunCommand(String command)) {
             Links.command(minecraft.player, command);
-            if (DiegesisClient.isStationScreen(minecraft.gui.screen())) {
+            if (DiegesisClient.isStationScreen(minecraft.screen)) {
                 // Vanilla's book closes after it ran a command: the camera leaves.
-                minecraft.gui.screen().onClose();
+                minecraft.screen.onClose();
             }
             return;
         }
@@ -503,7 +503,7 @@ final class LecternBehavior implements StationBehavior {
         poseStack.translate(at.x, at.y, at.z);
         poseStack.mulPose(scene.getNormalizedRotation(new Quaternionf()));
         // The block entity's own light, as the lectern's renderer draws the book in it.
-        int light = net.minecraft.util.LightCoordsUtil.getLightCoords(view.level(), view.pos());
+        int light = net.minecraft.client.renderer.LevelRenderer.getLightCoords(view.level(), view.pos());
         float arrival = view.isFocused() ? DiegesisClient.arrival() : 0.0F;
         // The lectern's book in the world is this one too, at its size: only its sheets settle onto the pages as the reader comes.
         float size = WorldBooks.SCALE;

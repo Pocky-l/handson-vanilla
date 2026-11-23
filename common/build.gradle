@@ -9,9 +9,9 @@ neoForge {
     neoFormVersion = neo_form_version
 }
 
-// Minecraft 26.2: EMI has no build, so what compiles against it is left out of the build (the sources stay). The loader
+// Minecraft 26.1.2: EMI has no build, so what compiles against it is left out of the build (the sources stay). The loader
 // projects leave out the same files, and the EMI mixins are left out of handson_vanilla.mixins.json. FastBenchResult serves
-// FastWorkbench, which has no 26.2 build.
+// FastWorkbench, which has no 26.1.2 build.
 ext.compatSources = [
         'com/pockyl/handson_vanilla/compat/emi/**',
         'com/pockyl/handson_vanilla/client/EmiSidebar.java',

@@ -9,8 +9,8 @@ version="${mod_version}"
 displayName="${mod_name}"
 authors="${mod_authors}"
 displayURL="${mod_url}"
-# Square icon for the mod list (NeoForge 26.2+).
-iconFile="logo.png"
+# The mod list of NeoForge 26.1.2 shows the logo file (iconFile came with 26.2).
+logoFile="logo.png"
 description='''${mod_description}'''
 # Client-side only and adds nothing to the registries: it joins any server, with or without the mod.
 displayTest="IGNORE_ALL_VERSION"

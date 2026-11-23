@@ -56,7 +56,7 @@ public final class StationHover {
             stationScreen = null;
             return null;
         }
-        Screen shown = Minecraft.getInstance().gui.screen();
+        Screen shown = Minecraft.getInstance().screen;
         if (DiegesisClient.isStationScreen(shown)) {
             stationScreen = shown;
         }

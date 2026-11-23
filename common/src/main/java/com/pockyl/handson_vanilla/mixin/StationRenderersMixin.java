@@ -18,11 +18,10 @@ import com.pockyl.handson_vanilla.client.StationRenderers;
  */
 @Mixin(BlockEntityRenderDispatcher.class)
 abstract class StationRenderersMixin {
-    @Inject(method = "tryExtractRenderState(Lnet/minecraft/world/level/block/entity/BlockEntity;FLnet/minecraft/client/renderer/feature/ModelFeatureRenderer$CrumblingOverlay;Z)Lnet/minecraft/client/renderer/blockentity/state/BlockEntityRenderState;",
+    @Inject(method = "tryExtractRenderState(Lnet/minecraft/world/level/block/entity/BlockEntity;FLnet/minecraft/client/renderer/feature/ModelFeatureRenderer$CrumblingOverlay;)Lnet/minecraft/client/renderer/blockentity/state/BlockEntityRenderState;",
             at = @At("HEAD"), cancellable = true)
     private void handson_vanilla$drawnByScene(BlockEntity blockEntity, float partialTicks,
-            ModelFeatureRenderer.CrumblingOverlay breakProgress, boolean isGloballyRendered,
-            CallbackInfoReturnable<BlockEntityRenderState> callback) {
+            ModelFeatureRenderer.CrumblingOverlay breakProgress, CallbackInfoReturnable<BlockEntityRenderState> callback) {
         if (StationRenderers.drawnByScene(blockEntity)) {
             callback.setReturnValue(null);
         }

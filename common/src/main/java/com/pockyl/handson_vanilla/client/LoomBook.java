@@ -59,7 +59,7 @@ final class LoomBook implements RecipeBook.Source {
         DyeColor colour = real ? LoomBehavior.dye(dye) : DyeColor.WHITE;
         List<Ingredient> needs = new ArrayList<>();
         needs.add(Ingredient.of(BuiltInRegistries.ITEM.getOrThrow(ItemTags.BANNERS)));
-        needs.add(Ingredient.of(Items.DYE.asList().stream()));
+        needs.add(Ingredient.of(BuiltInRegistries.ITEM.getOrThrow(ItemTags.DYES)));
         if (!pattern.isEmpty()) {
             needs.add(Ingredient.of(pattern.getItem()));
         }
@@ -111,7 +111,7 @@ final class LoomBook implements RecipeBook.Source {
 
     /** Vanilla's sample of a pattern: a grey banner with the pattern in white. */
     private static ItemStack sample(Holder<BannerPattern> holder) {
-        ItemStack banner = new ItemStack(Items.BANNER.gray());
+        ItemStack banner = new ItemStack(Items.GRAY_BANNER);
         return woven(banner, holder, DyeColor.WHITE);
     }
 

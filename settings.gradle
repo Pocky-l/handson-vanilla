@@ -19,5 +19,5 @@ rootProject.name = 'handson_vanilla'
 // loader glue. Each loader project compiles the common sources into its own jar.
 include 'common', 'neoforge', 'fabric'
 
-// The Diegesis library comes from its 26.2 working copy (mods-26.2/diegesis) while both are developed together.
+// The Diegesis library comes from its 26.1.2 working copy (mods-26.1.2/diegesis) while both are developed together.
 includeBuild('../diegesis')

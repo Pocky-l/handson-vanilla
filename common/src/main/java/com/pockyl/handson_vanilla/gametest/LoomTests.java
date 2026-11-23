@@ -41,11 +41,11 @@ public final class LoomTests {
         LoomMenu menu = new LoomMenu(9, player.getInventory(), ContainerLevelAccess.create(helper.getLevel(), pos));
         player.containerMenu = menu;
         Inventory inventory = player.getInventory();
-        inventory.setItem(0, new ItemStack(Items.BANNER.white()));
-        inventory.setItem(1, new ItemStack(Items.DYE.red(), 2));
+        inventory.setItem(0, new ItemStack(Items.WHITE_BANNER));
+        inventory.setItem(1, new ItemStack(Items.RED_DYE, 2));
         menu.clicked(HOTBAR, 0, ContainerInput.QUICK_MOVE, player);
         menu.clicked(HOTBAR + 1, 0, ContainerInput.QUICK_MOVE, player);
-        helper.assertTrue(menu.getSlot(BANNER).getItem().is(Items.BANNER.white()) && menu.getSlot(DYE).getItem().getCount() == 2,
+        helper.assertTrue(menu.getSlot(BANNER).getItem().is(Items.WHITE_BANNER) && menu.getSlot(DYE).getItem().getCount() == 2,
                 "banner and dye lie on the loom");
         int stripe = indexOf(menu.getSelectablePatterns(), BannerPatterns.STRIPE_BOTTOM);
         helper.assertTrue(stripe >= 0, "the loom offers the bottom stripe");
@@ -64,8 +64,8 @@ public final class LoomTests {
         Player other = helper.makeMockPlayer(GameType.CREATIVE);
         LoomMenu stack = new LoomMenu(10, other.getInventory(), ContainerLevelAccess.create(helper.getLevel(), pos));
         other.containerMenu = stack;
-        other.getInventory().setItem(0, new ItemStack(Items.BANNER.white(), 3));
-        other.getInventory().setItem(1, new ItemStack(Items.DYE.blue(), 3));
+        other.getInventory().setItem(0, new ItemStack(Items.WHITE_BANNER, 3));
+        other.getInventory().setItem(1, new ItemStack(Items.BLUE_DYE, 3));
         stack.clicked(HOTBAR, 0, ContainerInput.QUICK_MOVE, other);
         stack.clicked(HOTBAR + 1, 0, ContainerInput.QUICK_MOVE, other);
         stack.clickMenuButton(other, indexOf(stack.getSelectablePatterns(), BannerPatterns.STRIPE_BOTTOM));
@@ -73,7 +73,7 @@ public final class LoomTests {
         int woven = 0;
         for (int i = 0; i < other.getInventory().getContainerSize(); i++) {
             ItemStack there = other.getInventory().getItem(i);
-            if (there.is(Items.BANNER.white()) && layers(there) == 1) {
+            if (there.is(Items.WHITE_BANNER) && layers(there) == 1) {
                 woven += there.getCount();
             }
         }

@@ -1,9 +1,9 @@
 # Changelog
 
-## [1.2.3+26.2] - 2026-11-23
-- Minecraft 26.2 on [NeoForge](https://neoforged.net) and [Fabric](https://fabricmc.net): every station of 1.2.3+1.21.1, the recipe books, and the keys and "+" of
+## [1.2.3+26.1.2] - Unreleased
+- Minecraft 26.1.2 on [NeoForge](https://neoforged.net) and [Fabric](https://fabricmc.net): every station of 1.2.3+1.21.1, the recipe books, and the keys and "+" of
   [JEI](https://www.curseforge.com/minecraft/mc-mods/jei) at the stations.
-- Needs [Diegesis](https://www.curseforge.com/minecraft/mc-mods/diegesis) 1.0.0-beta.17.2+26.2; on NeoForge 26.2.0.88 or newer,
+- Needs [Diegesis](https://www.curseforge.com/minecraft/mc-mods/diegesis) 1.0.0-beta.17.2+26.1.2; on NeoForge 26.1.2.114 or newer,
   on Fabric [Fabric API](https://www.curseforge.com/minecraft/mc-mods/fabric-api).
 - The crafting table's book shows every recipe (`book_recipes=all` or [Not Enough Recipe Book](https://www.curseforge.com/minecraft/mc-mods/notenoughrecipebook))
   only in singleplayer: since 1.21.2 a server sends only the recipes you have unlocked.
@@ -11,9 +11,9 @@
   [Easy Anvils](https://www.curseforge.com/minecraft/mc-mods/easy-anvils) turns into its own when first used opens the station from
   the next use on.
 
-### Not on 26.2 yet
-- [EMI](https://www.curseforge.com/minecraft/mc-mods/emi), [Polymorph](https://www.curseforge.com/minecraft/mc-mods/polymorph) and
-  [FastWorkbench](https://www.curseforge.com/minecraft/mc-mods/fastworkbench): they have no build for 26.2.
+### Not on 26.1.2 yet
+- [EMI](https://www.curseforge.com/minecraft/mc-mods/emi) and [Polymorph](https://www.curseforge.com/minecraft/mc-mods/polymorph): they
+  have no build for 26.1.2.
 
 ## [1.2.3+1.21.1] - 2026-11-22
 - The anvil shows the name you type again, so items can be renamed at the station.

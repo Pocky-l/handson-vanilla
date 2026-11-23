@@ -56,7 +56,7 @@ public final class GhostRecipe {
 
     /** The server answered a recipe the player lacks items for, or the book found it so laying one by clicks; on the render thread. */
     public static void arrived(int containerId, RecipeDisplay recipe) {
-        if (Minecraft.getInstance().gui.screen() instanceof RecipeUpdateListener) {
+        if (Minecraft.getInstance().screen instanceof RecipeUpdateListener) {
             // The vanilla screen is open and showed it itself.
             return;
         }

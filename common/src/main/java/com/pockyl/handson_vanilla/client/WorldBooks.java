@@ -68,7 +68,7 @@ public final class WorldBooks {
         poseStack.mulPose(Axis.ZP.rotationDegrees(80.0F));
         float flip = state.flip;
         float open = (Mth.sin(time * 0.02F) * 0.1F + 1.25F) * state.open;
-        double far = Minecraft.getInstance().gameRenderer.mainCamera().position()
+        double far = Minecraft.getInstance().gameRenderer.getMainCamera().position()
                 .distanceTo(Vec3.atCenterOf(state.blockPos));
         runes = RUNES_ALPHA * (float) Mth.clamp((RUNES_FAR - far) / (RUNES_FAR - RUNES_NEAR), 0.0, 1.0);
         // Every page vanilla's flip turns is a page turned: the book shows the spread it has come to, going on or back.

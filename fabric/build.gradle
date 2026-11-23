@@ -10,7 +10,7 @@ dependencies {
     implementation "net.fabricmc:fabric-loader:${fabric_loader_version}"
     implementation "net.fabricmc.fabric-api:fabric-api:${fabric_api_version}"
     // The API is in Diegesis' common jar; the Fabric jar of the library plays in the playtest client
-    // (playtest-26.2-fabric) and in the game tests below.
+    // (playtest-26.1.2-fabric) and in the game tests below.
     compileOnly "com.pockyl.diegesis:common:${diegesis_version}"
     compileOnly "mezz.jei:jei-${minecraft_version}-common-api:${jei_version}"
     compileOnly "mezz.jei:jei-${minecraft_version}-fabric-api:${jei_version}"
@@ -52,7 +52,7 @@ configurations {
 dependencies {
     gameTestMods "net.fabricmc.fabric-api:fabric-api:${fabric_api_version}"
     // Not in the fabric-api jar: the module that runs the tests (the version fabric-api's POM names).
-    gameTestMods 'net.fabricmc.fabric-api:fabric-gametest-api-v1:4.0.22+4a7fa0819e'
+    gameTestMods 'net.fabricmc.fabric-api:fabric-gametest-api-v1:4.0.18+867b87624c'
 }
 
 // The game tests on a production Fabric server with the release jars of this mod, Diegesis and Fabric API:

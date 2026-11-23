@@ -891,7 +891,7 @@ final class EnchantingTableBehavior implements StationBehavior {
             float[] sheets = OpenBook.flipAngles(flip, tableOpen);
             tableRight = sheets[0];
             tableLeft = sheets[1];
-            tableLight = net.minecraft.util.LightCoordsUtil.getLightCoords(view.level(), view.pos());
+            tableLight = net.minecraft.client.renderer.LevelRenderer.getLightCoords(view.level(), view.pos());
         }
         Vector3f at = table.getTranslation(new Vector3f()).lerp(read.getTranslation(new Vector3f()), k);
         Quaternionf turn = table.getNormalizedRotation(new Quaternionf()).slerp(read.getNormalizedRotation(new Quaternionf()), k);
