@@ -37,7 +37,7 @@ final class Draw {
 
     /** Whether the item is drawn as a block (lit from the side in a GUI): what {@code BakedModel.isGui3d()} told before. */
     static boolean isBlock(ItemStack stack, @Nullable Level level) {
-        return !stack.isEmpty() && SceneDraw.itemState(stack, ItemDisplayContext.GUI, level, 0).usesBlockLight();
+        return ItemLook.isGui3d(stack, ItemDisplayContext.GUI, level);
     }
 
     /** A sprite of the block atlas. */
