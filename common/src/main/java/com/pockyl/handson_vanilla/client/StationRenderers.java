@@ -25,7 +25,8 @@ public final class StationRenderers {
     /** Whether the block entity's renderers are stopped: the station's scene draws what they would. */
     public static boolean drawnByScene(BlockEntity blockEntity) {
         BlockState state = blockEntity.getBlockState();
-        if (state.is(Blocks.CRAFTING_TABLE)) {
+        // Visual Workbench's table is its own twin block of the crafting table, any mod's, not vanilla's.
+        if (BlockTwins.craftingTable(state)) {
             return DiegesisClient.station(blockEntity.getBlockPos()).map(view -> view.menu() != null).orElse(false);
         }
         if (FurnaceKind.remodelled(state) != null) {
