@@ -1,5 +1,8 @@
 # Changelog
 
+## [1.2.5+1.21.11] - Unreleased
+- With [Visual Workbench](https://www.curseforge.com/minecraft/mc-mods/visual-workbench) every crafting table it takes over is worked by hand too (it used to open its screen), and what is left on the grid stays in the table.
+
 ## [1.2.3+1.21.11] - 2026-11-23
 - Minecraft 1.21.11 on [NeoForge](https://neoforged.net) and [Fabric](https://fabricmc.net): every station of 1.2.3+1.21.1, the recipe books, and the keys and "+" of
   [JEI](https://www.curseforge.com/minecraft/mc-mods/jei) at the stations.
