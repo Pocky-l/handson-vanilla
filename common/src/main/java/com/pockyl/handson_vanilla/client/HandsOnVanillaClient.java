@@ -69,6 +69,8 @@ public final class HandsOnVanillaClient {
         registerGlyphs();
         Diegesis.station(HandsOnVanilla.id("crafting_table"))
                 .blocks(Blocks.CRAFTING_TABLE)
+                // Every other mod's crafting table Visual Workbench serves too, with its menu and the grid kept in the table.
+                .blocks(CraftingTables::visualWorkbench)
                 .orientation(StationType.Orientation.PLAYER)
                 // The server's own reach for a menu: a use from farther opens nothing.
                 .reach(4.5)

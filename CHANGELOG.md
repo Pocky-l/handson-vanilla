@@ -1,5 +1,8 @@
 # Changelog
 
+## [1.2.5] - Unreleased
+- With [Visual Workbench](https://www.curseforge.com/minecraft/mc-mods/visual-workbench) the crafting tables of other mods it works with are worked by hand too, not only the vanilla one.
+
 ## [1.2.4] - 2026-11-23
 - With [Polymorph](https://www.curseforge.com/minecraft/mc-mods/polymorph), the furnaces and the smithing table let you choose between recipes that take the same things, as the crafting table does.
 
