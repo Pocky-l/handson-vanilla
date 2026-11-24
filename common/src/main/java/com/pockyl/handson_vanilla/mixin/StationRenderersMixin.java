@@ -11,6 +11,7 @@ import org.spongepowered.asm.mixin.injection.Inject;
 import org.spongepowered.asm.mixin.injection.callback.CallbackInfo;
 
 import com.pockyl.diegesis.api.client.DiegesisClient;
+import com.pockyl.handson_vanilla.client.BlockTwins;
 import com.pockyl.handson_vanilla.client.FurnaceKind;
 
 /**
@@ -27,7 +28,8 @@ abstract class StationRenderersMixin {
     private void handson_vanilla$drawnByScene(BlockEntity blockEntity, float partialTick, PoseStack poseStack, MultiBufferSource buffers,
             CallbackInfo callback) {
         var state = blockEntity.getBlockState();
-        if (state.is(Blocks.CRAFTING_TABLE)) {
+        // On 1.21.1 Visual Workbench's table is its own twin block of the crafting table, any mod's, not vanilla's.
+        if (BlockTwins.craftingTable(state)) {
             if (DiegesisClient.station(blockEntity.getBlockPos()).map(view -> view.menu() != null).orElse(false)) {
                 callback.cancel();
             }

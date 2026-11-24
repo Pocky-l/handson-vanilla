@@ -1,5 +1,8 @@
 # Changelog
 
+## [1.2.5+1.21.1] - Unreleased
+- With [Visual Workbench](https://www.curseforge.com/minecraft/mc-mods/visual-workbench) every crafting table it takes over is worked by hand too (it used to open its screen), and what is left on the grid stays in the table.
+
 ## [1.2.4+1.21.1] - 2026-11-23
 - With [Polymorph](https://www.curseforge.com/minecraft/mc-mods/polymorph), the furnaces and the smithing table let you choose between recipes that take the same things, as the crafting table does.
 

@@ -68,13 +68,16 @@ public final class HandsOnVanillaClient {
         registerGlyphs();
         Diegesis.station(HandsOnVanilla.id("crafting_table"))
                 .blocks(Blocks.CRAFTING_TABLE)
+                // Visual Workbench's twins of every crafting table, vanilla's and other mods', which keep the grid in the table.
+                .blocks(BlockTwins::workbenches)
                 .orientation(StationType.Orientation.PLAYER)
                 // The server's own reach for a menu: a use from farther opens nothing.
                 .reach(4.5)
                 .schema(StationSchema.builder().slots(GRID, 9).output(RESULT).build())
                 // Visual Workbench gives the table a menu of its own, vanilla's with the grid kept in the table: the same slots.
                 .menu(MenuBinding.of(MenuType.CRAFTING).alsoAccepts(VISUAL_WORKBENCH).output(RESULT, 0).slots(GRID, 1, 9).build())
-                .openWhen((player, pos, state) -> VanillaConfig.craftingTable())
+                // A vanilla table Visual Workbench turns into its own at this use opens nothing yet: the next use opens the station.
+                .openWhen((player, pos, state) -> VanillaConfig.craftingTable() && !BlockTwins.refused(state))
                 .register();
         DiegesisClient.registerBehavior(HandsOnVanilla.id("crafting_table"), view -> new CraftingTableBehavior());
         for (FurnaceKind kind : FurnaceKind.values()) {
