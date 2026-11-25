@@ -2,6 +2,8 @@
 
 ## [1.2.6] - 2026-11-25
 - Nothing goes into a station by itself any more: opening a furnace, anvil, grindstone, loom or any other station with something in your hand no longer puts it in, and the enchanting table no longer lays the lapis for you. You choose what goes where.
+- The slots over the hotbar no longer shuffle: opening a station again used to show the places of the last visit, other items among them. Each opening now starts from your inventory as it is, and a stack keeps its place while you work there.
+- The crafting table now offers pottery sherds, heads, empty maps, books and quills and fire charges: they go into decorated pots, firework stars and copies, and were missing from the slots over the hotbar.
 
 ## [1.2.5] - 2026-11-25
 - With [Visual Workbench](https://www.curseforge.com/minecraft/mc-mods/visual-workbench) the crafting tables of other mods it works with are worked by hand too, not only the vanilla one.
