@@ -47,6 +47,10 @@ final class CartographyTableBehavior implements StationBehavior {
     private static final int MAP_SLOT = 0;
     private static final int EXTRA_SLOT = 1;
     private static final int RESULT_SLOT = 2;
+    /** Map Atlases' menu buttons that pick the map its shears cut out of the atlas: the one before, the one after. */
+    private static final int ATLAS_BACK = 4;
+    private static final int ATLAS_ON = 5;
+    private static final String ATLAS_MENU = "pepjebs.mapatlases.utils.AtlasCartographyTable";
     private static final Identifier PARCHMENT = vanilla("textures/map/map_background.png");
     private static final Identifier GLASS = vanilla("block/glass");
     /** The map lying on the table, pixels; the hovering sheet's: a map, the zoomed out sheet, the two copies apart. */
@@ -369,6 +373,35 @@ final class CartographyTableBehavior implements StationBehavior {
                 take(view, shift);
             }
             return true;
+        }
+        return false;
+    }
+
+    /**
+     * The wheel over the table leafs through Map Atlases' atlas while its shears are about to cut a map out of it: up the map
+     * before, down the one after, as on its own screen; the hovering result shows the one picked.
+     */
+    @Override
+    public boolean onScroll(StationView view, String node, double amount) {
+        CartographyTableMenu menu = cartography(view);
+        MenuAccess access = view.menu();
+        if (menu == null || access == null || amount == 0.0 || !atlasMenu(menu) || stack(view, MAP_SLOT).is(Items.FILLED_MAP)
+                || !menu.getSlot(RESULT_SLOT).getItem().is(Items.FILLED_MAP)) {
+            return false;
+        }
+        access.pressButton(amount > 0.0 ? ATLAS_BACK : ATLAS_ON);
+        StationHands.play(view, SoundEvents.BOOK_PAGE_TURN, MAP, 0.25F, 1.3F + 0.2F * StationHands.random(view));
+        return true;
+    }
+
+    /** Whether Map Atlases has given the cartography menu its atlas buttons. */
+    private static boolean atlasMenu(CartographyTableMenu menu) {
+        for (Class<?> type = menu.getClass(); type != null; type = type.getSuperclass()) {
+            for (Class<?> face : type.getInterfaces()) {
+                if (face.getName().equals(ATLAS_MENU)) {
+                    return true;
+                }
+            }
         }
         return false;
     }
