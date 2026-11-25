@@ -6,6 +6,7 @@
 - The crafting table now offers pottery sherds, heads, empty maps, books and quills and fire charges: they go into decorated pots, firework stars and copies, and were missing from the slots over the hotbar.
 - The furnace, smoker and blast furnace no longer show a bar while they cook: the bars of the grate (the smoker's rack) heat up from left to right instead, under what cooks and on to the result.
 - A pick in the stonecutter's book now cuts one piece, and Shift + click cuts all the stone on the slab. A single click used to cut the whole stack.
+- With [Map Atlases](https://modrinth.com/mod/map-atlases), the mouse wheel over the cartography table picks which map the shears cut out of the atlas, as on its own screen.
 
 ## [1.2.5] - 2026-11-25
 - With [Visual Workbench](https://www.curseforge.com/minecraft/mc-mods/visual-workbench) the crafting tables of other mods it works with are worked by hand too, not only the vanilla one.
