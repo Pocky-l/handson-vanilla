@@ -13,7 +13,6 @@ import org.joml.Vector3f;
 
 import com.pockyl.diegesis.api.client.MenuAccess;
 import com.pockyl.diegesis.api.client.MeshShape;
-import com.pockyl.diegesis.api.client.NodeView;
 import com.pockyl.diegesis.api.client.StationBehavior;
 import com.pockyl.diegesis.api.client.StationView;
 import com.pockyl.diegesis.api.scene.Visual;
@@ -28,9 +27,8 @@ import java.util.Optional;
  * it burns, the smoker a rack in its chamber and logs that burn below, the blast furnace a grate across its hearth over glowing
  * coals. At the station the block is swapped for the scene's copy without doors and the doors' leaves, which swing open as the
  * player comes and shut as they leave: what cooks stands on the left, what it became on the right, the fuel in the middle of the
- * fire. A thin bar floating over the front edge of the cooking place fills from left to right as the cooking goes. What the hand
- * held on opening goes in by itself (one vanilla shift-click), so a top-up is "use with coal, Escape". Everything is read from the
- * vanilla menu; all of it is local.
+ * fire. A thin bar floating over the front edge of the cooking place fills from left to right as the cooking goes. Nothing goes in
+ * by itself: the player puts in what they choose. Everything is read from the vanilla menu; all of it is local.
  */
 final class FurnaceBehavior implements StationBehavior {
     static final String INPUT = "input";
@@ -52,20 +50,12 @@ final class FurnaceBehavior implements StationBehavior {
     /** Bands of the ember texture for the bar's empty track and its glowing fill. */
     private static final int TRACK = 6;
     private static final int FILL = 1;
-    /** Seconds an item flies from the hotbar into the furnace, and the height of its arc. */
-    private static final float FLIGHT_TIME = 0.32F;
-    private static final float FLIGHT_ARC = 2.5F;
-    /** How long after the automatic shift-click a slot that fills is taken for the item flying in. */
-    private static final long AUTO_FLIGHT_MS = 1500L;
-
     /** How often a furnace nobody works at asks what lies in it (singleplayer), ticks. */
     private static final int IDLE_ASK_TICKS = 20;
     private final FurnaceKind kind;
     private final Visual body;
     private final Visual bodyLit;
     private int idleTicks;
-    private int heldSlot = -1;
-    private long autoAt;
     private int shownFill = -2;
     private float clock;
     private Boolean lit;
@@ -137,11 +127,6 @@ final class FurnaceBehavior implements StationBehavior {
     @Override
     public void onOpen(StationView view) {
         FurnaceUse.refresh();
-        heldSlot = -1;
-        LocalPlayer player = Minecraft.getInstance().player;
-        if (player != null && view.openedByUse() && usable(player.getMainHandItem())) {
-            heldSlot = player.getInventory().getSelectedSlot();
-        }
         shownFill = -2;
         known = false;
         opening = true;
@@ -150,21 +135,11 @@ final class FurnaceBehavior implements StationBehavior {
 
     @Override
     public void onMenuOpened(StationView view) {
-        LocalPlayer player = Minecraft.getInstance().player;
-        MenuAccess menu = view.menu();
-        if (heldSlot >= 0 && player != null && menu != null && usable(player.getInventory().getItem(heldSlot))) {
-            // One vanilla shift-click of the held stack: the furnace's own rule sends it to the top or into the fire.
-            menu.quickMoveFromInventory(heldSlot);
-            autoAt = net.minecraft.util.Util.getMillis();
-        } else {
-            heldSlot = -1;
-        }
         remember(view);
     }
 
     @Override
     public void onClose(StationView view) {
-        heldSlot = -1;
         known = false;
         opening = false;
         play(view, kind.closeSound(), "body", 0.25F, kind.pitch() + 0.1F * random(view));
@@ -287,12 +262,11 @@ final class FurnaceBehavior implements StationBehavior {
         int nowInput = count(view, INPUT);
         int nowFuel = count(view, FUEL);
         int nowResult = count(view, RESULT);
-        boolean flying = heldSlot >= 0 && net.minecraft.util.Util.getMillis() - autoAt < AUTO_FLIGHT_MS;
         if (nowInput > input) {
-            arrived(view, INPUT, flying);
+            arrived(view, INPUT);
         }
         if (nowFuel > fuel) {
-            arrived(view, FUEL, flying);
+            arrived(view, FUEL);
         }
         if (nowResult < result && held(lastResult) > resultHeld) {
             // Taken by the hand: still hot.
@@ -302,33 +276,9 @@ final class FurnaceBehavior implements StationBehavior {
         remember(view);
     }
 
-    /** Something came into a slot: from the hotbar by the automatic shift-click it flies there, otherwise it is just put. */
-    private void arrived(StationView view, String slot, boolean flying) {
-        if (flying && flight(view, slot, heldSlot)) {
-            heldSlot = -1;
-        }
+    /** Something came into a slot. */
+    private void arrived(StationView view, String slot) {
         play(view, SoundEvents.STONE_HIT, slot, 0.3F, 1.1F + 0.2F * random(view));
-    }
-
-    /** Sends the slot's item from the hotbar slot it came from into its place, with a hop. */
-    private static boolean flight(StationView view, String slot, int hotbar) {
-        Optional<NodeView> node = view.node(slot);
-        if (node.isEmpty()) {
-            return false;
-        }
-        var window = Minecraft.getInstance().getWindow();
-        float width = window.getGuiScaledWidth();
-        float height = window.getGuiScaledHeight();
-        float x = (width / 2.0F - 80.0F + 20.0F * hotbar) / width;
-        float y = (height - 11.0F) / height;
-        org.joml.Vector3fc rest = node.get().definition().transform().pos();
-        Optional<Vector3f> from = view.screenOn(x, y, rest.y() - 2.0F).map(at -> at.sub(rest.x(), rest.y(), rest.z(), new Vector3f()));
-        if (from.isEmpty() || from.get().length() > 40.0F) {
-            return false;
-        }
-        node.get().moveTo(from.get().x, from.get().y, from.get().z, 0.0F);
-        node.get().hopTo(0.0F, 0.0F, 0.0F, FLIGHT_ARC, FLIGHT_TIME);
-        return true;
     }
 
     private void remember(StationView view) {
