@@ -1,5 +1,6 @@
 package com.pockyl.handson_vanilla.client;
 
+import net.minecraft.resources.ResourceLocation;
 import net.minecraft.sounds.SoundEvent;
 import net.minecraft.sounds.SoundEvents;
 import net.minecraft.world.inventory.MenuType;
@@ -13,7 +14,8 @@ import java.util.function.BooleanSupplier;
 
 /**
  * What sets the furnaces worked by hand apart: the block, its menu and recipes, the station's switch, the door leaves of its scene
- * and how they sound. Everything else (slots, the fire's numbers, the progress bar, what flies in) is the same station,
+ * and how they sound, the grate that heats as the cooking goes. Everything else (slots, the fire's numbers, what flies in) is the
+ * same station,
  * {@link FurnaceBehavior}. The models and scenes are named after {@link #id()}: {@code diegesis/<id>_body(_on)} and
  * {@code diegesis/scenes/<id>.json}; the world model replaces {@code minecraft:block/<id>(_on)}.
  */
@@ -22,18 +24,19 @@ public enum FurnaceKind {
     FURNACE("furnace", Blocks.FURNACE, MenuType.FURNACE, RecipeType.SMELTING, VanillaConfig::furnace,
             new Leaf[] {Leaf.side("mouth_door_right", 170.0F), Leaf.side("mouth_door_left", -170.0F),
                     Leaf.side("firebox_door_right", 170.0F), Leaf.side("firebox_door_left", -170.0F)},
-            SoundEvents.IRON_TRAPDOOR_OPEN, SoundEvents.IRON_TRAPDOOR_CLOSE, 1.2F),
+            SoundEvents.IRON_TRAPDOOR_OPEN, SoundEvents.IRON_TRAPDOOR_CLOSE, 1.2F, new Grate("furnace_grate_hot", 9.0F, 3.0F, 13.0F, 0.0F, 6.0F)),
     /** One iron-framed door over the smoking chamber, hinged on the viewer's left, swung out towards them like an oven's. */
     SMOKER("smoker", Blocks.SMOKER, MenuType.SMOKER, RecipeType.SMOKING, VanillaConfig::smoker,
             new Leaf[] {Leaf.side("door", -115.0F)},
-            SoundEvents.IRON_DOOR_OPEN, SoundEvents.IRON_DOOR_CLOSE, 1.35F),
+            SoundEvents.IRON_DOOR_OPEN, SoundEvents.IRON_DOOR_CLOSE, 1.35F, new Grate("smoker_rack_hot", 8.0F, 3.0F, 13.0F, 0.0F, 6.0F)),
     /**
      * The iron hatch of vanilla's front, hinged at its foot, let down like an oven's door: lifted, it would turn its underside to
      * the camera, which the game shades dark.
      */
     BLAST_FURNACE("blast_furnace", Blocks.BLAST_FURNACE, MenuType.BLAST_FURNACE, RecipeType.BLASTING, VanillaConfig::blastFurnace,
             new Leaf[] {Leaf.foot("hatch", -95.0F)},
-            SoundEvents.IRON_TRAPDOOR_OPEN, SoundEvents.IRON_TRAPDOOR_CLOSE, 0.85F);
+            SoundEvents.IRON_TRAPDOOR_OPEN, SoundEvents.IRON_TRAPDOOR_CLOSE, 0.85F,
+            new Grate("furnace_grate_hot", 7.0F, 4.0F, 13.0F, 1.0F, 6.0F));
 
     private final String id;
     private final Block block;
@@ -44,9 +47,10 @@ public enum FurnaceKind {
     private final SoundEvent open;
     private final SoundEvent close;
     private final float pitch;
+    private final Grate grate;
 
     FurnaceKind(String id, Block block, MenuType<?> menu, RecipeType<? extends AbstractCookingRecipe> recipes, BooleanSupplier on,
-            Leaf[] leaves, SoundEvent open, SoundEvent close, float pitch) {
+            Leaf[] leaves, SoundEvent open, SoundEvent close, float pitch, Grate grate) {
         this.id = id;
         this.block = block;
         this.menu = menu;
@@ -56,6 +60,18 @@ public enum FurnaceKind {
         this.open = open;
         this.close = close;
         this.pitch = pitch;
+        this.grate = grate;
+    }
+
+    /**
+     * The grate (the smoker's rack) things cook on, in the block model's pixels (front at z 0): its top, the part of it seen in the
+     * hollow from x {@code left} to {@code right} and z {@code front} to {@code back}, and the sprite of its bars red-hot, laid out
+     * as the grate's own texture is on its top (u along x, v along z), with the gaps clear.
+     */
+    record Grate(ResourceLocation texture, float top, float left, float right, float front, float back) {
+        Grate(String texture, float top, float left, float right, float front, float back) {
+            this(new ResourceLocation("handson_vanilla", "block/" + texture), top, left, right, front, back);
+        }
     }
 
     /**
@@ -92,6 +108,10 @@ public enum FurnaceKind {
     /** Whether the station is on: off, the block is vanilla's (or a resource pack's) again and opens its vanilla screen. */
     public boolean on() {
         return on.getAsBoolean();
+    }
+
+    Grate grate() {
+        return grate;
     }
 
     Leaf[] leaves() {

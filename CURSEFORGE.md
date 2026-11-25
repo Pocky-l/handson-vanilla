@@ -22,7 +22,7 @@
 
 <h2 style="text-align:center"><span style="color:#e0884a">The furnace</span></h2>
 <p style="text-align:center"><img src="https://raw.githubusercontent.com/Pocky-l/handson-vanilla/main/docs/showcase/furnace.gif" width="720" alt="Coal and raw iron put into the open furnace, the iron smelting on the grate over the fire until the ingot lies beside it"></p>
-<p style="text-align:center"><em>Its grille doors swing open: the ore lies on the grate, the fuel on the glowing coals below,<br>and a thin bar shows how far it has cooked. Every furnace in the world shows what smelts in it.</em></p>
+<p style="text-align:center"><em>Its grille doors swing open: the ore lies on the grate, the fuel on the glowing coals below,<br>and the grate's bars glow hotter from left to right as it cooks. Every furnace in the world shows what smelts in it.</em></p>
 
 <h2 style="text-align:center"><span style="color:#e0884a">The recipe book</span></h2>
 <p style="text-align:center"><em>A green book lies on the table's edge and has everything the vanilla one does, with a search, a "Made lately" tab<br>and pages you turn with the wheel. Drag it where you like it and make it as big as you want.</em></p>
