@@ -30,7 +30,7 @@ Built on [Diegesis](https://www.curseforge.com/minecraft/mc-mods/diegesis), from
   one by one or all at once, and the result hovers over the table, its count turned to you. Take it with a click, or
   Shift + click to craft as many as the grid allows.
 - **Furnace.** Its grille doors swing open: what smelts lies on the grate in its mouth, the result beside it, and the
-  fuel on the coals below, glowing while it burns. A thin bar over the grate fills as it cooks.
+  fuel on the coals below, glowing while it burns. The grate's bars turn red-hot from left to right as it cooks.
 - **Smoker.** Its glazed door swings out like an oven's: the food lies on an iron rack in the chamber, the fuel in front
   of the logs that burn below, and smoke seeps out round the door while it cooks.
 - **Blast furnace.** Its iron hatch drops open like an oven door: the ore lies on a cast iron grate in the hearth, the result
