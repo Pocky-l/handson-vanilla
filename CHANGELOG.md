@@ -5,6 +5,7 @@
 - The slots over the hotbar no longer shuffle: opening a station again used to show the places of the last visit, other items among them. Each opening now starts from your inventory as it is, and a stack keeps its place while you work there.
 - The crafting table now offers pottery sherds, heads, empty maps, books and quills and fire charges: they go into decorated pots, firework stars and copies, and were missing from the slots over the hotbar.
 - The furnace, smoker and blast furnace no longer show a bar while they cook: the bars of the grate (the smoker's rack) heat up from left to right instead, under what cooks and on to the result.
+- A pick in the stonecutter's book now cuts one piece, and Shift + click cuts all the stone on the slab. A single click used to cut the whole stack.
 
 ## [1.2.5] - 2026-11-25
 - With [Visual Workbench](https://www.curseforge.com/minecraft/mc-mods/visual-workbench) the crafting tables of other mods it works with are worked by hand too, not only the vanilla one.

@@ -77,7 +77,8 @@ final class StonecutterBook implements RecipeBook.Source {
         if (page.key() instanceof ResourceLocation recipe) {
             Minecraft.getInstance().getSoundManager().play(SimpleSoundInstance.forUI(SoundEvents.BOOK_PAGE_TURN, 1.4F,
                     0.35F * VanillaConfig.soundVolume()));
-            station.cut(view, recipe, !Screen.hasShiftDown());
+            // One piece a pick, so a stack is never cut by mistake; Shift cuts all the stone on the slab.
+            station.cut(view, recipe, Screen.hasShiftDown());
         }
     }
 
