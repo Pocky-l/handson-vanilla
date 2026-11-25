@@ -1,6 +1,6 @@
 {
   "$schema": "https://raw.githubusercontent.com/Pocky-l/diegesis/main/docs/schema/scene.schema.json",
-  "$comment": "The furnace's own model (this mod's, always) has its mouth (upper, x 3-13, y 9-13) and firebox (lower, x 3-13, y 1-5) as hollows 6 pixels deep lined with firebrick behind grille doors, a grate under the mouth and lumps of coal in the firebox that glow while it burns. At the station the block is swapped for body (the same without doors) and the four door leaves, hinged at x 4 and 12 in the front's plane; code swings them open along the front and shut again. input stands on the grate on the viewer's left, result on the right, fuel in the middle of the firebox in front of the embers. choice_N, in front of the frame right of the result's hollow in two columns, are the other things the input cooks into when Polymorph lets the player choose (RecipeChoice; a click makes one what the furnace keeps cooking into), and the result's empty place then shows what it makes see-through; hidden otherwise. progress is the grate's bars glowing red-hot from the viewer's left towards the result as the cooking goes (FurnaceKind.Grate, drawn by code at the block's origin over the grate's top). The camera stands in front and a little to the right, above, looking into both hollows, close enough to the middle that its lines to the work surface stay clear of a block standing right of the furnace (clear_view would hide it); input and result sit 0.8 pixels left of the mouth's middle, where they look centred from the camera; clicks count from 60% of the flight. The fire's own flames and smoke (inside the firebox) stay seen. A held stack moves over the furnace's front (carry plane over the block). Idle the scene draws what is known to lie in the furnace (FurnaceContents, painters on the slots) behind the shut grille doors. The hotbar stays where the HUD has it and takes clicks; over it rows of the other stacks that smelt or burn.",
+  "$comment": "The furnace's own model (this mod's, always) has its mouth (upper, x 3-13, y 9-13) and firebox (lower, x 3-13, y 1-5) as hollows 6 pixels deep lined with firebrick behind grille doors, a grate under the mouth and lumps of coal in the firebox that glow while it burns. At the station the block is swapped for body (the same without doors) and the four door leaves, hinged at x 4 and 12 in the front's plane; code swings them open along the front and shut again. input stands on the grate on the viewer's left, result on the right, fuel in the middle of the firebox in front of the embers. choice_N, in front of the frame right of the result's hollow in two columns, are the other things the input cooks into when Polymorph lets the player choose (RecipeChoice; a click makes one what the furnace keeps cooking into), and the result's empty place then shows what it makes see-through; hidden otherwise. progress is the grate's bars glowing red-hot from the viewer's left towards the result as the cooking goes (FurnaceKind.Grate, drawn by code at the block's origin over the grate's top). The camera stands in front and a little to the right, above, looking into both hollows, close enough to the middle that its lines to the work surface stay clear of a block standing right of the furnace (clear_view would hide it); input and result sit a little left of the mouth's middle, where they look centred from the camera, the input clear of the mouth's upper left step (x 12-13, y 11-13: a tall piece such as beef went into it) and the result of the right one (x 3-4); clicks count from 60% of the flight. The fire's own flames and smoke (inside the firebox) stay seen. A held stack moves over the furnace's front (carry plane over the block). Idle the scene draws what is known to lie in the furnace (FurnaceContents, painters on the slots) behind the shut grille doors. The hotbar stays where the HUD has it and takes clicks; over it rows of the other stacks that smelt or burn.",
   "work_plane": 0,
   "idle_visible": true,
   "camera": {
@@ -44,13 +44,13 @@
       "visual": {"model": "handson_vanilla:diegesis/furnace_door", "anchor": [0, 0, 8], "lit_as_block": true}},
     {
       "id": "input",
-      "pos": [11.2, 9, 3],
+      "pos": [10.3, 9, 3],
       "slot": {"slot": "input[0]", "ghost": ["minecraft:raw_iron", "minecraft:raw_copper", "minecraft:beef", "minecraft:sand", "minecraft:cobblestone"], "display": "upright", "size": 3.2, "count_facing": "front"},
       "collider": {"from": [-2.6, 0, -3.2], "to": [2.6, 4, 3]}
     },
     {
       "id": "result",
-      "pos": [6.4, 9, 3],
+      "pos": [6.0, 9, 3],
       "slot": {"slot": "result[0]", "display": "upright", "size": 3.2, "count_facing": "front"},
       "collider": {"from": [-2.6, 0, -3.2], "to": [2.6, 4, 3]}
     },

@@ -7,6 +7,7 @@
 - The furnace, smoker and blast furnace no longer show a bar while they cook: the bars of the grate (the smoker's rack) heat up from left to right instead, under what cooks and on to the result.
 - A pick in the stonecutter's book now cuts one piece, and Shift + click cuts all the stone on the slab. A single click used to cut the whole stack.
 - With [Map Atlases](https://modrinth.com/mod/map-atlases), the mouse wheel over the cartography table picks which map the shears cut out of the atlas, as on its own screen.
+- Tall pieces such as beef no longer poke into the furnace's wall: what cooks and what it became stand a little further in from the sides of the mouth, the faded hint of an empty place too.
 
 ## [1.2.5] - 2026-11-25
 - With [Visual Workbench](https://www.curseforge.com/minecraft/mc-mods/visual-workbench) the crafting tables of other mods it works with are worked by hand too, not only the vanilla one.
