@@ -5,7 +5,6 @@ import com.mojang.blaze3d.vertex.VertexConsumer;
 import com.mojang.math.Axis;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.gui.screens.Screen;
-import net.minecraft.client.player.LocalPlayer;
 import net.minecraft.client.renderer.LightTexture;
 import net.minecraft.client.renderer.MultiBufferSource;
 import net.minecraft.client.renderer.RenderType;
@@ -103,9 +102,6 @@ final class CartographyTableBehavior implements StationBehavior {
     private ItemStack taking = ItemStack.EMPTY;
     private Kind takingKind = Kind.NONE;
     private float takenAt = -10.0F;
-    private int heldSlot = -1;
-    private int flyFrom = -1;
-    private String flyNode;
     private int checkIn = -1;
     /** The work under way before a take: what it makes, since when (negative: none), whether the take goes to the inventory. */
     private Kind working = Kind.NONE;
@@ -132,30 +128,10 @@ final class CartographyTableBehavior implements StationBehavior {
 
     @Override
     public void onOpen(StationView view) {
-        heldSlot = -1;
-        LocalPlayer player = Minecraft.getInstance().player;
-        if (player != null && view.openedByUse() && usable(player.getMainHandItem())) {
-            heldSlot = player.getInventory().selected;
-        }
-        flyFrom = -1;
         taking = ItemStack.EMPTY;
         checkIn = -1;
         endWork(view);
         watch.forget();
-    }
-
-    @Override
-    public void onMenuOpened(StationView view) {
-        LocalPlayer player = Minecraft.getInstance().player;
-        MenuAccess menu = view.menu();
-        if (heldSlot >= 0 && player != null && menu != null && usable(player.getInventory().getItem(heldSlot))) {
-            ItemStack held = player.getInventory().getItem(heldSlot);
-            menu.quickMoveFromInventory(heldSlot);
-            flyFrom = heldSlot;
-            // The menu's own rule: what another mod lets into the map's place (Map Atlases' atlas) flies there too.
-            flyNode = menu.handle().getSlot(MAP_SLOT).mayPlace(held) ? MAP : EXTRA;
-        }
-        heldSlot = -1;
     }
 
     /** Pieces put and taken by hand sound (paper on wood, glass on wood); a piece that makes nothing is answered a moment later. */
@@ -163,11 +139,6 @@ final class CartographyTableBehavior implements StationBehavior {
     public void tick(StationView view) {
         watch.tick(view, (node, change) -> {
             if (change > 0) {
-                if (flyFrom >= 0 && node.equals(flyNode)) {
-                    int from = flyFrom;
-                    view.node(node).ifPresent(slot -> StationHands.fly(view, node, from, slot.definition().transform().pos()));
-                    flyFrom = -1;
-                }
                 ItemStack put = stack(view, node.equals(MAP) ? MAP_SLOT : EXTRA_SLOT);
                 if (put.is(Items.GLASS_PANE)) {
                     StationHands.play(view, SoundEvents.GLASS_PLACE, node, 0.15F, 1.4F);

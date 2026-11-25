@@ -102,9 +102,6 @@ final class AnvilBehavior implements StationBehavior {
     private float soundAt;
     private float soundPitch = GUESSED_PITCH;
     private boolean soundHeard;
-    private int heldSlot = -1;
-    /** The inventory slot whose stack went onto the anvil by itself, to fly from there when it lands; -1: none. */
-    private int flyFrom = -1;
     /** The name being typed, or shown; whether it is being typed. */
     private String name = "";
     private boolean typing;
@@ -211,41 +208,14 @@ final class AnvilBehavior implements StationBehavior {
 
     @Override
     public void onOpen(StationView view) {
-        heldSlot = -1;
-        LocalPlayer player = Minecraft.getInstance().player;
-        if (player != null && view.openedByUse() && worked(player.getMainHandItem())) {
-            heldSlot = player.getInventory().selected;
-        }
         phase = Phase.IDLE;
         queued = 0;
         typing = false;
         name = "";
         seenLeft = ItemStack.EMPTY;
-        flyFrom = -1;
         forged = ItemStack.EMPTY;
         watch.forget();
         view.node(HAMMER).ifPresent(node -> node.setVisible(false));
-    }
-
-    @Override
-    public void onMenuOpened(StationView view) {
-        LocalPlayer player = Minecraft.getInstance().player;
-        MenuAccess menu = view.menu();
-        if (heldSlot >= 0 && player != null && menu != null && worked(player.getInventory().getItem(heldSlot))) {
-            // One vanilla shift-click of the held stack: it goes onto the anvil's left.
-            menu.quickMoveFromInventory(heldSlot);
-            flyFrom = heldSlot;
-        }
-        heldSlot = -1;
-    }
-
-    /**
-     * What goes onto the anvil by itself when held as it is used: what is mended, combined or already named. Anything can be renamed
-     * from the rows, but an apple in the hand is not meant for the anvil.
-     */
-    private static boolean worked(ItemStack stack) {
-        return !stack.isEmpty() && (stack.isDamageableItem() || stack.isEnchanted() || stack.is(net.minecraft.world.item.Items.ENCHANTED_BOOK)
-                || stack.has(DataComponents.CUSTOM_NAME));
     }
 
     @Override
@@ -257,16 +227,11 @@ final class AnvilBehavior implements StationBehavior {
         forged = ItemStack.EMPTY;
     }
 
-    /** Pieces put onto the anvil and taken off it by hand sound; the one put by itself on opening flies there from the hotbar. */
+    /** Pieces put onto the anvil and taken off it by hand sound. */
     @Override
     public void tick(StationView view) {
         watch.tick(view, (node, change) -> {
             if (change > 0) {
-                if (flyFrom >= 0) {
-                    int from = flyFrom;
-                    view.node(node).ifPresent(slot -> StationHands.fly(view, node, from, slot.definition().transform().pos()));
-                    flyFrom = -1;
-                }
                 StationHands.play(view, SoundEvents.ANVIL_PLACE, node, 0.08F, 1.7F + 0.2F * StationHands.random(view));
             } else {
                 StationHands.play(view, SoundEvents.ITEM_FRAME_REMOVE_ITEM, node, 0.3F, 0.9F + 0.2F * StationHands.random(view));

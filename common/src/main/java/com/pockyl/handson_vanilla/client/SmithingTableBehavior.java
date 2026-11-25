@@ -1,8 +1,6 @@
 package com.pockyl.handson_vanilla.client;
 
-import net.minecraft.client.Minecraft;
 import net.minecraft.client.gui.screens.Screen;
-import net.minecraft.client.player.LocalPlayer;
 import net.minecraft.core.component.DataComponents;
 import net.minecraft.network.chat.TextColor;
 import net.minecraft.sounds.SoundEvents;
@@ -106,14 +104,11 @@ final class SmithingTableBehavior implements StationBehavior {
     private float clock;
     /** Whether the hammer's side is the scene's front (the player came to the table's side). */
     private boolean front;
-    private int heldSlot = -1;
     private boolean strikeAll;
     /** Whether the strike under way follows another without the hammer lying down between. */
     private boolean strikeAgain;
     private int queued;
     private boolean recoiled = true;
-    /** The inventory slot whose stack went onto the plate by itself, to fly from there when it lands; -1: none. */
-    private int flyFrom = -1;
     /** Whether the plate had something to make last frame: a new result stirs the hammer. */
     private boolean hadResult;
     /** What the last blow made, rising off the plate, and the station's clock at the blow. */
@@ -146,12 +141,6 @@ final class SmithingTableBehavior implements StationBehavior {
     @Override
     public void onOpen(StationView view) {
         SmithingUse.refresh();
-        heldSlot = -1;
-        LocalPlayer player = Minecraft.getInstance().player;
-        if (player != null && view.openedByUse() && SmithingUse.usable(player.getMainHandItem())) {
-            heldSlot = player.getInventory().selected;
-        }
-        flyFrom = -1;
         forged = ItemStack.EMPTY;
         watch.forget();
         // The painted hammers are on the table's east and west sides, the tongs on its north and south.
@@ -163,18 +152,6 @@ final class SmithingTableBehavior implements StationBehavior {
             phase = Phase.HANGING;
         }
         phaseTime = 0.0F;
-    }
-
-    @Override
-    public void onMenuOpened(StationView view) {
-        LocalPlayer player = Minecraft.getInstance().player;
-        MenuAccess menu = view.menu();
-        if (heldSlot >= 0 && player != null && menu != null && SmithingUse.usable(player.getInventory().getItem(heldSlot))) {
-            // One vanilla shift-click of the held stack: the menu's own rule sends it to its place on the plate.
-            menu.quickMoveFromInventory(heldSlot);
-            flyFrom = heldSlot;
-        }
-        heldSlot = -1;
     }
 
     @Override
@@ -193,17 +170,12 @@ final class SmithingTableBehavior implements StationBehavior {
         return !view.isInUse() && phase == Phase.HANGING_BACK;
     }
 
-    /** Pieces put onto the plate and taken off it by hand sound; the one put by itself on opening flies there from the hotbar. */
+    /** Pieces put onto the plate and taken off it by hand sound. */
     @Override
     public void tick(StationView view) {
         choices(view);
         watch.tick(view, (node, change) -> {
             if (change > 0) {
-                if (flyFrom >= 0) {
-                    int from = flyFrom;
-                    view.node(node).ifPresent(slot -> StationHands.fly(view, node, from, slot.definition().transform().pos()));
-                    flyFrom = -1;
-                }
                 StationHands.play(view, SoundEvents.ANVIL_PLACE, node, 0.08F, 1.7F + 0.2F * StationHands.random(view));
             } else {
                 StationHands.play(view, SoundEvents.ITEM_FRAME_REMOVE_ITEM, node, 0.3F, 0.9F + 0.2F * StationHands.random(view));
