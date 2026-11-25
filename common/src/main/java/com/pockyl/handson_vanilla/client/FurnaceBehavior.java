@@ -30,7 +30,7 @@ import java.util.Optional;
  * it burns, the smoker a rack in its chamber and logs that burn below, the blast furnace a grate across its hearth over glowing
  * coals. At the station the block is swapped for the scene's copy without doors and the doors' leaves, which swing open as the
  * player comes and shut as they leave: what cooks stands on the left, what it became on the right, the fuel in the middle of the
- * fire. A thin bar floating over the front edge of the cooking place fills from left to right as the cooking goes. Nothing goes in
+ * fire. As the cooking goes the grate's bars glow red-hot from the left, under what cooks, towards the right. Nothing goes in
  * by itself: the player puts in what they choose. Everything is read from the vanilla menu; all of it is local.
  */
 final class FurnaceBehavior implements StationBehavior {
@@ -38,21 +38,11 @@ final class FurnaceBehavior implements StationBehavior {
     static final String FUEL = "fuel";
     static final String RESULT = "result";
 
-    private static final Identifier EMBERS = HandsOnVanilla.id("block/furnace_embers");
     /** Seconds the doors take to swing open or shut. */
     private static final float DOOR_SECONDS = 0.35F;
 
-    /**
-     * The progress bar floating over the front edge of the grate, in its node's pixels: half its width (the mouth's), its height, how
-     * far it bobs and how fast.
-     */
-    private static final float BAR_HALF = 4.5F;
-    private static final float BAR_HIGH = 0.25F;
-    private static final float BOB = 0.08F;
-    private static final float BOB_RATE = 2.0F;
-    /** Bands of the ember texture for the bar's empty track and its glowing fill. */
-    private static final int TRACK = 6;
-    private static final int FILL = 1;
+    /** How far the red-hot bars lie over the grate's top, pixels: clear of it, under anything standing on it. */
+    private static final float HOT_LIFT = 0.03F;
     /** How often a furnace nobody works at asks what lies in it (singleplayer), ticks. */
     private static final int IDLE_ASK_TICKS = 20;
     private final FurnaceKind kind;
@@ -60,7 +50,6 @@ final class FurnaceBehavior implements StationBehavior {
     private final Visual bodyLit;
     private int idleTicks;
     private int shownFill = -2;
-    private float clock;
     private Boolean lit;
     /** How far the doors are open, 0 shut to 1 open, and whether they are opening. */
     private float doors;
@@ -156,7 +145,6 @@ final class FurnaceBehavior implements StationBehavior {
 
     @Override
     public void frame(StationView view, float dt) {
-        clock += dt;
         boolean shown = view.isBlockHidden();
         AbstractFurnaceMenu menu = furnace(view);
         boolean burning = menu != null ? menu.isLit()
@@ -190,52 +178,36 @@ final class FurnaceBehavior implements StationBehavior {
     }
 
     /**
-     * The cooking as a thin bar floating over the front edge of the cooking place: shown while something cooks, filling from the
-     * viewer's left.
+     * The cooking as the grate heating: its bars glow red-hot from the viewer's left, where the raw piece lies, towards the result
+     * as the cooking goes (the menu's 0..24), and are cool again when one piece is done and the next begins. The glow is the bars'
+     * own pixels ({@link FurnaceKind.Grate}), drawn just over the grate at full brightness, so it reads in the dark too.
      */
     private void progress(StationView view, AbstractFurnaceMenu menu) {
         // In 24ths, as the vanilla arrow is drawn.
         int fill = menu == null ? 0 : (int) (menu.getBurnProgress() * 24.0F);
-        boolean cooking = menu != null
-                && (fill > 0 || menu.isLit() && FurnaceUse.cooks(kind.recipes(), view.state().getItem(SlotRef.of(INPUT, 0))));
-        view.node("progress").ifPresent(node -> {
-            if (cooking) {
-                node.moveTo(0.0F, BOB * (float) Math.sin(clock * BOB_RATE), 0.0F, 0.0F);
-            }
-        });
-        int shown = cooking ? fill : -1;
+        int shown = fill > 0 ? fill : -1;
         if (shown == shownFill) {
             return;
         }
         shownFill = shown;
         view.node("progress").ifPresent(node -> {
-            node.setVisible(cooking);
-            if (cooking) {
-                MeshShape.Builder track = MeshShape.builder();
-                bar(track, BAR_HALF, -BAR_HALF, TRACK, 0.0F);
-                node.setShape(track.build(), EMBERS);
-            }
-        });
-        view.node("progress_fill").ifPresent(node -> {
-            boolean any = cooking && fill > 0;
-            node.setVisible(any);
-            if (any) {
-                MeshShape.Builder glow = MeshShape.builder();
-                bar(glow, BAR_HALF, BAR_HALF - 2.0F * BAR_HALF * fill / 24.0F, FILL, -0.02F);
-                node.setShape(glow.build(), EMBERS, true);
+            node.setVisible(fill > 0);
+            if (fill > 0) {
+                FurnaceKind.Grate grate = kind.grate();
+                // The viewer faces the block's front (north), so its high x is on their left.
+                float hot = grate.right() - (grate.right() - grate.left()) * Math.min(fill, 24) / 24.0F;
+                float y = grate.top() + HOT_LIFT;
+                MeshShape.Builder shape = MeshShape.builder();
+                quad(shape, 0, 1, 0, corner(hot, y, grate.front()), corner(grate.right(), y, grate.front()),
+                        corner(grate.right(), y, grate.back()), corner(hot, y, grate.back()));
+                node.setShape(shape.build(), grate.texture(), true);
             }
         });
     }
 
-    /** A strip of the bar facing the front from {@code left} to {@code right} (node x), in one band of the ember texture. */
-    private static void bar(MeshShape.Builder shape, float left, float right, int band, float z) {
-        float v0 = (band * 2 + 0.25F) / 16.0F;
-        float v1 = (band * 2 + 0.75F) / 16.0F;
-        // One texel of the band stretched along the bar, so it is one even colour.
-        float u0 = 13.25F / 16.0F;
-        float u1 = 13.75F / 16.0F;
-        quad(shape, 0, 0, -1, new float[] {left, 0, z, u0, v1}, new float[] {right, 0, z, u1, v1},
-                new float[] {right, BAR_HIGH, z, u1, v0}, new float[] {left, BAR_HIGH, z, u0, v0});
+    /** A corner on the grate's top, in the block's pixels, with the place on the grate's texture it shows (u along x, v along z). */
+    private static float[] corner(float x, float y, float z) {
+        return new float[] {x, y, z, x / 16.0F, z / 16.0F};
     }
 
     /** A face from four corners {x, y, z, u, v}, turned to face along its normal whichever way they were given. */
