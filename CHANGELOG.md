@@ -2,6 +2,7 @@
 
 ## [1.2.5+1.21.1] - Unreleased
 - With [Visual Workbench](https://www.curseforge.com/minecraft/mc-mods/visual-workbench) every crafting table it takes over is worked by hand too (it used to open its screen), and what is left on the grid stays in the table.
+- With [Map Atlases](https://modrinth.com/mod/map-atlases) the atlas lies on the cartography table while it is there (it was unseen until taken), and a map cut out of it hovers with its picture.
 
 ## [1.2.4+1.21.1] - 2026-11-23
 - With [Polymorph](https://www.curseforge.com/minecraft/mc-mods/polymorph), the furnaces and the smithing table let you choose between recipes that take the same things, as the crafting table does.
