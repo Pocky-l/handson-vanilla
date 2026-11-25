@@ -7,7 +7,6 @@ import net.minecraft.client.Minecraft;
 import net.minecraft.client.gui.screens.Screen;
 import net.minecraft.client.model.geom.ModelLayers;
 import net.minecraft.client.model.geom.ModelPart;
-import net.minecraft.client.player.LocalPlayer;
 import net.minecraft.client.renderer.LightTexture;
 import net.minecraft.client.renderer.MultiBufferSource;
 import net.minecraft.client.renderer.RenderType;
@@ -114,9 +113,6 @@ final class LoomBehavior implements StationBehavior {
     private ModelPart flag;
     private final List<Flight> flights = new ArrayList<>();
     private float clock;
-    private int heldSlot = -1;
-    private int flyFrom = -1;
-    private String flyNode;
     /** The pattern under the cursor in the book, and how far its layer has come in on the banner. */
     private ResourceLocation preview;
     private ResourceLocation previewShownKey;
@@ -193,12 +189,6 @@ final class LoomBehavior implements StationBehavior {
 
     @Override
     public void onOpen(StationView view) {
-        heldSlot = -1;
-        LocalPlayer player = Minecraft.getInstance().player;
-        if (player != null && view.openedByUse() && usable(player.getMainHandItem())) {
-            heldSlot = player.getInventory().selected;
-        }
-        flyFrom = -1;
         queue.clear();
         pass = -1.0F;
         weaveBase = ItemStack.EMPTY;
@@ -211,20 +201,6 @@ final class LoomBehavior implements StationBehavior {
     }
 
     @Override
-    public void onMenuOpened(StationView view) {
-        LocalPlayer player = Minecraft.getInstance().player;
-        MenuAccess menu = view.menu();
-        if (heldSlot >= 0 && player != null && menu != null && usable(player.getInventory().getItem(heldSlot))) {
-            // One vanilla shift-click of the held stack: the menu sends it to its place on the loom.
-            ItemStack held = player.getInventory().getItem(heldSlot);
-            menu.quickMoveFromInventory(heldSlot);
-            flyFrom = heldSlot;
-            flyNode = clothColour(held) != null ? BANNER : held.getItem() instanceof DyeItem ? DYE : PATTERN;
-        }
-        heldSlot = -1;
-    }
-
-    @Override
     public void onClose(StationView view) {
         book.shut(view);
         queue.clear();
@@ -232,16 +208,11 @@ final class LoomBehavior implements StationBehavior {
         preview = null;
     }
 
-    /** Pieces put onto the loom and taken off it by hand sound; the one laid by itself on opening flies there from the hotbar. */
+    /** Pieces put onto the loom and taken off it by hand sound. */
     @Override
     public void tick(StationView view) {
         watch.tick(view, (node, change) -> {
             if (change > 0) {
-                if (flyFrom >= 0 && node.equals(flyNode)) {
-                    int from = flyFrom;
-                    view.node(node).ifPresent(slot -> StationHands.fly(view, node, from, slot.definition().transform().pos()));
-                    flyFrom = -1;
-                }
                 StationHands.play(view, SoundEvents.ITEM_FRAME_ADD_ITEM, node, 0.3F, 0.9F + 0.2F * StationHands.random(view));
                 if (BANNER.equals(node)) {
                     // A banner laid on the loom unrolls on the frame with a soft wool sound.

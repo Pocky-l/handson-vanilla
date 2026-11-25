@@ -42,8 +42,8 @@ import java.util.List;
  * free either way. As the stone comes out the pieces spring up and drop beside it on the slab, lie there a moment and fly into the
  * inventory where they went; the stone goes back. Picks during a cut are cut after it. A page whose stone is not on the slab lays
  * it there from the inventory first; a page whose stone the player does not have, or with no room for the pieces, makes the slab's
- * stone shake. What the hand held on opening goes onto the slab by itself (one vanilla shift-click). The cuts are the vanilla
- * menu's own: its button picks the recipe, a click on its result takes it. All of it is local.
+ * stone shake. Nothing goes onto the slab by itself. The cuts are the vanilla menu's own:
+ * its button picks the recipe, a click on its result takes it. All of it is local.
  */
 final class StonecutterBehavior implements StationBehavior {
     static final String INPUT = "input";
@@ -89,7 +89,6 @@ final class StonecutterBehavior implements StationBehavior {
 
     private final RecipeBook book = new RecipeBook(new StonecutterBook(this));
     private final StationHands.SlotWatch watch = new StationHands.SlotWatch(INPUT, INPUT);
-    private int heldSlot = -1;
     /** Whether the saw runs across the scene (the player came to its face or back) or along it (to its end). */
     private boolean across = true;
 
@@ -136,11 +135,6 @@ final class StonecutterBehavior implements StationBehavior {
     @Override
     public void onOpen(StationView view) {
         StonecutterUse.refresh();
-        heldSlot = -1;
-        LocalPlayer player = Minecraft.getInstance().player;
-        if (player != null && view.openedByUse() && StonecutterUse.usable(player.getMainHandItem())) {
-            heldSlot = player.getInventory().selected;
-        }
         // The saw runs along the block's sides: across the scene when the player stands at its face or back.
         Direction block = view.level().getBlockState(view.pos()).getOptionalValue(StonecutterBlock.FACING).orElse(Direction.NORTH);
         across = block.getAxis() == view.facing().getAxis();
@@ -148,18 +142,6 @@ final class StonecutterBehavior implements StationBehavior {
         watch.forget();
         stone(view, 0.0F, 0.0F);
         book.opened(view);
-    }
-
-    @Override
-    public void onMenuOpened(StationView view) {
-        LocalPlayer player = Minecraft.getInstance().player;
-        MenuAccess menu = view.menu();
-        if (heldSlot >= 0 && player != null && menu != null && StonecutterUse.usable(player.getInventory().getItem(heldSlot))) {
-            // One vanilla shift-click of the held stack: it goes onto the slab.
-            menu.quickMoveFromInventory(heldSlot);
-            flight(view, heldSlot);
-        }
-        heldSlot = -1;
     }
 
     @Override

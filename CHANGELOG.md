@@ -1,5 +1,8 @@
 # Changelog
 
+## [1.2.6] - 2026-11-25
+- Nothing goes into a station by itself any more: opening a furnace, anvil, grindstone, loom or any other station with something in your hand no longer puts it in, and the enchanting table no longer lays the lapis for you. You choose what goes where.
+
 ## [1.2.5] - 2026-11-25
 - With [Visual Workbench](https://www.curseforge.com/minecraft/mc-mods/visual-workbench) the crafting tables of other mods it works with are worked by hand too, not only the vanilla one.
 - With [Map Atlases](https://modrinth.com/mod/map-atlases) the atlas lies on the cartography table while it is there (it was unseen until taken), and a map cut out of it hovers with its picture.
