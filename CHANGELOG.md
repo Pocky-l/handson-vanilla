@@ -1,6 +1,6 @@
 # Changelog
 
-## [1.2.5+26.1.2] - Unreleased
+## [1.2.5+26.1.2] - 2026-11-25
 - With [Visual Workbench](https://www.curseforge.com/minecraft/mc-mods/visual-workbench) every crafting table it takes over is worked by hand too (it used to open its screen), and what is left on the grid stays in the table.
 - With [Map Atlases](https://modrinth.com/mod/map-atlases) the atlas lies on the cartography table while it is there (it was unseen until taken), and a map cut out of it hovers with its picture.
 
