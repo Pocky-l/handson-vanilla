@@ -35,8 +35,8 @@ Built on [Diegesis](https://www.curseforge.com/minecraft/mc-mods/diegesis), from
   of the logs that burn below, and smoke seeps out round the door while it cooks.
 - **Blast furnace.** Its iron hatch drops open like an oven door: the ore lies on a cast iron grate in the hearth, the result
   beside it, and the fuel on the glowing coals under the grate.
-- **Stonecutter.** Pick a piece in the recipe book beside it and all the stone on the slab is fed through the turning saw,
-  dust flying; the pieces drop beside it and fly into your inventory. Shift + click cuts one piece. A page whose stone is not
+- **Stonecutter.** Pick a piece in the recipe book beside it and the stone on the slab is fed through the turning saw, dust
+  flying; the piece drops beside it and flies into your inventory. Each pick cuts one more; Shift + click cuts all the stone. A page whose stone is not
   on the slab lays it there from your inventory.
 - **Smithing table.** The hammer hanging on its side comes down onto the iron plate. Lay the template, the gear and the
   material on the plate, and what they make hovers beside them; click the hammer or the result and the hammer strikes,
@@ -79,7 +79,7 @@ Built on [Diegesis](https://www.curseforge.com/minecraft/mc-mods/diegesis), from
 | Action | How |
 |---|---|
 | Open a station | Right-click a crafting table, furnace, smoker, blast furnace, stonecutter, smithing table, grindstone, brewing stand, anvil, enchanting table, lectern with a book, loom or cartography table |
-| Cut stone | Click a piece in the stonecutter's book to cut all the stone on the slab; Shift + click cuts one |
+| Cut stone | Click a piece in the stonecutter's book to cut one; Shift + click cuts all the stone on the slab |
 | Upgrade or trim gear | Click the smithing table's hammer or the result over the plate; Shift + click sends it to the inventory |
 | Mend or disenchant | Click the grindstone's wheel or the result over it; Shift + click sends it to the inventory |
 | Rename on the anvil | Click the name over the anvil, type, then Enter; the first key replaces the whole name |
