@@ -30,8 +30,7 @@ Built on [Diegesis](https://www.curseforge.com/minecraft/mc-mods/diegesis), from
   one by one or all at once, and the result hovers over the table, its count turned to you. Take it with a click, or
   Shift + click to craft as many as the grid allows.
 - **Furnace.** Its grille doors swing open: what smelts lies on the grate in its mouth, the result beside it, and the
-  fuel on the coals below, glowing while it burns. A thin bar over the grate fills as it cooks. Use a furnace with ore
-  or coal in hand and it goes in by itself.
+  fuel on the coals below, glowing while it burns. A thin bar over the grate fills as it cooks.
 - **Smoker.** Its glazed door swings out like an oven's: the food lies on an iron rack in the chamber, the fuel in front
   of the logs that burn below, and smoke seeps out round the door while it cooks.
 - **Blast furnace.** Its iron hatch drops open like an oven door: the ore lies on a cast iron grate in the hearth, the result
@@ -52,8 +51,8 @@ Built on [Diegesis](https://www.curseforge.com/minecraft/mc-mods/diegesis), from
   the name it will bear and what it costs. Click the name to type a new one; click the result and a hammer comes down on
   the anvil, sparks fly, and the piece is yours.
 - **Enchanting table.** Its book comes to you and opens over the table with the three offers written on its pages: the
-  clue and what it costs on the left, the runes and the level needed on the right. The lapis lies down by itself; click an
-  offer to enchant.
+  clue and what it costs on the left, the runes and the level needed on the right. Lay the item and the lapis on the table,
+  then click an offer to enchant.
 - **Lectern.** Read the book right on the lectern, two pages at once. Turn the pages with a click on their foot, the wheel
   or Page Up and Page Down, and take the book by its ribbon.
 - **Loom.** The banner hangs over the loom and shows the pattern under the cursor before you weave it. Click a pattern in

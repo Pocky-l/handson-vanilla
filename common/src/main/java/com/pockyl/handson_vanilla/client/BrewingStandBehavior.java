@@ -1,7 +1,5 @@
 package com.pockyl.handson_vanilla.client;
 
-import net.minecraft.client.Minecraft;
-import net.minecraft.client.player.LocalPlayer;
 import net.minecraft.core.component.DataComponents;
 import net.minecraft.util.RandomSource;
 import net.minecraft.world.inventory.BrewingStandMenu;
@@ -26,7 +24,7 @@ import java.util.List;
  * ingredient on top of the rod, the blaze powder on the ground by its foot; every vanilla click works on them. The brew shows on
  * the stand itself: the ingredient shrinks as the brew goes on, drops fall from it towards the bottles, bubbles of each potion's
  * colour rise in them and a small flame burns at the rod's foot; when it is done the potions in the bottles are the new ones
- * (vanilla's finishing sound is the server's). What the hand held on opening goes to its place by itself. All of it is local.
+ * (vanilla's finishing sound is the server's). Nothing goes in by itself. All of it is local.
  */
 final class BrewingStandBehavior implements StationBehavior {
     static final String BOTTLES = "bottles";
@@ -57,7 +55,6 @@ final class BrewingStandBehavior implements StationBehavior {
     private float dropIn;
     private float flameIn;
     private float shownScale = 1.0F;
-    private int heldSlot = -1;
 
     @Override
     public void onSceneReady(StationView view) {
@@ -85,11 +82,6 @@ final class BrewingStandBehavior implements StationBehavior {
 
     @Override
     public void onOpen(StationView view) {
-        heldSlot = -1;
-        LocalPlayer player = Minecraft.getInstance().player;
-        if (player != null && view.openedByUse() && !player.getMainHandItem().isEmpty()) {
-            heldSlot = player.getInventory().getSelectedSlot();
-        }
         yaw = ((int) view.facing().toYRot() + 180) % 360;
         Matrix3f turn = new Matrix3f().rotationY((float) Math.toRadians(yaw));
         view.node(BODY).ifPresent(node -> node.rotateTo(0.0F, yaw, 0.0F, 0.0F));
@@ -125,17 +117,6 @@ final class BrewingStandBehavior implements StationBehavior {
         Vector3f at = turned(rest, turn);
         node.moveTo(at.x - rest.x(), at.y - rest.y(), at.z - rest.z(), 0.0F);
         return at;
-    }
-
-    @Override
-    public void onMenuOpened(StationView view) {
-        LocalPlayer player = Minecraft.getInstance().player;
-        MenuAccess menu = view.menu();
-        if (heldSlot >= 0 && player != null && menu != null && usable(view, player.getInventory().getItem(heldSlot))) {
-            // One vanilla shift-click of the held stack: the menu's own rule sends it onto a pad, the rod or the ground.
-            menu.quickMoveFromInventory(heldSlot);
-        }
-        heldSlot = -1;
     }
 
     @Override
