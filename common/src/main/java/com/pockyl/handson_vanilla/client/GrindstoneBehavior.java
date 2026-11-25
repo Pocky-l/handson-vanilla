@@ -94,7 +94,6 @@ final class GrindstoneBehavior implements StationBehavior {
      */
     private boolean faceOn;
     private float side;
-    private int heldSlot = -1;
     private final HoveringResult result = new HoveringResult(RESULT_SIZE);
 
     @Override
@@ -124,11 +123,6 @@ final class GrindstoneBehavior implements StationBehavior {
 
     @Override
     public void onOpen(StationView view) {
-        heldSlot = -1;
-        LocalPlayer player = Minecraft.getInstance().player;
-        if (player != null && view.openedByUse() && usable(player.getMainHandItem())) {
-            heldSlot = player.getInventory().getSelectedSlot();
-        }
         stand(view);
         phase = Phase.IDLE;
         queued = 0;
@@ -195,17 +189,6 @@ final class GrindstoneBehavior implements StationBehavior {
         float sign = i == 0 ? 1.0F : -1.0F;
         return faceOn ? new Vector3f(middle.x + sign * (side + off), middle.y, middle.z - SIDE_FORWARD)
                 : new Vector3f(middle.x + sign * HELD_ACROSS, middle.y, front - off);
-    }
-
-    @Override
-    public void onMenuOpened(StationView view) {
-        LocalPlayer player = Minecraft.getInstance().player;
-        MenuAccess menu = view.menu();
-        if (heldSlot >= 0 && player != null && menu != null && usable(player.getInventory().getItem(heldSlot))) {
-            // One vanilla shift-click of the held stack: it goes to the first free place before the wheel.
-            menu.quickMoveFromInventory(heldSlot);
-        }
-        heldSlot = -1;
     }
 
     @Override

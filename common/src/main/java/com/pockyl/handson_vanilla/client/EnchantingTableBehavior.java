@@ -43,7 +43,8 @@ import java.util.Optional;
  * table's book hovers, and opens before the camera with the three offers written in it: on the right page each offer's runes, the
  * lapis it takes and the levels it needs, on the left what vanilla's tooltip says (the clue, the lapis and levels it costs), and at
  * the left page's foot the player's own level, as the HUD shows it. A click on an offer enchants (the menu's button, at once); one
- * that cannot be paid shakes the book and the thing missing answers. The item and the lapis lie on the table; lapis lays itself.
+ * that cannot be paid shakes the book and the thing missing answers. The item and the lapis lie on the table, put there
+ * by the player.
  * On leaving the book half shuts and goes back to the table's own book where it hovers now, and the table takes over again.
  */
 final class EnchantingTableBehavior implements StationBehavior {
@@ -125,8 +126,6 @@ final class EnchantingTableBehavior implements StationBehavior {
     private static final float IDLE_OUT = 0.12F;
     /** How long a press may wait for the server's enchanted item, seconds. */
     private static final float ANSWER_WAIT = 3.0F;
-    /** How long the book waits open for the offers of the held stack laid by itself on opening, seconds. */
-    private static final float EXPECT_OFFERS = 1.0F;
     /** The covers' angle open, as vanilla's book over the table; the sheets lie a little off the blocks of pages. */
     private static final float OPEN_ANGLE = 1.4F;
     private static final float SHEET_INSET = 0.97F;
@@ -233,13 +232,7 @@ final class EnchantingTableBehavior implements StationBehavior {
     private float streamUntil = -10.0F;
     private final Vector3f streamFrom = new Vector3f();
     private float streamCarry;
-    /** Until when offers are expected for a stack laid by itself, on the station's clock. */
-    private float expectingUntil = -10.0F;
     private ItemStack seenItem = ItemStack.EMPTY;
-    private int heldSlot = -1;
-    /** The inventory slots whose stacks went onto the table by themselves, to fly from there when they land; -1: none. */
-    private int itemFrom = -1;
-    private int lapisFrom = -1;
     /** The station, for the pages' painter. */
     private StationView station;
 
@@ -274,15 +267,7 @@ final class EnchantingTableBehavior implements StationBehavior {
 
     @Override
     public void onOpen(StationView view) {
-        heldSlot = -1;
-        LocalPlayer player = Minecraft.getInstance().player;
-        if (player != null && view.openedByUse() && player.getMainHandItem().copyWithCount(1).isEnchantable()) {
-            heldSlot = player.getInventory().getSelectedSlot();
-        }
-        itemFrom = -1;
-        lapisFrom = -1;
         coming = true;
-        expectingUntil = view.openedByUse() && heldSlot >= 0 ? clock + EXPECT_OFFERS + 0.5F : -10.0F;
         pressedAt = -10.0F;
         offersSpread = NO_SPREAD;
         offersWaiting = false;
@@ -317,34 +302,6 @@ final class EnchantingTableBehavior implements StationBehavior {
     }
 
     @Override
-    public void onMenuOpened(StationView view) {
-        LocalPlayer player = Minecraft.getInstance().player;
-        MenuAccess menu = view.menu();
-        EnchantmentMenu enchanting = enchanting(view);
-        if (player == null || menu == null || enchanting == null) {
-            return;
-        }
-        if (heldSlot >= 0 && player.getInventory().getItem(heldSlot).copyWithCount(1).isEnchantable()) {
-            // One vanilla shift-click of the held stack: one of it goes onto the table.
-            menu.quickMoveFromInventory(heldSlot);
-            itemFrom = heldSlot;
-            expectingUntil = clock + EXPECT_OFFERS;
-        }
-        heldSlot = -1;
-        if (!enchanting.getSlot(LAPIS_SLOT).hasItem()) {
-            // The lapis lays itself: the first stack the slot takes, the hotbar first, by a vanilla shift-click.
-            for (int slot = 0; slot < 36; slot++) {
-                ItemStack stack = player.getInventory().getItem(slot);
-                if (!stack.isEmpty() && slot != itemFrom && enchanting.getSlot(LAPIS_SLOT).mayPlace(stack)) {
-                    menu.quickMoveFromInventory(slot);
-                    lapisFrom = slot;
-                    break;
-                }
-            }
-        }
-    }
-
-    @Override
     public void onClose(StationView view) {
         coming = false;
         hoveredRow = -1;
@@ -372,15 +329,6 @@ final class EnchantingTableBehavior implements StationBehavior {
         watch.tick(view, (node, change) -> {
             boolean lapis = LAPIS.equals(node);
             if (change > 0) {
-                int from = lapis ? lapisFrom : itemFrom;
-                if (from >= 0) {
-                    view.node(node).ifPresent(slot -> StationHands.fly(view, node, from, slot.definition().transform().pos()));
-                    if (lapis) {
-                        lapisFrom = -1;
-                    } else {
-                        itemFrom = -1;
-                    }
-                }
                 float pitch = (lapis ? 1.3F : 0.9F) + 0.2F * StationHands.random(view);
                 StationHands.play(view, SoundEvents.ITEM_FRAME_ADD_ITEM, node, 0.3F, pitch);
                 if (!lapis && clock - riffleStart > RIFFLE_SAME) {
