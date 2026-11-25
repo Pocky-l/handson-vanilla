@@ -21,11 +21,14 @@ import java.util.Set;
 /**
  * Whether a stack can do anything in a crafting grid: an ingredient of a crafting recipe the client knows ({@link #refresh}), or
  * something the special recipes take (a tool to repair, leather to dye, a dye, a map or a book to copy, a firework, a banner, a
- * shield, a shulker box, a lingering potion for arrows). Stacks that can do nothing stay out of the rows over the hotbar.
+ * shield, a shulker box, a lingering potion for arrows, an empty map
+ * or a book and quill to copy onto, a firework star's shape and fade, a decorated pot's sherds). Stacks that can do nothing stay out of the rows over the hotbar.
  */
 final class CraftingUse {
     private static final Set<Item> SPECIAL = Set.of(Items.FILLED_MAP, Items.WRITTEN_BOOK, Items.FIREWORK_STAR, Items.FIREWORK_ROCKET,
-            Items.LINGERING_POTION, Items.SHIELD, Items.SUSPICIOUS_STEW);
+            Items.LINGERING_POTION, Items.SHIELD, Items.SUSPICIOUS_STEW, Items.MAP, Items.WRITABLE_BOOK, Items.FIRE_CHARGE,
+            Items.SKELETON_SKULL, Items.WITHER_SKELETON_SKULL, Items.ZOMBIE_HEAD, Items.PLAYER_HEAD, Items.CREEPER_HEAD, Items.DRAGON_HEAD,
+            Items.PIGLIN_HEAD);
 
     private static final Set<Item> INGREDIENTS = new HashSet<>();
 
@@ -68,7 +71,8 @@ final class CraftingUse {
         }
         Item item = stack.getItem();
         // Leather to dye: the items a cauldron washes the dye off (Minecraft 1.21.1's dyeable tag).
-        return INGREDIENTS.contains(item) || SPECIAL.contains(item) || stack.isDamageableItem()
+        return INGREDIENTS.contains(item) || SPECIAL.contains(item) || stack.is(ItemTags.DECORATED_POT_INGREDIENTS)
+                || stack.isDamageableItem()
                 || stack.is(ItemTags.CAULDRON_CAN_REMOVE_DYE) || stack.is(ItemTags.DYES)
                 || item instanceof BannerItem || item instanceof BlockItem block && block.getBlock() instanceof ShulkerBoxBlock;
     }
