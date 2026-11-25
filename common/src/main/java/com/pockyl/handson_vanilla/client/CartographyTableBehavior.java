@@ -51,6 +51,8 @@ final class CartographyTableBehavior implements StationBehavior {
     private static final Identifier GLASS = vanilla("block/glass");
     /** The map lying on the table, pixels; the hovering sheet's: a map, the zoomed out sheet, the two copies apart. */
     private static final float LYING = 6.0F;
+    /** Another mod's piece lying in the map's place (Map Atlases' atlas), pixels: about the lying map's size. */
+    private static final float LYING_ITEM = 5.6F;
     private static final float SHEET = 6.0F;
     private static final float WIDER = 8.0F;
     private static final float COPY_APART = 1.4F;
@@ -151,7 +153,8 @@ final class CartographyTableBehavior implements StationBehavior {
             ItemStack held = player.getInventory().getItem(heldSlot);
             menu.quickMoveFromInventory(heldSlot);
             flyFrom = heldSlot;
-            flyNode = held.is(Items.FILLED_MAP) ? MAP : EXTRA;
+            // The menu's own rule: what another mod lets into the map's place (Map Atlases' atlas) flies there too.
+            flyNode = menu.handle().getSlot(MAP_SLOT).mayPlace(held) ? MAP : EXTRA;
         }
         heldSlot = -1;
     }
@@ -286,6 +289,10 @@ final class CartographyTableBehavior implements StationBehavior {
         if (!made.is(Items.FILLED_MAP)) {
             return Kind.OTHER;
         }
+        if (!stack(view, MAP_SLOT).is(Items.FILLED_MAP)) {
+            // A map made from another mod's piece in the map's place (one cut out of Map Atlases' atlas): a sheet with its picture.
+            return Kind.INKED;
+        }
         if (extra.is(Items.PAPER)) {
             return Kind.ZOOM;
         }
@@ -396,10 +403,17 @@ final class CartographyTableBehavior implements StationBehavior {
 
     // Drawing.
 
-    /** The map lying on the table as a map: its parchment, its picture (or the parchment alone, unknown), glass over a locked one. */
+    /**
+     * The map lying on the table as a map: its parchment, its picture (or the parchment alone, unknown), glass over a locked one.
+     * Anything else another mod lets into the map's place (Map Atlases' atlas) lies there flat as the item.
+     */
     private void paintLying(StationView view, PoseStack poseStack, SceneBuffers buffers, int light) {
         ItemStack map = stack(view, MAP_SLOT);
+        if (map.isEmpty()) {
+            return;
+        }
         if (!map.is(Items.FILLED_MAP)) {
+            HoveringResult.paintLying(view.level(), map, LYING_ITEM, poseStack, buffers, light);
             return;
         }
         poseStack.pushPose();

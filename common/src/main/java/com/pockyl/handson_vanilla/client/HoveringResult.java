@@ -91,6 +91,18 @@ final class HoveringResult {
         poseStack.popPose();
     }
 
+    /** A piece lying flat where it was put, face up and its top away from the camera, as the scene lays a flat item in a slot. */
+    static void paintLying(Level level, ItemStack stack, float itemSize, PoseStack poseStack, SceneBuffers buffers, int light) {
+        poseStack.pushPose();
+        poseStack.translate(0.0F, 0.07F, 0.0F);
+        poseStack.mulPose(Axis.YP.rotationDegrees(180.0F));
+        poseStack.mulPose(Axis.XP.rotationDegrees(-90.0F));
+        poseStack.scale(itemSize, itemSize, itemSize);
+        Draw.item(stack, ItemDisplayContext.FIXED, light, OverlayTexture.NO_OVERLAY, poseStack,
+                DiegesisClient.items(buffers), level, 0);
+        poseStack.popPose();
+    }
+
     static float outCubic(float t) {
         float c = 1.0F - Mth.clamp(t, 0.0F, 1.0F);
         return 1.0F - c * c * c;
