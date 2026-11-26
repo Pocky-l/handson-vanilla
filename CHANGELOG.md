@@ -1,13 +1,13 @@
 # Changelog
 
-## [1.2.6+26.1.2] - 2026-11-25
-- Nothing goes into a station by itself any more: opening a furnace, anvil, grindstone, loom or any other station with something in your hand no longer puts it in, and the enchanting table no longer lays the lapis for you. You choose what goes where.
-- The slots over the hotbar no longer shuffle: opening a station again used to show the places of the last visit, other items among them. Each opening now starts from your inventory as it is, and a stack keeps its place while you work there.
-- The crafting table now offers pottery sherds, heads, empty maps, books and quills and fire charges: they go into decorated pots, firework stars and copies, and were missing from the slots over the hotbar.
-- The furnace, smoker and blast furnace no longer show a bar while they cook: the bars of the grate (the smoker's rack) heat up from left to right instead, under what cooks and on to the result.
-- A pick in the stonecutter's book now cuts one piece, and Shift + click cuts all the stone on the slab. A single click used to cut the whole stack.
-- With [Map Atlases](https://modrinth.com/mod/map-atlases), the mouse wheel over the map hovering above the cartography table picks which map the shears cut out of the atlas, as on its own screen.
-- Tall pieces such as beef no longer poke into the furnace's wall: what cooks and what it became stand a little further in from the sides of the mouth, the faded hint of an empty place too.
+## [1.2.6+26.1.2] - Unreleased
+- Nothing goes into a station by itself any more: an item in your hand stays there when you open a station, and the enchanting table no longer lays the lapis for you.
+- Opening a station again starts the slots over the hotbar from your inventory as it is, instead of the shuffled order of the last visit.
+- The crafting table now offers pottery sherds, heads, empty maps, books and quills and fire charges over the hotbar, for decorated pots, firework stars and copies.
+- The furnace, smoker and blast furnace show the cooking by their grate heating up from left to right instead of a bar.
+- A pick in the stonecutter's book cuts one piece, and Shift + click cuts all the stone on the slab.
+- With [Map Atlases](https://modrinth.com/mod/map-atlases), the mouse wheel over the map above the cartography table picks which map the shears cut out of the atlas.
+- Tall pieces such as beef no longer poke into the furnace's wall.
 
 ## [1.2.5+26.1.2] - 2026-11-25
 - With [Visual Workbench](https://www.curseforge.com/minecraft/mc-mods/visual-workbench) every crafting table it takes over is worked by hand too (it used to open its screen), and what is left on the grid stays in the table.
