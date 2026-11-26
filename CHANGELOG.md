@@ -1,6 +1,6 @@
 # Changelog
 
-## [1.2.6+26.3] - Unreleased
+## [1.2.6+26.3] - 2026-11-26
 - Nothing goes into a station by itself any more: an item in your hand stays there when you open a station, and the enchanting table no longer lays the lapis for you.
 - Opening a station again starts the slots over the hotbar from your inventory as it is, instead of the shuffled order of the last visit.
 - The crafting table now offers pottery sherds, heads, empty maps, books and quills and fire charges over the hotbar, for decorated pots, firework stars and copies.
